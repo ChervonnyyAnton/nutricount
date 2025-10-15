@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrition Tracker v2.0 - WCAG 2.2 Compliant Web Application
-Main Flask application with Telegram Web App support
+Local nutrition tracking application optimized for Raspberry Pi Zero 2W
 """
 
 import hashlib
@@ -56,7 +56,7 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config.from_object(Config)
 
 # Enable CORS for API endpoints
-CORS(app, resources={r"/api/*": {"origins": "*"}, r"/telegram/*": {"origins": "https://web.telegram.org"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # ============================================
 # Database Connection Management
@@ -2311,69 +2311,6 @@ def verify_telegram_webapp_data(init_data: str, bot_token: str) -> bool:
         return False
 
 
-@app.route("/telegram/init")
-def telegram_init():
-    """Initialize Telegram Web App"""
-    return jsonify(
-        json_response(
-            {
-                "telegram_compatible": True,
-                "app_name": Config.APP_NAME,
-                "version": Config.VERSION,
-                "features": [
-                    "Product management",
-                    "Dish creation",
-                    "Food logging",
-                    "Daily statistics",
-                    "Keto index calculation",
-                    "Offline support",
-                ],
-                "keyboard_shortcuts": {
-                    "Alt+1": "Products tab",
-                    "Alt+2": "Dishes tab",
-                    "Alt+3": "Log tab",
-                    "Alt+N": "New entry",
-                    "Alt+S": "Show stats",
-                    "Alt+B": "Create backup",
-                },
-            }
-        )
-    )
-
-
-@app.route("/telegram/webhook", methods=["POST"])
-def telegram_webhook():
-    """Handle Telegram webhook"""
-    try:
-        # Verify webhook secret if configured
-        if Config.TELEGRAM_WEBHOOK_SECRET:
-            received_secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
-            if received_secret != Config.TELEGRAM_WEBHOOK_SECRET:
-                app.logger.warning("Invalid webhook secret")
-                return jsonify({"error": "Unauthorized"}), 401
-
-        data = request.get_json(force=True)
-        app.logger.info(f"Received Telegram webhook: {data}")
-
-        # Basic webhook processing
-        if "message" in data:
-            message = data["message"]
-            chat_id = message["chat"]["id"]
-            text = message.get("text", "")
-
-            # Simple command handling
-            if text.startswith("/start"):
-                # Send welcome message or webapp button
-                pass
-            elif text.startswith("/help"):
-                # Send help information
-                pass
-
-        return jsonify({"ok": True})
-
-    except Exception as e:
-        app.logger.error(f"Telegram webhook error: {e}")
-        return jsonify({"error": "Internal error"}), 500
 
 
 # ============================================

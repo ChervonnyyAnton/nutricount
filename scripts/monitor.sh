@@ -133,11 +133,11 @@ check_logs() {
     
     if command -v docker-compose &> /dev/null; then
         echo "Recent application logs:"
-        docker-compose -f docker-compose.pi-zero.yml logs --tail=10 nutrition-tracker-pi 2>/dev/null || echo "No logs available"
+        docker-compose logs --tail=10 nutrition-tracker 2>/dev/null || echo "No logs available"
         
         echo ""
         echo "Recent nginx logs:"
-        docker-compose -f docker-compose.pi-zero.yml logs --tail=5 nutrition-nginx-pi 2>/dev/null || echo "No logs available"
+        docker-compose logs --tail=5 nutrition-nginx 2>/dev/null || echo "No logs available"
     else
         print_error "Docker Compose not found"
     fi

@@ -1,35 +1,53 @@
-# Standard Dockerfile for local development
+# Optimized Dockerfile for Raspberry Pi Zero 2W
+# Memory-optimized build for 512MB RAM constraint
+
 FROM python:3.11-slim
+
+# Set environment variables for optimization
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /usr/src/app
 
-# Install system dependencies
+# Install only essential system dependencies
 RUN apt-get update && apt-get install -y \
-    curl \
     sqlite3 \
+    curl \
     gcc \
     python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && apt-get autoremove -y
 
-# Copy requirements and install Python dependencies
+# Copy requirements and install Python dependencies with optimizations
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
 
-# Create directories
-RUN mkdir -p data logs backups
+# Create directories with proper permissions
+RUN mkdir -p data logs backups \
+    && chmod 755 data logs backups
 
 # Initialize database
 RUN python init_db.py
 
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser \
+    && chown -R appuser:appuser /usr/src/app
+
+# Switch to non-root user
+USER appuser
+
 # Expose port
 EXPOSE 5000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+# Health check optimized for Pi Zero 2W
+HEALTHCHECK --interval=60s --timeout=15s --start-period=30s --retries=2 \
     CMD curl -f http://localhost:5000/health || exit 1
 
-# Run application
+# Run application with Pi Zero 2W optimized settings
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:app"]

@@ -149,10 +149,10 @@ EOF
 # Build and start the application
 build_and_start() {
     print_status "Building optimized Docker image for Pi Zero 2W..."
-    docker-compose -f docker-compose.pi-zero.yml build --no-cache
+    docker-compose build --no-cache
     
     print_status "Starting Nutrition Tracker..."
-    docker-compose -f docker-compose.pi-zero.yml up -d
+    docker-compose up -d
     
     # Wait for application to start
     print_status "Waiting for application to start..."
@@ -164,7 +164,7 @@ build_and_start() {
         print_status "🌐 Access the application at: http://$(hostname -I | awk '{print $1}'):80"
         print_status "🔧 API endpoint: http://$(hostname -I | awk '{print $1}'):5000"
     else
-        print_error "❌ Application failed to start. Check logs with: docker-compose -f docker-compose.pi-zero.yml logs"
+        print_error "❌ Application failed to start. Check logs with: docker-compose logs"
         exit 1
     fi
 }
@@ -182,8 +182,8 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=$(pwd)
-ExecStart=/usr/bin/docker-compose -f docker-compose.pi-zero.yml up -d
-ExecStop=/usr/bin/docker-compose -f docker-compose.pi-zero.yml down
+ExecStart=/usr/bin/docker-compose up -d
+ExecStop=/usr/bin/docker-compose down
 TimeoutStartSec=0
 
 [Install]
@@ -213,8 +213,8 @@ main() {
     print_status "📋 Next steps:"
     print_status "1. Log out and log back in to apply Docker group changes"
     print_status "2. Access the application at: http://$(hostname -I | awk '{print $1}'):80"
-    print_status "3. Monitor logs with: docker-compose -f docker-compose.pi-zero.yml logs -f"
-    print_status "4. Stop the service with: docker-compose -f docker-compose.pi-zero.yml down"
+    print_status "3. Monitor logs with: docker-compose logs -f"
+    print_status "4. Stop the service with: docker-compose down"
     print_status "5. Restart the service with: sudo systemctl restart nutrition-tracker"
 }
 

@@ -16,10 +16,6 @@ class Config:
     # Database
     DATABASE = (os.environ.get("DATABASE_URL") or "sqlite:///data/nutrition.db").replace("sqlite:///", "")
 
-    # Telegram
-    TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN") or ""
-    TELEGRAM_WEBHOOK_SECRET = os.environ.get("TELEGRAM_WEBHOOK_SECRET") or ""
-
     # Limits (prevent abuse)
     MAX_PRODUCTS = 1000
     MAX_DISHES = 500

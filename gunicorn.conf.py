@@ -1,44 +1,53 @@
-"""Gunicorn configuration for Nutrition Tracker"""
+"""Gunicorn configuration optimized for Raspberry Pi Zero 2W
+Memory-optimized settings for 512MB RAM constraint"""
 
 import os
 import multiprocessing
 
 # Server socket
 bind = "0.0.0.0:5000"
-backlog = 2048
+backlog = 128  # Reduced from 2048
 
-# Worker processes
-workers = min(4, (multiprocessing.cpu_count() * 2) + 1)
+# Worker processes - optimized for Pi Zero 2W
+workers = 1  # Single worker to save memory
 worker_class = "sync"
-worker_connections = 1000
-timeout = 30
-keepalive = 2
+worker_connections = 50  # Reduced from 1000
+timeout = 60  # Increased timeout for slower Pi
+keepalive = 5  # Increased keepalive
 
-# Restart workers after this many requests
-max_requests = 1000
-max_requests_jitter = 100
+# Restart workers after fewer requests to prevent memory leaks
+max_requests = 200  # Reduced from 1000
+max_requests_jitter = 20  # Reduced from 100
 
-# Preload app for better performance
-preload_app = True
+# Disable preload to save memory
+preload_app = False
 
-# Logging
-accesslog = "logs/gunicorn_access.log"
-errorlog = "logs/gunicorn_error.log"
-loglevel = "info"
-
-# Custom log format
-access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'
+# Logging - minimal logging to save disk I/O
+accesslog = "-"  # Log to stdout instead of file
+errorlog = "-"   # Log to stderr instead of file
+loglevel = "warning"  # Reduced logging level
 
 # Process naming
-proc_name = "nutrition_tracker"
+proc_name = "nutrition_tracker_pi"
 
 # Server mechanics
 daemon = False
-pidfile = "/tmp/gunicorn_nutrition.pid"
+pidfile = "/tmp/gunicorn_nutrition_pi.pid"
 user = None
 group = None
 tmp_upload_dir = None
 
-# SSL (if needed)
+# Memory optimization settings
+worker_tmp_dir = "/dev/shm"  # Use RAM for temporary files
+max_requests_jitter = 20
+
+# SSL (disabled for Pi Zero 2W to save resources)
 keyfile = None
 certfile = None
+
+# Additional Pi Zero 2W optimizations
+worker_class = "sync"  # Most memory efficient
+worker_connections = 50  # Conservative connection limit
+timeout = 60  # Longer timeout for slower processing
+graceful_timeout = 30  # Graceful shutdown timeout
+keepalive = 5  # Keep connections alive longer
