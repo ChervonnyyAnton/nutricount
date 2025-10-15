@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     ports:
       - "5000:5000"
-      - "8080:5000"  # Alternative port
+      - "8080:5000" # Alternative port
     volumes:
       - ./data:/usr/src/app/data
       - ./logs:/usr/src/app/logs
@@ -22,13 +22,13 @@ services:
     deploy:
       resources:
         limits:
-          memory: 300M  # Limit memory usage to 300MB
-          cpus: '1.0'   # Limit to 1 CPU core
+          memory: 300M # Limit memory usage to 300MB
+          cpus: '1.0' # Limit to 1 CPU core
         reservations:
-          memory: 200M  # Reserve 200MB
-          cpus: '0.5'   # Reserve half CPU core
+          memory: 200M # Reserve 200MB
+          cpus: '0.5' # Reserve half CPU core
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 60s
       timeout: 15s
       retries: 2
@@ -53,11 +53,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 50M   # Limit nginx memory usage
-          cpus: '0.5'    # Limit nginx CPU usage
+          memory: 50M # Limit nginx memory usage
+          cpus: '0.5' # Limit nginx CPU usage
         reservations:
-          memory: 30M   # Reserve 30MB for nginx
-          cpus: '0.25'  # Reserve quarter CPU core
+          memory: 30M # Reserve 30MB for nginx
+          cpus: '0.25' # Reserve quarter CPU core
     logging:
       driver: "json-file"
       options:
