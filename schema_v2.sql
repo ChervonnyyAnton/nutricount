@@ -353,3 +353,13 @@ INSERT OR IGNORE INTO products (name, calories_per_100g, protein_per_100g, fat_p
 -- Sample user profile
 INSERT OR IGNORE INTO user_profile (gender, birth_date, height_cm, weight_kg, activity_level, goal, keto_type) VALUES
 ('male', '1993-01-01', 185, 121.8, 'moderate', 'weight_loss', 'standard');
+
+-- Performance indexes (only for tables, not views)
+CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+CREATE INDEX IF NOT EXISTS idx_log_entries_date ON log_entries(date);
+CREATE INDEX IF NOT EXISTS idx_log_entries_item ON log_entries(item_type, item_id);
+CREATE INDEX IF NOT EXISTS idx_log_entries_date_meal ON log_entries(date, meal_time);
+CREATE INDEX IF NOT EXISTS idx_dish_ingredients_dish ON dish_ingredients(dish_id);
+CREATE INDEX IF NOT EXISTS idx_dish_ingredients_product ON dish_ingredients(product_id);
+CREATE INDEX IF NOT EXISTS idx_dishes_name ON dishes(name);

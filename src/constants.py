@@ -48,6 +48,13 @@ ERROR_MESSAGES = {
     "database_error": "❌ Database error occurred",
     "validation_error": "❌ Validation failed",
     "server_error": "❌ Internal server error",
+    "cache_error": "❌ Cache operation failed",
+    "permission_denied": "❌ Permission denied",
+    "rate_limit_exceeded": "❌ Too many requests, please slow down",
+    "file_too_large": "❌ File size exceeds limit",
+    "invalid_json": "❌ Invalid JSON format",
+    "missing_required_field": "❌ Required field is missing",
+    "constraint_violation": "❌ Data constraint violation",
 }
 
 # Emojis for UI

@@ -1,7 +1,5 @@
-# Optimized Dockerfile for Raspberry Pi Zero 2W
-# Memory-optimized build for 512MB RAM constraint
-
-FROM python:3.11-slim
+# Multi-stage build for smaller final image
+FROM python:3.11-slim as builder
 
 # Set environment variables for optimization
 ENV PYTHONUNBUFFERED=1 \
@@ -9,35 +7,53 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-WORKDIR /usr/src/app
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install only essential system dependencies
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Final stage
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+# Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
     sqlite3 \
     curl \
-    gcc \
-    python3-dev \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean \
-    && apt-get autoremove -y
+    && apt-get clean
 
-# Copy requirements and install Python dependencies with optimizations
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy virtual environment from builder stage
+COPY --from=builder /opt/venv /opt/venv
+
+# Create app user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Set working directory
+WORKDIR /usr/src/app
 
 # Copy application code
 COPY . .
 
 # Create directories with proper permissions
 RUN mkdir -p data logs backups \
-    && chmod 755 data logs backups
+    && chown -R appuser:appuser /usr/src/app
 
 # Initialize database
 RUN python init_db.py
-
-# Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser \
-    && chown -R appuser:appuser /usr/src/app
 
 # Switch to non-root user
 USER appuser

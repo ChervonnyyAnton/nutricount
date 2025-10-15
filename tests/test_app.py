@@ -12,23 +12,35 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import app, get_db, init_db
+import app as app_module
 
 
 @pytest.fixture
 def client():
     """Create a test client"""
-    # Create a temporary database
-    db_fd, app.config['DATABASE'] = tempfile.mkstemp()
-    app.config['TESTING'] = True
+    import tempfile
+    import os
     
+    # Create temporary database file
+    db_fd, db_path = tempfile.mkstemp(suffix='.db')
+    
+    # Configure app for testing
+    app.config['DATABASE'] = db_path
+    app.config['TESTING'] = True
+
+    # Clear cache before each test
+    app_module._cache.clear()
+
+    # Initialize database
+    with app.app_context():
+        init_db()
+
     with app.test_client() as client:
-        with app.app_context():
-            init_db()
         yield client
     
-    # Clean up
+    # Cleanup
     os.close(db_fd)
-    os.unlink(app.config['DATABASE'])
+    os.unlink(db_path)
 
 
 def test_health_endpoint(client):
@@ -65,17 +77,18 @@ def test_stats_api(client):
     assert 'data' in data
 
 
-def test_database_connection():
+def test_database_connection(client):
     """Test database connection"""
-    db = get_db()
-    assert db is not None
-    
-    # Test basic query
-    cursor = db.execute('SELECT COUNT(*) FROM products')
-    count = cursor.fetchone()[0]
-    assert count >= 0
-    
-    db.close()
+    with app.app_context():
+        db = get_db()
+        assert db is not None
+
+        # Test basic query
+        cursor = db.execute('SELECT COUNT(*) FROM products')
+        count = cursor.fetchone()[0]
+        assert count >= 0
+
+        db.close()
 
 
 def test_create_product(client):

@@ -11,6 +11,7 @@ import shutil
 import sqlite3
 import time
 from datetime import date, datetime
+from functools import wraps
 
 from flask import Flask, jsonify, render_template, request, send_file, send_from_directory
 from flask_cors import CORS
@@ -58,6 +59,37 @@ app.config.from_object(Config)
 # Enable CORS for API endpoints
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+# Simple in-memory cache for Pi Zero 2W
+_cache = {}
+_cache_timeout = 300  # 5 minutes
+
+def cached_response(timeout=300):
+    """Simple cache decorator for API responses"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Create cache key from function name and arguments
+            cache_key = f"{f.__name__}:{hash(str(args) + str(kwargs))}"
+            
+            # Check if cached response exists and is not expired
+            if cache_key in _cache:
+                cached_data, timestamp = _cache[cache_key]
+                if time.time() - timestamp < timeout:
+                    return cached_data
+            
+            # Execute function and cache result
+            result = f(*args, **kwargs)
+            _cache[cache_key] = (result, time.time())
+            
+            # Clean old cache entries (simple cleanup)
+            if len(_cache) > 50:  # Limit cache size
+                oldest_key = min(_cache.keys(), key=lambda k: _cache[k][1])
+                del _cache[oldest_key]
+            
+            return result
+        return decorated_function
+    return decorator
+
 # ============================================
 # Database Connection Management
 # ============================================
@@ -65,12 +97,14 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 def get_db():
     """Get database connection with proper configuration"""
-    db = sqlite3.connect(Config.DATABASE)
+    db = sqlite3.connect(app.config['DATABASE'])
     db.row_factory = sqlite3.Row
 
-    # Enable WAL mode for better concurrency
-    db.execute("PRAGMA journal_mode = WAL")
-    db.execute("PRAGMA synchronous = NORMAL")
+    # Enable WAL mode for better concurrency (only for file databases)
+    if app.config['DATABASE'] != ':memory:':
+        db.execute("PRAGMA journal_mode = WAL")
+        db.execute("PRAGMA synchronous = NORMAL")
+    
     db.execute("PRAGMA foreign_keys = ON")
 
     return db
@@ -88,6 +122,33 @@ def init_db():
         db.close()
 
         print("✅ Database initialized successfully")
+        
+        # Load sample data only for non-testing environments
+        if not app.config.get('TESTING', False) and app.config['DATABASE'] != ':memory:':
+            db = get_db()
+            sample_products = [
+                ('Chicken Breast', 165, 31.0, 3.6, 0.0, 0.0, 'meat', 0, 'raw'),
+                ('Salmon', 208, 25.4, 12.4, 0.0, 0.0, 'fish', 0, 'raw'),
+                ('Eggs', 155, 13.0, 11.0, 1.1, 0.0, 'dairy', 0, 'raw'),
+                ('Avocado', 160, 2.0, 14.7, 8.5, 6.7, 'fruits', 15, 'raw'),
+                ('Broccoli', 34, 2.8, 0.4, 6.6, 2.6, 'vegetables', 15, 'raw'),
+                ('Almonds', 579, 21.2, 49.9, 21.6, 12.5, 'nuts_seeds', 15, 'minimal'),
+                ('Spinach', 23, 2.9, 0.4, 3.6, 2.2, 'leafy_vegetables', 15, 'raw'),
+                ('Blueberries', 57, 0.7, 0.3, 14.5, 2.4, 'berries', 25, 'raw'),
+                ('Sweet Potato', 86, 1.6, 0.1, 20.1, 3.0, 'root_vegetables', 70, 'minimal')
+            ]
+            
+            for product in sample_products:
+                db.execute(
+                    "INSERT OR IGNORE INTO products (name, calories_per_100g, protein_per_100g, fat_per_100g, carbs_per_100g, fiber_per_100g, category, glycemic_index, processing_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    product
+                )
+            
+            db.commit()
+            db.close()
+            
+            print(f"📊 Sample products loaded: {len(sample_products)}")
+        
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")
         raise
@@ -351,8 +412,19 @@ def products_api():
                     HTTP_BAD_REQUEST,
                 )
 
+    except sqlite3.IntegrityError as e:
+        error_msg = str(e)
+        if "UNIQUE constraint failed" in error_msg:
+            return jsonify(json_response(None, "❌ Product with this name already exists", 400)), 400
+        elif "CHECK constraint failed" in error_msg:
+            return jsonify(json_response(None, "❌ Invalid data values provided", 400)), 400
+        else:
+            return jsonify(json_response(None, ERROR_MESSAGES["constraint_violation"], 400)), 400
+    except sqlite3.Error as e:
+        app.logger.error(f"Database error in products API: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["database_error"], 500)), 500
     except Exception as e:
-        app.logger.error(f"Products API error: {e}")
+        app.logger.error(f"Unexpected error in products API: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
     finally:
         db.close()
@@ -1108,12 +1180,13 @@ def log_detail_api(log_id):
 
 
 @app.route("/api/stats/<date_str>")
+@cached_response(timeout=300)  # Cache stats for 5 minutes
 def daily_stats_api(date_str):
     """Get daily nutrition statistics"""
     db = get_db()
 
     try:
-        # Calculate nutrition totals for the day
+        # Calculate nutrition totals for the day (optimized query)
         stats_query = """
             SELECT 
                 SUM(calculated_calories) as calories,
@@ -1269,34 +1342,16 @@ def daily_stats_api(date_str):
         except Exception as e:
             app.logger.warning(f"Could not calculate personal macros: {e}")
 
-        # Get meal breakdown
+        # Get meal breakdown (optimized query)
         meal_breakdown = {}
         for meal_type in MEAL_TYPES:
             meal_stats = db.execute(
                 """
                 SELECT COUNT(*) as count,
-                       SUM(CASE 
-                           WHEN le.item_type = 'product' 
-                               THEN p.calories_per_100g * le.quantity_grams / 100.0 
-                           WHEN le.item_type = 'dish' 
-                               THEN (
-                                   SELECT CASE 
-                                       WHEN d.total_weight_grams > 0 THEN 
-                                           COALESCE(SUM(p2.calories_per_100g * di.quantity_grams / 100.0), 0) * le.quantity_grams / d.total_weight_grams
-                                       ELSE 
-                                           COALESCE(SUM(p2.calories_per_100g * di.quantity_grams / 100.0), 0) * le.quantity_grams / 100.0
-                                   END
-                                   FROM dish_ingredients di
-                                   JOIN products p2 ON di.product_id = p2.id
-                                   JOIN dishes d ON di.dish_id = d.id
-                                   WHERE di.dish_id = le.item_id
-                               )
-                           ELSE 0 
-                       END) as calories
-                FROM log_entries le
-                LEFT JOIN products p ON le.item_type = 'product' AND le.item_id = p.id
-                WHERE le.date = ? AND le.meal_time = ?
-            """,
+                       SUM(calculated_calories) as calories
+                FROM log_entries_with_details
+                WHERE date = ? AND meal_time = ?
+                """,
                 (date_str, meal_type),
             ).fetchone()
 

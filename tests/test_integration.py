@@ -14,23 +14,35 @@ import json
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import app, get_db, init_db
+import app as app_module
 
 
 @pytest.fixture
 def client():
     """Create a test client with fresh database"""
-    # Create a temporary database
-    db_fd, app.config['DATABASE'] = tempfile.mkstemp()
-    app.config['TESTING'] = True
+    import tempfile
+    import os
     
+    # Create temporary database file
+    db_fd, db_path = tempfile.mkstemp(suffix='.db')
+    
+    # Configure app for testing
+    app.config['DATABASE'] = db_path
+    app.config['TESTING'] = True
+
+    # Clear cache before each test
+    app_module._cache.clear()
+
+    # Initialize database
+    with app.app_context():
+        init_db()
+
     with app.test_client() as client:
-        with app.app_context():
-            init_db()
         yield client
     
-    # Clean up
+    # Cleanup
     os.close(db_fd)
-    os.unlink(app.config['DATABASE'])
+    os.unlink(db_path)
 
 
 def test_complete_workflow(client):
@@ -145,17 +157,20 @@ def test_complete_workflow(client):
         'item_id': dish_id,
         'quantity_grams': 150
     }
-    
+
     response = client.post('/api/log', json=dish_log_data)
     assert response.status_code == 201
     dish_log_response = response.get_json()
     dish_log_id = dish_log_response['data']['id']
-    
+
+    # Clear cache before re-checking statistics
+    app_module._cache.clear()
+
     # 10. Re-check statistics
     response = client.get(f'/api/stats/{log_date}')
     assert response.status_code == 200
     stats_data_after_dish = response.get_json()
-    
+
     # Statistics should have increased
     assert stats_data_after_dish['data']['calories'] > total_calories
     
@@ -171,6 +186,9 @@ def test_complete_workflow(client):
     
     response = client.put(f'/api/products/{product_ids["хлеб"]}', json=updated_bread_data)
     assert response.status_code == 200
+    
+    # Clear cache before re-checking statistics
+    app_module._cache.clear()
     
     # 12. Re-check statistics (should reflect updated bread data)
     response = client.get(f'/api/stats/{log_date}')
@@ -195,6 +213,9 @@ def test_complete_workflow(client):
     response = client.put(f'/api/dishes/{dish_id}', json=updated_dish_data)
     assert response.status_code == 200
     
+    # Clear cache before re-checking statistics
+    app_module._cache.clear()
+    
     # 14. Re-check statistics
     response = client.get(f'/api/stats/{log_date}')
     assert response.status_code == 200
@@ -214,6 +235,9 @@ def test_complete_workflow(client):
     
     response = client.put(f'/api/log/{log_entry_ids[0]}', json=updated_bread_log_data)
     assert response.status_code == 200
+    
+    # Clear cache before re-checking statistics
+    app_module._cache.clear()
     
     # 16. Re-check statistics
     response = client.get(f'/api/stats/{log_date}')
@@ -235,6 +259,9 @@ def test_complete_workflow(client):
     response = client.put(f'/api/log/{dish_log_id}', json=updated_dish_log_data)
     assert response.status_code == 200
     
+    # Clear cache before re-checking statistics
+    app_module._cache.clear()
+    
     # 18. Re-check statistics
     response = client.get(f'/api/stats/{log_date}')
     assert response.status_code == 200
@@ -247,6 +274,9 @@ def test_complete_workflow(client):
     response = client.delete(f'/api/log/{log_entry_ids[0]}')
     assert response.status_code == 200
     
+    # Clear cache before re-checking statistics
+    app_module._cache.clear()
+    
     # 20. Re-check statistics
     response = client.get(f'/api/stats/{log_date}')
     assert response.status_code == 200
@@ -258,6 +288,9 @@ def test_complete_workflow(client):
     # 21. Delete logged dish
     response = client.delete(f'/api/log/{dish_log_id}')
     assert response.status_code == 200
+    
+    # Clear cache before re-checking statistics
+    app_module._cache.clear()
     
     # 22. Re-check statistics
     response = client.get(f'/api/stats/{log_date}')
@@ -310,7 +343,10 @@ def test_complete_workflow(client):
     assert response.status_code == 200
     log_response = response.get_json()
     assert len(log_response['data']) == 0
-    
+
+    # Clear cache before final statistics check
+    app_module._cache.clear()
+
     # Check statistics (should be zero)
     response = client.get(f'/api/stats/{log_date}')
     assert response.status_code == 200
