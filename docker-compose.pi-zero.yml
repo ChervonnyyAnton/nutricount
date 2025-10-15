@@ -1,0 +1,70 @@
+# Docker Compose configuration optimized for Raspberry Pi Zero 2W
+# Memory-optimized settings for 512MB RAM constraint
+
+services:
+  nutrition-tracker:
+    build:
+      context: .
+      dockerfile: dockerfile.pi-zero
+    container_name: nutrition-tracker-pi
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+      - "8080:5000"  # Alternative port
+    volumes:
+      - ./data:/usr/src/app/data
+      - ./logs:/usr/src/app/logs
+      - ./backups:/usr/src/app/backups
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    deploy:
+      resources:
+        limits:
+          memory: 300M  # Limit memory usage to 300MB
+          cpus: '1.0'   # Limit to 1 CPU core
+        reservations:
+          memory: 200M  # Reserve 200MB
+          cpus: '0.5'   # Reserve half CPU core
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 60s
+      timeout: 15s
+      retries: 2
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "1"
+
+  nginx:
+    image: nginx:alpine
+    container_name: nutrition-nginx-pi
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.pi.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/usr/share/nginx/html/static:ro
+    depends_on:
+      - nutrition-tracker
+    deploy:
+      resources:
+        limits:
+          memory: 50M   # Limit nginx memory usage
+          cpus: '0.5'    # Limit nginx CPU usage
+        reservations:
+          memory: 30M   # Reserve 30MB for nginx
+          cpus: '0.25'  # Reserve quarter CPU core
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "1"
+
+networks:
+  default:
+    name: nutrition-network-pi
+    driver: bridge

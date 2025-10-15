@@ -1,0 +1,290 @@
+<!-- Simple Admin Panel - embedded in main app -->
+<div class="modal fade" id="adminModal" tabindex="-1" aria-labelledby="adminModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="adminModalTitle">🔧 Admin Panel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close admin panel"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Quick Stats -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="card bg-primary text-white clickable-card" onclick="showProductsList()"
+                            style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Products</h6>
+                                <h4 id="admin-products-count">-</h4>
+                                <small>Click to view</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card bg-success text-white clickable-card" onclick="showDishesList()"
+                            style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Dishes</h6>
+                                <h4 id="admin-dishes-count">-</h4>
+                                <small>Click to view</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card bg-info text-white clickable-card" onclick="showLogEntriesList()"
+                            style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Log Entries</h6>
+                                <h4 id="admin-log-count">-</h4>
+                                <small>Click to view</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">DB Size</h6>
+                                <h4 id="admin-db-size">-</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <button class="btn btn-primary w-100" onclick="adminCreateBackup()">
+                            💾 Create Backup
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-success w-100" onclick="adminRestoreBackup()">
+                            🔄 Restore Backup
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-warning w-100" onclick="adminOptimizeDB()">
+                            🗜️ Optimize Database
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-danger w-100" onclick="adminCleanup()">
+                            🧹 Cleanup Files
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-info w-100" onclick="adminExportData()">
+                            📤 Export All Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- User Profile -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">👤 Personal Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="profileForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="profileGender" class="form-label">Gender</label>
+                                    <select class="form-select" id="profileGender" name="gender" required>
+                                        <option value="">Select gender</option>
+                                        <option value="male">👨 Male</option>
+                                        <option value="female">👩 Female</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profileBirthDate" class="form-label">Birth Date</label>
+                                    <input type="date" class="form-control" id="profileBirthDate" name="birth_date"
+                                        required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profileHeight" class="form-label">Height (cm)</label>
+                                    <input type="number" class="form-control" id="profileHeight" name="height_cm"
+                                        min="100" max="250" step="1" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profileWeight" class="form-label">Weight (kg)</label>
+                                    <input type="number" class="form-control" id="profileWeight" name="weight_kg"
+                                        min="30" max="500" step="0.1" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profileBodyFat" class="form-label">Body Fat % <small
+                                            class="text-muted">(optional)</small></label>
+                                    <input type="number" class="form-control" id="profileBodyFat"
+                                        name="body_fat_percentage" min="5" max="50" step="0.1"
+                                        aria-describedby="bodyFatHelp">
+                                    <div id="bodyFatHelp" class="form-text">
+                                        For more accurate protein calculation
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profileLeanBodyMass" class="form-label">Lean Body Mass (kg) <small
+                                            class="text-muted">(optional)</small></label>
+                                    <input type="number" class="form-control" id="profileLeanBodyMass"
+                                        name="lean_body_mass_kg" min="20" max="200" step="0.1"
+                                        aria-describedby="lbmHelp">
+                                    <div id="lbmHelp" class="form-text">
+                                        Auto-calculated from body fat % if provided
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profileActivity" class="form-label">Activity Level</label>
+                                    <select class="form-select" id="profileActivity" name="activity_level" required>
+                                        <option value="">Select activity level</option>
+                                        <option value="sedentary">🪑 Sedentary (No exercise, desk job)</option>
+                                        <option value="light">🚶 Light (Light exercise 1-3 days/week)</option>
+                                        <option value="moderate">🏃 Moderate (Moderate exercise 3-5 days/week)</option>
+                                        <option value="active">💪 Active (Intense exercise 6-7 days/week)</option>
+                                        <option value="very_active">🔥 Very Active (Physical job + exercise)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profileGoal" class="form-label">Goal</label>
+                                    <select class="form-select" id="profileGoal" name="goal" required>
+                                        <option value="">Select goal</option>
+                                        <option value="weight_loss">📉 Weight Loss (-15% calories)</option>
+                                        <option value="maintenance">⚖️ Maintenance (0% change)</option>
+                                        <option value="muscle_gain">📈 Muscle Gain (+15% calories)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profileKetoType" class="form-label">Keto Type</label>
+                                    <select class="form-select" id="profileKetoType" name="keto_type" required>
+                                        <option value="">Select keto type</option>
+                                        <option value="strict">🔥 Strict (< 20g carbs)</option>
+                                        <option value="standard">⚖️ Standard (20-50g carbs)</option>
+                                        <option value="moderate">🏃 Moderate (50-100g carbs)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                    Save Profile
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Calculated Macros Display -->
+                        <div id="calculatedMacros" class="mt-4" style="display: none;">
+                            <h6>📊 Your Daily Macros</h6>
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <div class="card bg-primary text-white">
+                                        <div class="card-body text-center">
+                                            <h6>BMR</h6>
+                                            <h5 id="macro-bmr">-</h5>
+                                            <small>kcal/day</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-info text-white">
+                                        <div class="card-body text-center">
+                                            <h6>TDEE</h6>
+                                            <h5 id="macro-tdee">-</h5>
+                                            <small>kcal/day</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <h6>Target</h6>
+                                            <h5 id="macro-target">-</h5>
+                                            <small>kcal/day</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-warning text-dark">
+                                        <div class="card-body text-center">
+                                            <h6>Carbs</h6>
+                                            <h5 id="macro-carbs">-</h5>
+                                            <small>g/day</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row g-2 mt-2">
+                                <div class="col-md-6">
+                                    <div class="card bg-danger text-white">
+                                        <div class="card-body text-center">
+                                            <h6>Protein</h6>
+                                            <h5 id="macro-protein">-</h5>
+                                            <small>g/day</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-secondary text-white">
+                                        <div class="card-body text-center">
+                                            <h6>Fats</h6>
+                                            <h5 id="macro-fats">-</h5>
+                                            <small>g/day</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Management -->
+                <div class="alert alert-warning mb-3">
+                    <h6 class="alert-heading">⚠️ Database Management</h6>
+                    <small>Use these functions with caution - they will permanently delete data!</small>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-warning w-100" onclick="adminCleanupTestData()">
+                            🧪 Clean Test Data
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-danger w-100" onclick="adminWipeDatabase()">
+                            💥 Wipe Database
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hidden file input for restore -->
+                <input type="file" id="restoreFileInput" accept=".db" style="display: none;">
+
+                <!-- Data Lists Section -->
+                <div id="dataListsSection" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 id="listTitle">Data List</h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="hideDataLists()">✕</button>
+                    </div>
+                    <div id="dataListContent" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                        <!-- List content will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- System Info -->
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#systemInfo">
+                                📊 System Information
+                            </button>
+                        </h2>
+                        <div id="systemInfo" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <pre id="admin-system-info" class="small">Loading...</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

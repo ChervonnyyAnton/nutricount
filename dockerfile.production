@@ -1,0 +1,75 @@
+# Production-Ready Dockerfile - Final Version
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    libffi-dev \
+    libssl-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir --no-warn-script-location -r requirements.txt
+
+# Production stage
+FROM python:3.11-slim
+
+# Metadata
+LABEL maintainer="nutrition-tracker@example.com" \
+      version="2.0.0" \
+      description="WCAG 2.2 compliant nutrition tracker"
+
+WORKDIR /usr/src/app
+
+# Create app user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    sqlite3 \
+    ca-certificates \
+    dumb-init \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get autoremove -y \
+    && apt-get autoclean
+
+# Copy Python packages
+COPY --from=builder /root/.local /home/appuser/.local
+
+# Copy application
+COPY --chown=appuser:appuser . .
+
+# Create directories
+RUN mkdir -p data logs backups static/cache \
+    && chown -R appuser:appuser /usr/src/app
+
+# Generate placeholder icons
+RUN echo '<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg"><rect width="192" height="192" fill="#0d6efd"/><text x="96" y="110" fill="white" font-size="48" text-anchor="middle">🥗</text></svg>' > static/icon-192.svg \
+    && echo '<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg"><rect width="512" height="512" fill="#0d6efd"/><text x="256" y="290" fill="white" font-size="128" text-anchor="middle">🥗</text></svg>' > static/icon-512.svg
+
+# Switch to app user
+USER appuser
+
+# Environment
+ENV PATH=/home/appuser/.local/bin:$PATH
+ENV PYTHONPATH=/usr/src/app
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=app.py
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Expose port
+EXPOSE 5000
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:app"]

@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  nutrition-tracker:
+    build: .
+    container_name: nutrition-tracker
+    restart: unless-stopped
+    ports:
+      - "8080:5000"
+    volumes:
+      - ./data:/usr/src/app/data
+      - ./logs:/usr/src/app/logs
+      - ./backups:/usr/src/app/backups
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - FLASK_DEBUG=${FLASK_DEBUG:-0}
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///data/nutrition.db}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      # depends_on:
+      # - nginx
+    networks:
+      - nutrition-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nutrition-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/usr/share/nginx/html/static:ro
+    depends_on:
+      - nutrition-tracker
+    networks:
+      - nutrition-network
+
+volumes:
+  nutrition-data:
+  nutrition-logs:
+  nutrition-backups:
+
+
+networks:
+  nutrition-network:
+    driver: bridge

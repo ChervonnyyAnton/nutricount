@@ -1,0 +1,237 @@
+/* Comprehensive Dark Theme Styles */
+/* This file ensures all elements are properly styled for dark theme */
+
+[data-theme="dark"] {
+    /* Force all text to be light */
+    color-scheme: dark;
+}
+
+/* Override any remaining Bootstrap dark text */
+[data-theme="dark"] .text-dark,
+[data-theme="dark"] .text-black,
+[data-theme="dark"] .text-body {
+    color: var(--text-primary) !important;
+}
+
+/* Ensure all form elements are properly styled */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+    background-color: var(--bg-card) !important;
+    border-color: #0d6efd !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Ensure all buttons are visible */
+[data-theme="dark"] .btn {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-outline-primary {
+    color: #74c0fc;
+    border-color: #74c0fc;
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+    background-color: #74c0fc;
+    color: #000;
+}
+
+[data-theme="dark"] .btn-outline-success {
+    color: #51cf66;
+    border-color: #51cf66;
+}
+
+[data-theme="dark"] .btn-outline-success:hover {
+    background-color: #51cf66;
+    color: #000;
+}
+
+[data-theme="dark"] .btn-outline-warning {
+    color: #ffd43b;
+    border-color: #ffd43b;
+}
+
+[data-theme="dark"] .btn-outline-warning:hover {
+    background-color: #ffd43b;
+    color: #000;
+}
+
+[data-theme="dark"] .btn-outline-danger {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+}
+
+[data-theme="dark"] .btn-outline-danger:hover {
+    background-color: #ff6b6b;
+    color: #fff;
+}
+
+[data-theme="dark"] .btn-outline-info {
+    color: #74c0fc;
+    border-color: #74c0fc;
+}
+
+[data-theme="dark"] .btn-outline-info:hover {
+    background-color: #74c0fc;
+    color: #000;
+}
+
+/* Ensure all table elements are visible */
+[data-theme="dark"] .table-responsive {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .table-striped>tbody>tr:nth-of-type(odd)>td,
+[data-theme="dark"] .table-striped>tbody>tr:nth-of-type(odd)>th {
+    background-color: var(--bg-secondary);
+}
+
+/* Ensure all navigation elements are visible */
+[data-theme="dark"] .navbar {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .navbar-brand {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .navbar-nav .nav-link {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .navbar-nav .nav-link:hover {
+    color: var(--text-primary);
+}
+
+/* Ensure all pagination elements are visible */
+[data-theme="dark"] .pagination .page-link {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .pagination .page-link:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+    background-color: #74c0fc;
+    border-color: #74c0fc;
+    color: #000;
+}
+
+/* Ensure all breadcrumb elements are visible */
+[data-theme="dark"] .breadcrumb {
+    background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .breadcrumb-item {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: var(--text-secondary);
+}
+
+/* Ensure all progress bars are visible */
+[data-theme="dark"] .progress {
+    background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .progress-bar {
+    background-color: #74c0fc;
+}
+
+/* Ensure all tooltips are visible */
+[data-theme="dark"] .tooltip {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .tooltip .tooltip-arrow {
+    border-color: var(--bg-card);
+}
+
+/* Ensure all popovers are visible */
+[data-theme="dark"] .popover {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .popover .popover-header {
+    background-color: var(--bg-secondary);
+    border-bottom-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .popover .popover-body {
+    color: var(--text-primary);
+}
+
+/* Ensure all accordion elements are visible */
+[data-theme="dark"] .accordion {
+    background-color: var(--bg-card);
+}
+
+[data-theme="dark"] .accordion-item {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .accordion-header .accordion-button {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .accordion-header .accordion-button:not(.collapsed) {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .accordion-body {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+/* Ensure all carousel elements are visible */
+[data-theme="dark"] .carousel {
+    background-color: var(--bg-card);
+}
+
+[data-theme="dark"] .carousel-item {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .carousel-caption {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: var(--text-primary);
+}
+
+/* Ensure all offcanvas elements are visible */
+[data-theme="dark"] .offcanvas {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .offcanvas-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .offcanvas-body {
+    color: var(--text-primary);
+}

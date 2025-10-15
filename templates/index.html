@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🥗 Nutrition Tracker</title>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Nutrition Tracker">
+    <link rel="apple-touch-icon" href="/static/icon-192.svg">
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Track calories, macros and keto index with precision. WCAG 2.2 compliant nutrition tracker.">
+    <meta name="keywords" content="nutrition, calories, keto, health, food tracking, accessibility">
+    <meta name="author" content="Nutrition Tracker Team">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/final-polish.css">
+    <link rel="stylesheet" href="/static/css/dark-theme.css">
+
+    <!-- Accessibility Enhancements -->
+    <style>
+        /* Skip links for screen readers */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: var(--bs-primary);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            border-radius: 0 0 4px 4px;
+            z-index: 1000;
+            transition: top 0.3s;
+        }
+
+        .skip-link:focus {
+            top: 0;
+            color: white;
+        }
+
+        /* Enhanced focus indicators */
+        .form-control:focus,
+        .btn:focus,
+        .nav-link:focus {
+            outline: 3px solid rgba(13, 110, 253, 0.5);
+            outline-offset: 2px;
+        }
+
+        /* CSS Variables for theming */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --stat-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #212529;
+            --bg-secondary: #343a40;
+            --bg-card: #343a40;
+            --text-primary: #ffffff;
+            --text-secondary: #adb5bd;
+            --border-color: #6c757d;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --stat-gradient: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        }
+
+        /* Apply theme variables */
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .form-control,
+        .form-select {
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .table {
+            --bs-table-bg: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        .border-bottom {
+            border-color: var(--border-color) !important;
+        }
+
+        .border-top {
+            border-color: var(--border-color) !important;
+        }
+
+        /* Dark theme specific improvements */
+        [data-theme="dark"] .nav-tabs .nav-link {
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .nav-tabs .nav-link.active {
+            background-color: var(--bg-card);
+            border-color: var(--border-color) var(--border-color) var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .nav-tabs .nav-link:hover {
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .btn-outline-secondary {
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .btn-outline-secondary:hover {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .table-hover tbody tr:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        [data-theme="dark"] .form-control:focus,
+        [data-theme="dark"] .form-select:focus {
+            background-color: var(--bg-card);
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Additional dark theme fixes */
+        [data-theme="dark"] .card-header {
+            background-color: var(--bg-secondary);
+            border-bottom-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .card-footer {
+            background-color: var(--bg-secondary);
+            border-top-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .table {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .table th {
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .table td {
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .table-striped>tbody>tr:nth-of-type(odd)>td {
+            background-color: var(--bg-secondary);
+        }
+
+        [data-theme="dark"] .modal-content {
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .modal-header {
+            border-bottom-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .modal-footer {
+            border-top-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .toast {
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .toast-header {
+            background-color: var(--bg-secondary);
+            border-bottom-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .alert {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .list-group-item {
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .list-group-item:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        [data-theme="dark"] .dropdown-menu {
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .dropdown-item {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .dropdown-item:hover {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .badge {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        [data-theme="dark"] .text-dark {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .border {
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] .border-light {
+            border-color: var(--border-color) !important;
+        }
+
+        /* Additional Bootstrap classes for dark theme */
+        [data-theme="dark"] .text-danger {
+            color: #ff6b6b !important;
+        }
+
+        [data-theme="dark"] .text-success {
+            color: #51cf66 !important;
+        }
+
+        [data-theme="dark"] .text-warning {
+            color: #ffd43b !important;
+        }
+
+        [data-theme="dark"] .text-info {
+            color: #74c0fc !important;
+        }
+
+        [data-theme="dark"] .text-primary {
+            color: #74c0fc !important;
+        }
+
+        [data-theme="dark"] .text-secondary {
+            color: var(--text-secondary) !important;
+        }
+
+        [data-theme="dark"] .text-white {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .text-black {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .text-black-50 {
+            color: var(--text-secondary) !important;
+        }
+
+        [data-theme="dark"] .text-white-50 {
+            color: var(--text-secondary) !important;
+        }
+
+        [data-theme="dark"] .bg-light {
+            background-color: var(--bg-secondary) !important;
+        }
+
+        [data-theme="dark"] .bg-white {
+            background-color: var(--bg-card) !important;
+        }
+
+        [data-theme="dark"] .bg-dark {
+            background-color: var(--bg-primary) !important;
+        }
+
+        [data-theme="dark"] .bg-transparent {
+            background-color: transparent !important;
+        }
+
+        /* Spinner colors */
+        [data-theme="dark"] .spinner-border {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .spinner-border.text-primary {
+            color: #74c0fc !important;
+        }
+
+        /* Footer and header borders */
+        [data-theme="dark"] .border-bottom {
+            border-bottom-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] .border-top {
+            border-top-color: var(--border-color) !important;
+        }
+
+        /* Links */
+        [data-theme="dark"] a {
+            color: #74c0fc;
+        }
+
+        [data-theme="dark"] a:hover {
+            color: #99d9ff;
+        }
+
+        [data-theme="dark"] .text-decoration-none {
+            color: inherit;
+        }
+
+        /* Small text */
+        [data-theme="dark"] small {
+            color: var(--text-secondary);
+        }
+
+        /* Form labels */
+        [data-theme="dark"] label {
+            color: var(--text-primary);
+        }
+
+        /* Clickable cards */
+        .clickable-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .clickable-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        [data-theme="dark"] .clickable-card:hover {
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Placeholder text */
+        [data-theme="dark"] .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .form-select option {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        /* Dynamic elements created by JavaScript */
+        [data-theme="dark"] .badge {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .badge.bg-success {
+            background-color: #51cf66 !important;
+            color: #000 !important;
+        }
+
+        [data-theme="dark"] .badge.bg-warning {
+            background-color: #ffd43b !important;
+            color: #000 !important;
+        }
+
+        [data-theme="dark"] .badge.bg-danger {
+            background-color: #ff6b6b !important;
+            color: #fff !important;
+        }
+
+        [data-theme="dark"] .badge.bg-info {
+            background-color: #74c0fc !important;
+            color: #000 !important;
+        }
+
+        [data-theme="dark"] .badge.bg-primary {
+            background-color: #74c0fc !important;
+            color: #000 !important;
+        }
+
+        [data-theme="dark"] .badge.bg-secondary {
+            background-color: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .badge.bg-light {
+            background-color: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .badge.bg-dark {
+            background-color: var(--bg-primary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Toast notifications */
+        [data-theme="dark"] .toast.text-bg-success {
+            background-color: #51cf66 !important;
+            color: #000 !important;
+        }
+
+        [data-theme="dark"] .toast.text-bg-warning {
+            background-color: #ffd43b !important;
+            color: #000 !important;
+        }
+
+        [data-theme="dark"] .toast.text-bg-danger {
+            background-color: #ff6b6b !important;
+            color: #fff !important;
+        }
+
+        [data-theme="dark"] .toast.text-bg-info {
+            background-color: #74c0fc !important;
+            color: #000 !important;
+        }
+
+        [data-theme="dark"] .toast.text-bg-primary {
+            background-color: #74c0fc !important;
+            color: #000 !important;
+        }
+
+        [data-theme="dark"] .toast.text-bg-secondary {
+            background-color: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .toast.text-bg-light {
+            background-color: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .toast.text-bg-dark {
+            background-color: var(--bg-primary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Alert notifications */
+        [data-theme="dark"] .alert-success {
+            background-color: rgba(81, 207, 102, 0.1);
+            border-color: #51cf66;
+            color: #51cf66;
+        }
+
+        [data-theme="dark"] .alert-warning {
+            background-color: rgba(255, 212, 59, 0.1);
+            border-color: #ffd43b;
+            color: #ffd43b;
+        }
+
+        [data-theme="dark"] .alert-danger {
+            background-color: rgba(255, 107, 107, 0.1);
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        [data-theme="dark"] .alert-info {
+            background-color: rgba(116, 192, 252, 0.1);
+            border-color: #74c0fc;
+            color: #74c0fc;
+        }
+
+        [data-theme="dark"] .alert-primary {
+            background-color: rgba(116, 192, 252, 0.1);
+            border-color: #74c0fc;
+            color: #74c0fc;
+        }
+
+        [data-theme="dark"] .alert-secondary {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .alert-light {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .alert-dark {
+            background-color: var(--bg-primary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        /* Card elements */
+        [data-theme="dark"] .card-title {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .card-text {
+            color: var(--text-primary);
+        }
+
+        /* Nutrition info */
+        [data-theme="dark"] .nutrition-info {
+            color: var(--text-secondary);
+        }
+
+        /* Stat labels */
+        [data-theme="dark"] .stat-label {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Close buttons */
+        [data-theme="dark"] .btn-close {
+            filter: invert(1);
+        }
+
+        [data-theme="dark"] .btn-close-white {
+            filter: none;
+        }
+
+        /* Universal dark theme fixes */
+        [data-theme="dark"] * {
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] h1,
+        [data-theme="dark"] h2,
+        [data-theme="dark"] h3,
+        [data-theme="dark"] h4,
+        [data-theme="dark"] h5,
+        [data-theme="dark"] h6 {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] p {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] div {
+            color: inherit;
+        }
+
+        [data-theme="dark"] span {
+            color: inherit;
+        }
+
+        [data-theme="dark"] strong,
+        [data-theme="dark"] b {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] em,
+        [data-theme="dark"] i {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .fw-medium {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .fw-bold {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .fw-light {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .fs-6 {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .fs-5 {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .fs-4 {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .fs-3 {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .fs-2 {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .fs-1 {
+            color: var(--text-primary);
+        }
+
+        /* Override any remaining dark text */
+        [data-theme="dark"] .text-dark,
+        [data-theme="dark"] .text-black {
+            color: var(--text-primary) !important;
+        }
+
+        /* Ensure all borders are visible */
+        [data-theme="dark"] .border,
+        [data-theme="dark"] .border-1,
+        [data-theme="dark"] .border-2,
+        [data-theme="dark"] .border-3,
+        [data-theme="dark"] .border-4,
+        [data-theme="dark"] .border-5 {
+            border-color: var(--border-color) !important;
+        }
+
+        /* Delete button styling */
+        .delete-btn {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white !important;
+            font-weight: bold;
+            font-size: 0.9rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.2s ease;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333 !important;
+            border-color: #bd2130 !important;
+            color: white !important;
+            transform: scale(1.05);
+        }
+
+        .delete-btn:focus {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+        }
+
+        .delete-btn:active {
+            background-color: #bd2130 !important;
+            border-color: #b21f2d !important;
+            color: white !important;
+        }
+
+        /* Dark theme delete button */
+        [data-theme="dark"] .delete-btn {
+            background-color: #e74c3c !important;
+            border-color: #e74c3c !important;
+            color: white !important;
+        }
+
+        [data-theme="dark"] .delete-btn:hover {
+            background-color: #c0392b !important;
+            border-color: #c0392b !important;
+            color: white !important;
+        }
+
+        [data-theme="dark"] .delete-btn:focus {
+            background-color: #e74c3c !important;
+            border-color: #e74c3c !important;
+            color: white !important;
+            box-shadow: 0 0 0 0.25rem rgba(231, 76, 60, 0.25);
+        }
+
+        [data-theme="dark"] .delete-btn:active {
+            background-color: #c0392b !important;
+            border-color: #c0392b !important;
+            color: white !important;
+        }
+
+        /* Edit button styling */
+        .edit-btn {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: white !important;
+            font-weight: bold;
+            font-size: 0.9rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0a58ca !important;
+            color: white !important;
+            transform: scale(1.05);
+        }
+
+        .edit-btn:focus {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: white !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .edit-btn:active {
+            background-color: #0a58ca !important;
+            border-color: #0a53be !important;
+            color: white !important;
+        }
+
+        /* Dark theme edit button */
+        [data-theme="dark"] .edit-btn {
+            background-color: #4a9eff !important;
+            border-color: #4a9eff !important;
+            color: white !important;
+        }
+
+        [data-theme="dark"] .edit-btn:hover {
+            background-color: #3d8bdb !important;
+            border-color: #3d8bdb !important;
+            color: white !important;
+        }
+
+        [data-theme="dark"] .edit-btn:focus {
+            background-color: #4a9eff !important;
+            border-color: #4a9eff !important;
+            color: white !important;
+            box-shadow: 0 0 0 0.25rem rgba(74, 158, 255, 0.25);
+        }
+
+        [data-theme="dark"] .edit-btn:active {
+            background-color: #3d8bdb !important;
+            border-color: #3d8bdb !important;
+            color: white !important;
+        }
+
+        /* Button group styling */
+        .btn-group .edit-btn {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .btn-group .delete-btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        /* Theme toggle button animation */
+        #themeToggle {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #themeToggle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        #themeToggle:hover::before {
+            left: 100%;
+        }
+
+        [data-theme="dark"] #themeToggle::before {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* High contrast support */
+        @media (prefers-contrast: high) {
+            .btn-primary {
+                background-color: #000000 !important;
+                border-color: #000000 !important;
+            }
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 0.75rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 0.5rem;
+            }
+        }
+
+        .stat-item {
+            background: var(--stat-gradient);
+            color: white;
+            padding: 1.25rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .stat-item {
+                padding: 1rem;
+                min-height: 100px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stat-item {
+                padding: 0.75rem;
+                min-height: 80px;
+            }
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            line-height: 1.2;
+        }
+
+        @media (max-width: 768px) {
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stat-value {
+                font-size: 1.25rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Network status */
+        #network-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            z-index: 1050;
+            display: none;
+        }
+
+        #network-status.offline {
+            display: block;
+            background: #dc3545;
+            color: white;
+        }
+
+        /* Print styles */
+        @media print {
+
+            .no-print,
+            nav,
+            .btn,
+            #network-status {
+                display: none !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            body {
+                font-size: 12pt;
+                line-height: 1.4;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Skip links for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <a href="#navigation" class="skip-link">Skip to navigation</a>
+
+    <!-- Network status indicator -->
+    <div id="network-status" class="offline" role="status" aria-live="polite">
+        <span id="network-text">🔴 Offline</span>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Header -->
+        <header class="py-3 mb-4 border-bottom">
+            <div class="d-flex align-items-center">
+                <h1 class="h3 mb-0" style="cursor: pointer;" title="Triple-click for admin panel">
+                    🥗 Nutrition Tracker
+                    <small class="text-muted fs-6">v2.0</small>
+                </h1>
+                <div class="ms-auto d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm no-print" id="themeToggle"
+                        aria-label="Toggle theme" title="Switch between light and dark theme">
+                        🌙 Dark
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print()"
+                        aria-label="Print page">
+                        🖨️ Print
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav id="navigation" class="mb-4" role="navigation" aria-label="Main navigation">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products"
+                        type="button" role="tab" aria-controls="products" aria-selected="true">
+                        🥩 Products
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="dishes-tab" data-bs-toggle="tab" data-bs-target="#dishes" type="button"
+                        role="tab" aria-controls="dishes" aria-selected="false">
+                        🍽️ Dishes
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="log-tab" data-bs-toggle="tab" data-bs-target="#log" type="button"
+                        role="tab" aria-controls="log" aria-selected="false">
+                        📝 Food Log
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button"
+                        role="tab" aria-controls="stats" aria-selected="false">
+                        📊 Statistics
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main content -->
+        <main id="main-content" role="main">
+            <div class="tab-content">
+                <!-- Products Tab -->
+                <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab"
+                    tabindex="0">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h2 class="h5 mb-0" id="productFormTitle">Add New Product</h2>
+                                </div>
+                                <div class="card-body">
+                                    <form id="productForm" role="form" aria-label="Add product form">
+                                        <div class="mb-3">
+                                            <label for="productName" class="form-label">
+                                                Product Name <span class="text-danger" aria-label="required">*</span>
+                                            </label>
+                                            <input type="text" class="form-control" id="productName" name="name"
+                                                required maxlength="100" aria-describedby="productNameHelp">
+                                            <div id="productNameHelp" class="form-text">
+                                                Enter the name of the food product
+                                            </div>
+                                        </div>
+
+                                        <fieldset class="mb-3">
+                                            <legend class="h6">Nutrition per 100g</legend>
+
+                                            <div class="row g-3">
+                                                <div class="col-md-4">
+                                                    <label for="protein" class="form-label">
+                                                        Protein (g) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="number" class="form-control" id="protein"
+                                                        name="protein_per_100g" required min="0" max="100" step="0.1">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="fat" class="form-label">
+                                                        Fat (g) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="number" class="form-control" id="fat"
+                                                        name="fat_per_100g" required min="0" max="100" step="0.1">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="carbs" class="form-label">
+                                                        Carbs (g) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="number" class="form-control" id="carbs"
+                                                        name="carbs_per_100g" required min="0" max="100" step="0.1">
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mt-2">
+                                                <div class="col-md-6">
+                                                    <label for="fiber" class="form-label">
+                                                        Fiber (g) <small class="text-muted">(optional)</small>
+                                                    </label>
+                                                    <input type="number" class="form-control" id="fiber"
+                                                        name="fiber_per_100g" min="0" max="100" step="0.1"
+                                                        aria-describedby="fiberHelp">
+                                                    <div id="fiberHelp" class="form-text">
+                                                        Dietary fiber content (if known)
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="category" class="form-label">
+                                                        Category <small class="text-muted">(optional)</small>
+                                                    </label>
+                                                    <select class="form-select" id="category" name="category"
+                                                        aria-describedby="categoryHelp">
+                                                        <option value="">Select category</option>
+                                                        <option value="leafy_vegetables">🥬 Leafy Vegetables</option>
+                                                        <option value="cruciferous">🥦 Cruciferous</option>
+                                                        <option value="nuts_seeds">🥜 Nuts & Seeds</option>
+                                                        <option value="berries">🍓 Berries</option>
+                                                        <option value="processed">📦 Processed Foods</option>
+                                                        <option value="unknown">❓ Unknown</option>
+                                                    </select>
+                                                    <div id="categoryHelp" class="form-text">
+                                                        Used for fiber estimation if not specified
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mt-2">
+                                                <div class="col-md-6">
+                                                    <label for="sugars_per_100g" class="form-label">
+                                                        Sugars (g) <small class="text-muted">(optional)</small>
+                                                    </label>
+                                                    <input type="number" class="form-control" id="sugars_per_100g"
+                                                        name="sugars_per_100g" min="0" max="100" step="0.1"
+                                                        aria-describedby="sugarsHelp">
+                                                    <div id="sugarsHelp" class="form-text">
+                                                        Sugar content for better net carbs calculation
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="processing_level" class="form-label">
+                                                        Processing Level <small class="text-muted">(optional)</small>
+                                                    </label>
+                                                    <select class="form-select" id="processing_level"
+                                                        name="processing_level" aria-describedby="processingHelp">
+                                                        <option value="">Select processing level</option>
+                                                        <option value="raw">🥬 Raw</option>
+                                                        <option value="minimal">🔪 Minimal Processing</option>
+                                                        <option value="processed">📦 Processed</option>
+                                                        <option value="ultra_processed">⚗️ Ultra Processed</option>
+                                                    </select>
+                                                    <div id="processingHelp" class="form-text">
+                                                        Affects keto index calculation
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mt-2">
+                                                <div class="col-md-6">
+                                                    <label for="calories" class="form-label">
+                                                        Calories (auto-calculated)
+                                                    </label>
+                                                    <input type="number" class="form-control" id="calories"
+                                                        name="calories_per_100g" min="0" max="9999" step="0.1"
+                                                        aria-describedby="caloriesHelp" readonly>
+                                                    <div id="caloriesHelp" class="form-text">
+                                                        Calculated from protein, fat, carbs
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="glycemic_index" class="form-label">
+                                                        Glycemic Index <small class="text-muted">(optional)</small>
+                                                    </label>
+                                                    <input type="number" class="form-control" id="glycemic_index"
+                                                        name="glycemic_index" min="0" max="100" step="1"
+                                                        aria-describedby="giHelp">
+                                                    <div id="giHelp" class="form-text">
+                                                        Glycemic index (0-100) for better keto index calculation
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mt-2">
+                                                <div class="col-md-6">
+                                                    <label for="region" class="form-label">
+                                                        Region <small class="text-muted">(optional)</small>
+                                                    </label>
+                                                    <select class="form-select" id="region" name="region"
+                                                        aria-describedby="regionHelp">
+                                                        <option value="US">🇺🇸 US</option>
+                                                        <option value="EU">🇪🇺 EU</option>
+                                                        <option value="AU">🇦🇺 AU</option>
+                                                        <option value="UK">🇬🇧 UK</option>
+                                                    </select>
+                                                    <div id="regionHelp" class="form-text">
+                                                        Affects fiber labeling interpretation
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <span class="spinner-border spinner-border-sm d-none" role="status"
+                                                aria-hidden="true"></span>
+                                            Add Product
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h2 class="h5 mb-0">Products Library</h2>
+                                    <input type="search" class="form-control w-auto" id="productSearch"
+                                        placeholder="Search products..." aria-label="Search products">
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="productsTable" role="table"
+                                            aria-label="Products list">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Name</th>
+                                                    <th scope="col">Calories</th>
+                                                    <th scope="col">Protein</th>
+                                                    <th scope="col">Fat</th>
+                                                    <th scope="col">Carbs</th>
+                                                    <th scope="col">Net Carbs</th>
+                                                    <th scope="col">Keto Index</th>
+                                                    <th scope="col" class="no-print">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="productsTableBody">
+                                                <!-- Products will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div id="productsLoading" class="text-center py-3" style="display: none;">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading products...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Food Log Tab -->
+                <div class="tab-pane fade" id="log" role="tabpanel" aria-labelledby="log-tab" tabindex="0">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h2 class="h5 mb-0" id="logFormTitle">Log Food Entry</h2>
+                                </div>
+                                <div class="card-body">
+                                    <form id="logForm" role="form" aria-label="Log food entry form">
+                                        <div class="mb-3">
+                                            <label for="logDate" class="form-label">
+                                                Date <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="date" class="form-control" id="logDate" name="date" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="logMealTime" class="form-label">Meal Time</label>
+                                            <select class="form-select" id="logMealTime" name="meal_time">
+                                                <option value="">Select meal time</option>
+                                                <option value="breakfast">🌅 Breakfast</option>
+                                                <option value="lunch">☀️ Lunch</option>
+                                                <option value="dinner">🌙 Dinner</option>
+                                                <option value="snack">🍎 Snack</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="logItemType" class="form-label">
+                                                Item Type <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select" id="logItemType" name="item_type" required>
+                                                <option value="">Select type</option>
+                                                <option value="product">🥩 Product</option>
+                                                <option value="dish">🍽️ Dish</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="logItem" class="form-label">
+                                                Select Item <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select" id="logItem" name="item_id" required>
+                                                <option value="">Select item</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="logQuantity" class="form-label">
+                                                Quantity (grams) <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="number" class="form-control" id="logQuantity"
+                                                name="quantity_grams" required min="1" max="5000" step="1" value="100">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="logNotes" class="form-label">Notes</label>
+                                            <textarea class="form-control" id="logNotes" name="notes" rows="2"
+                                                maxlength="200" placeholder="Optional notes..."></textarea>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <span class="spinner-border spinner-border-sm d-none" role="status"
+                                                aria-hidden="true"></span>
+                                            Log Food Entry
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h2 class="h5 mb-0">Food Log Entries</h2>
+                                    <input type="date" class="form-control w-auto" id="logFilterDate"
+                                        aria-label="Filter by date">
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="logTable" role="table"
+                                            aria-label="Food log entries">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Date</th>
+                                                    <th scope="col">Meal</th>
+                                                    <th scope="col">Item</th>
+                                                    <th scope="col">Quantity (g)</th>
+                                                    <th scope="col">Calories</th>
+                                                    <th scope="col">Keto Index</th>
+                                                    <th scope="col" class="no-print">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="logTableBody">
+                                                <!-- Log entries will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Tab -->
+                <div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab" tabindex="0">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="h5 mb-0">Statistics</h2>
+                            <div class="d-flex gap-2 align-items-center">
+                                <div class="btn-group" role="group" aria-label="Statistics period">
+                                    <input type="radio" class="btn-check" name="statsPeriod" id="dailyStats"
+                                        value="daily" checked>
+                                    <label class="btn btn-outline-primary btn-sm" for="dailyStats">Daily</label>
+
+                                    <input type="radio" class="btn-check" name="statsPeriod" id="weeklyStats"
+                                        value="weekly">
+                                    <label class="btn btn-outline-primary btn-sm" for="weeklyStats">Weekly</label>
+                                </div>
+                                <input type="date" class="form-control w-auto" id="statsDate"
+                                    aria-label="Select date for statistics">
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="stats-grid stats-card" id="statsContainer" role="region"
+                                aria-label="Nutrition statistics">
+                                <!-- Stats will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dishes Tab -->
+                <div class="tab-pane fade" id="dishes" role="tabpanel" aria-labelledby="dishes-tab" tabindex="0">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h2 class="h5 mb-0" id="dishFormTitle">Create Dish</h2>
+                                </div>
+                                <div class="card-body">
+                                    <form id="dishForm" role="form" aria-label="Create dish form">
+                                        <div class="mb-3">
+                                            <label for="dishName" class="form-label">
+                                                Dish Name <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="text" class="form-control" id="dishName" name="name" required
+                                                maxlength="100">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="dishDescription" class="form-label">Description</label>
+                                            <textarea class="form-control" id="dishDescription" name="description"
+                                                rows="2" maxlength="200"
+                                                placeholder="Optional description..."></textarea>
+                                        </div>
+
+                                        <fieldset class="mb-3">
+                                            <legend class="h6">Ingredients</legend>
+                                            <div class="row mb-2">
+                                                <div class="col-md-4"><small class="text-muted fw-bold">Product</small>
+                                                </div>
+                                                <div class="col-md-2"><small class="text-muted fw-bold">Weight
+                                                        (g)</small></div>
+                                                <div class="col-md-2"><small
+                                                        class="text-muted fw-bold">Preparation</small></div>
+                                                <div class="col-md-2"><small class="text-muted fw-bold">Edible %</small>
+                                                </div>
+                                                <div class="col-md-2"><small class="text-muted fw-bold">Action</small>
+                                                </div>
+                                            </div>
+                                            <div id="ingredientsList">
+                                                <!-- Ingredients will be added here -->
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                                id="addIngredientBtn">
+                                                + Add Ingredient
+                                            </button>
+                                        </fieldset>
+
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <span class="spinner-border spinner-border-sm d-none" role="status"
+                                                aria-hidden="true"></span>
+                                            Create Dish
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h2 class="h5 mb-0">My Dishes</h2>
+                                </div>
+                                <div class="card-body">
+                                    <div id="dishesContainer">
+                                        <!-- Dishes will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="py-3 mt-4 border-top text-muted">
+            <div class="d-flex justify-content-between align-items-center">
+                <small>&copy; 2025 Nutrition Tracker v2.0 - WCAG 2.2 AA Compliant</small>
+                <small>
+                    <a href="/health" class="text-muted text-decoration-none">System Status</a>
+                </small>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Admin Modal -->
+    {% include 'admin-modal.html' %}
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- App JavaScript -->
+    <script src="/static/js/shortcuts.js"></script>
+    <script src="/static/js/offline.js"></script>
+    <script src="/static/js/notifications.js"></script>
+    <script src="/static/js/admin.js"></script>
+    <script src="/static/js/theme.js"></script>
+    <script src="/static/js/app.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(function (registration) {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(function (err) {
+                        console.log('ServiceWorker registration failed');
+                    });
+            });
+        }
+    </script>
+
+    <!-- Initialize app -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('logDate').value = today;
+            document.getElementById('logFilterDate').value = today;
+            document.getElementById('statsDate').value = today;
+
+            // Create and initialize app
+            window.NutritionApp = new NutritionTracker();
+            window.NutritionApp.init();
+
+            // Add loading states to forms
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function () {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        const spinner = submitBtn.querySelector('.spinner-border');
+                        if (spinner) {
+                            spinner.classList.remove('d-none');
+                        }
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+
+            // Enhanced form validation feedback
+            document.querySelectorAll('input, select, textarea').forEach(input => {
+                input.addEventListener('invalid', function () {
+                    this.classList.add('is-invalid');
+                    if (window.showError) {
+                        showError('Please check the form fields');
+                    }
+                });
+
+                input.addEventListener('input', function () {
+                    if (this.classList.contains('is-invalid')) {
+                        this.classList.remove('is-invalid');
+                    }
+                });
+            });
+
+            // Auto-save form data to prevent loss
+            document.querySelectorAll('input[type="text"], input[type="number"], select').forEach(input => {
+                const key = input.id;
+                if (key && localStorage.getItem(`form_${key}`)) {
+                    input.value = localStorage.getItem(`form_${key}`);
+                }
+
+                input.addEventListener('input', function () {
+                    if (this.id) {
+                        localStorage.setItem(`form_${this.id}`, this.value);
+                    }
+                });
+            });
+
+            // Clear auto-saved data on successful submit
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function () {
+                    setTimeout(() => {
+                        form.querySelectorAll('input, select').forEach(input => {
+                            if (input.id) localStorage.removeItem(`form_${input.id}`);
+                        });
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
