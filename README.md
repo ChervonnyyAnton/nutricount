@@ -1,27 +1,26 @@
-# 🥗 Nutrition Tracker v2.0
+# 🥗 Nutrition Tracker
 
-**Production-ready, accessible, and modern nutrition tracking application optimized for Raspberry Pi Zero 2W.**
+**Production-ready nutrition tracking application optimized for Raspberry Pi 4 Model B 2018 with Raspberry Pi OS Lite 64-bit.**
 
 ## 🚀 Features
 
-- **WCAG 2.2 AA Compliant** UI: accessible, keyboard-friendly, color-blind safe, and readable for screen readers
-- **Nutrition Management:** Products, Dishes, Daily Log
-- **Realtime Analytics:** Auto calorie, macro, and keto-index calculations
-- **Offline Support:** PWA with Service Worker & IndexedDB; installable as a native app
-- **Raspberry Pi Zero 2W Optimized:** Memory-efficient, single-core optimized, perfect for local home server
-- **Admin Panel:** quick actions (backup, optimize DB, export/import), stats, and monitoring
-- **Docker Native:** Multi-stage Docker builds; compose for local deployment
-- **Testing & CI:** Automated testing with pytest, GitHub Actions CI/CD
-- **Full documentation:** Setup, usage, troubleshooting, and best practices
+- **Modern UI**: Clean, responsive design with dark theme support
+- **Nutrition Management**: Products, Dishes, Daily Log with real-time calculations
+- **Offline Support**: PWA with Service Worker & IndexedDB
+- **Raspberry Pi Optimized**: ARM64 optimized, memory-efficient, thermal-aware
+- **Admin Panel**: Quick actions (backup, optimize DB, export/import), stats, monitoring
+- **Docker Native**: Multi-stage Docker builds optimized for ARM64
+- **Temperature Monitoring**: Specialized monitoring for Pi 4 Model B 2018
+- **Auto Backup**: Automated database backups with integrity checks
 
 ## 🏗️ Architecture
 
 ```
-Frontend:  HTML5, CSS3 (+Bootstrap 5), Vanilla JS (shortcuts, toasts, offline, admin)
-API:       Flask 2.3+, SQLite+WAL. Modular.
-Infra:     Docker, docker-compose, Gunicorn, Nginx, Service Worker
-Pi Zero:   Memory-optimized containers, single-worker Gunicorn, minimal Nginx
-Add-ons:   Backups, advanced scripts, security headers
+Frontend:  HTML5, CSS3 (+Bootstrap 5), Vanilla JS
+API:       Flask 2.3+, SQLite+WAL
+Infra:     Docker ARM64, docker-compose, Gunicorn, Nginx
+Pi 4:      ARM64 optimized, thermal-aware, conservative settings
+Monitoring: Temperature, performance, automated backups
 ```
 
 **Admin Panel:** Ctrl+Alt+A or triple-click on page title!
@@ -47,147 +46,122 @@ Add-ons:   Backups, advanced scripts, security headers
 
 ### Prerequisites
 
-- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) installed
-- `git`, `curl`, and a browser
+- **Raspberry Pi 4 Model B 2018** (4GB+ RAM recommended)
+- **Raspberry Pi OS Lite 64-bit** (NOT 32-bit!)
+- **Active cooling** (fan) - REQUIRED for Pi 4 Model B 2018
+- **Stable power supply** (5.1V/3A official adapter)
+- **Fast microSD card** (Class 10, A2, or better)
 
-### 1. Get the code
+### Automatic Setup (Recommended)
 
-```sh
-git clone https://github.com/your-username/nutrition-tracker.git
-cd nutrition-tracker
-```
+```bash
+# 1. Update system
+sudo apt update && sudo apt upgrade -y
 
-### 2. Configure
-
-```sh
-cp .env.example .env
-# Edit .env with your database settings
-```
-
-- At minimum set: `SECRET_KEY` for production use
-
-### 3. Start (Docker)
-
-```sh
-docker-compose up --build -d
-```
-
-- Check health:
-
-```sh
-curl http://localhost:5000/health
-```
-
-### 4. Open the app
-
-Open http://localhost:5000 in your browser
-
-## 🛡️ Raspberry Pi Zero 2W Setup
-
-### System Requirements
-
-- **Raspberry Pi Zero 2W** (512MB RAM)
-- **microSD card** Class 10 or better (minimum 8GB)
-- **Raspberry Pi OS** (32-bit)
-- **Stable WiFi connection**
-
-### Automatic Setup
-
-```sh
-# Make script executable
+# 2. Run automatic setup script
 chmod +x scripts/setup.sh
-
-# Run automatic setup
 ./scripts/setup.sh
+
+# 3. Clone repository
+git clone <your-repository-url> nutricount
+cd nutricount
+
+# 4. Configure environment
+cp env.example .env
+nano .env  # Edit settings
+
+# 5. Start application
+docker-compose up -d
 ```
 
 ### Manual Setup
 
-```sh
-# Install Docker
+```bash
+# Install Docker for ARM64
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
+sudo apt install -y docker-compose
+sudo reboot
 
-# Install Docker Compose
-sudo pip3 install docker-compose
+# Configure Pi 4 Model B 2018
+sudo nano /boot/config.txt
+# Add:
+# gpu_mem=128
+# arm_freq=1500
+# over_voltage=1
+# temp_limit=75
+# avoid_warnings=1
+# dtparam=thermal
 
-# Create .env file
+# Setup swap
+sudo dphys-swapfile swapoff
+sudo sed -i 's/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=2048/' /etc/dphys-swapfile
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
+
+# Clone and start
+git clone <your-repository-url> nutricount
+cd nutricount
 cp env.example .env
-
-# Build and start
 docker-compose up -d
 ```
 
-### Performance Monitoring
+## 🌡️ Temperature Monitoring
 
-```sh
-# Run monitoring
-chmod +x scripts/monitor.sh
+**CRITICAL for Pi 4 Model B 2018**: This model is prone to overheating!
+
+```bash
+# Check temperature
+./scripts/temp_monitor.sh --check
+
+# Continuous monitoring
+./scripts/temp_monitor.sh --continuous
+
+# Temperature thresholds:
+# 70°C - Warning
+# 80°C - Critical (throttling starts)
+# 85°C - Maximum safe temperature
+```
+
+## 📊 Performance Monitoring
+
+```bash
+# Main monitoring dashboard
 ./scripts/monitor.sh
 
 # Continuous monitoring
 ./scripts/monitor.sh --continuous
+
+# Manual backup
+./scripts/backup.sh
 ```
-
-### Service Management
-
-```sh
-# Start
-docker-compose up -d
-
-# Stop
-docker-compose down
-
-# Restart
-docker-compose restart
-
-# View logs
-docker-compose logs -f
-
-# Auto-start on boot
-sudo systemctl enable nutrition-tracker
-```
-
-## 📊 Performance Expectations
-
-### ✅ What works great:
-- Application startup: 30-60 seconds
-- API requests: 50-200ms
-- Up to 5-10 concurrent users
-- Database up to 10,000 records
-
-### ⚠️ Limitations:
-- Slow startup (1-2 minutes)
-- Delays under high load
-- SSD card recommended
-- Regular restarts for memory cleanup
-
-## 🔧 Pi Zero 2W Optimizations
-
-### Memory (300MB limit)
-- **Gunicorn**: 1 worker instead of 4
-- **Nginx**: minimal configuration
-- **Docker**: memory limits
-- **Logging**: disabled to save space
-
-### CPU (1 core)
-- **Workers**: synchronous instead of asynchronous
-- **Timeouts**: increased for slow processing
-- **Compression**: minimal gzip level
-
-### Disk
-- **Logs**: limited size and count
-- **Swap**: increased to 1GB
-- **Cache**: minimal size
 
 ## 🌐 Access
 
-- **Web Interface**: `http://<pi-ip>:80`
-- **API**: `http://<pi-ip>:5000`
-- **Health Check**: `http://<pi-ip>:5000/health`
+- **Web Interface**: `http://<pi-ip>/`
+- **API**: `http://<pi-ip>/api/`
+- **Health Check**: `http://<pi-ip>/health`
 
 ## 🛠️ Troubleshooting
+
+### High Temperature (CRITICAL!)
+```bash
+# Check temperature
+vcgencmd measure_temp
+
+# If > 70°C - check cooling immediately!
+# If > 80°C - throttling is active!
+
+# Check throttling status
+vcgencmd get_throttled
+
+# Solutions:
+# 1. Ensure fan is working
+# 2. Check thermal paste
+# 3. Improve ventilation
+# 4. Reduce CPU frequency in /boot/config.txt
+```
 
 ### High Memory Usage
 ```bash
@@ -203,40 +177,54 @@ free -h
 
 ### Slow Performance
 ```bash
-# Check temperature
-vcgencmd measure_temp
-
 # Check CPU load
-top
+htop
 
-# Increase swap
-sudo dphys-swapfile swapoff
-sudo sed -i 's/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1024/' /etc/dphys-swapfile
-sudo dphys-swapfile setup
-sudo dphys-swapfile swapon
+# Check temperature
+./scripts/temp_monitor.sh --check
+
+# Check container status
+docker-compose ps
 ```
 
 ### Network Issues
 ```bash
-# Check container status
-docker-compose ps
-
-# Check logs
+# Check container logs
 docker-compose logs nutrition-tracker
+
+# Check nginx logs
+docker-compose logs nutrition-nginx
+
+# Restart services
+docker-compose restart
 ```
 
-## 🔒 Security & Accessibility
+## 🔒 Security & Maintenance
 
-- **Out-of-the-box:** strong passwords, rate limiting, HTTPS, no secrets in VCS
-- **Accessibility:** semantic HTML, ARIA, high-contrast, skip links, focus management, reduced motion, print-friendly
-- **Security:** application runs under unprivileged user, Nginx configured with basic security headers, rate limiting for DDoS protection
+- **Firewall**: UFW configured with fail2ban
+- **Rate Limiting**: DDoS protection via nginx
+- **Auto Backup**: Daily database backups with integrity checks
+- **Log Rotation**: Automatic log cleanup to save space
+- **Service Management**: Auto-start on boot
 
-## 📝 Logging
+## 📝 Service Management
 
-Logs are limited to save space:
-- **Log size**: maximum 10MB
-- **File count**: 1
-- **Log level**: warning and above
+```bash
+# Start
+docker-compose up -d
+
+# Stop
+docker-compose down
+
+# Restart
+docker-compose restart
+
+# View logs
+docker-compose logs -f
+
+# Auto-start on boot
+sudo systemctl enable nutrition-tracker.service
+```
 
 ## 🔄 Updates
 
@@ -251,62 +239,21 @@ docker-compose build --no-cache
 docker-compose up -d
 ```
 
-## 🧪 Testing
+## ⚠️ Important Notes for Pi 4 Model B 2018
 
-### Local Testing
-```bash
-# Run tests locally (requires Python environment)
-make test
+1. **ACTIVE COOLING REQUIRED** - This model overheats easily
+2. **Monitor temperature constantly** - Use `./scripts/temp_monitor.sh`
+3. **Use 64-bit OS** - 32-bit will not work optimally
+4. **Stable power supply** - Use official 5.1V/3A adapter
+5. **Fast microSD card** - Class 10 or A2 recommended
+6. **Thermal paste** - Apply between CPU and heatsink
+7. **Good ventilation** - Ensure airflow around the Pi
 
-# Run integration tests only
-make test-integration
+## 🎯 Performance Expectations
 
-# Run tests in Docker
-make test-docker
-
-# Run linting
-make lint
-```
-
-### Test Coverage
-- **API Endpoints:** Health, products, stats, logging
-- **Database Operations:** CRUD operations, constraints
-- **Error Handling:** Invalid data, missing fields
-- **Integration Tests:** Complete workflow testing (products → dishes → logging → statistics → modifications → cleanup)
-
-### CI/CD Pipeline
-- **GitHub Actions:** Automated testing on push/PR
-- **Docker Build:** Container testing
-- **Health Checks:** Application startup verification
-- **Code Quality:** Linting with flake8
-
-## 🛠️ Admin Panel
-
-- **Ctrl+Alt+A** or **Triple-click page title** for admin panel (backups, stats, export)
-- **Alt+1,2,3,N,S,B** for keyboard shortcuts
-
-## 💡 Philosophy
-
-- **Simple-first:** every module is removable or replaceable, no bloated code, no unnecessary dependencies
-- **Accessible by default:** every user, every device, every place
-- **Production-focused:** all features tested for real-world reliability
-
-## 📞 Support & Community
-
-- GitHub issues for bugs/feature requests
-- GitHub Discussions for Q&A and best practices
-- Email: support@nutrition-tracker.com
-
-## 🎯 Recommendations
-
-- Use **Class 10** or better microSD card
-- Ensure **good ventilation** to prevent overheating
-- **Regularly restart** application for memory cleanup
-- **Monitor logs** for errors
-- Use **stable WiFi** connection
-
----
-
-**Note**: This version is optimized for Pi Zero 2W. For production use with multiple users, Raspberry Pi 4 (4GB+) is recommended.
-
-**Made with ❤️ for healthy living and accessible technology!**
+- **Startup time**: 30-60 seconds
+- **API response**: 50-200ms
+- **Concurrent users**: 5-10
+- **Database**: Up to 10,000 records
+- **Memory usage**: ~400-800MB
+- **Temperature**: Keep below 70°C

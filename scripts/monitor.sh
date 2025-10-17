@@ -1,6 +1,6 @@
 #!/bin/bash
-# Raspberry Pi Zero 2W Performance Monitor for Nutrition Tracker
-# Monitors memory, CPU, and application performance
+# Raspberry Pi 4 Model B 2018 Performance Monitor for Nutrition Tracker
+# Enhanced monitoring for early revision with thermal management
 
 set -e
 
@@ -59,14 +59,22 @@ check_system_resources() {
         print_warning "High disk usage detected!"
     fi
     
-    # Temperature (if available)
+    # Temperature (if available) - Pi 4 Model B 2018 specific thresholds
     if [ -f /sys/class/thermal/thermal_zone0/temp ]; then
         local temp=$(cat /sys/class/thermal/thermal_zone0/temp)
         local temp_c=$((temp / 1000))
         echo "Temperature: ${temp_c}°C"
         
-        if [ $temp_c -gt 70 ]; then
-            print_warning "High temperature detected!"
+        if [ $temp_c -gt 80 ]; then
+            print_error "🚨 CRITICAL: Temperature is causing throttling! Pi 4 Model B 2018 throttling starts at 80°C"
+        elif [ $temp_c -gt 70 ]; then
+            print_warning "⚠️  WARNING: Temperature is getting high - ensure good cooling for Pi 4 Model B 2018"
+        fi
+        
+        # Check throttling status
+        local throttled=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2)
+        if [ "$throttled" != "0x0" ]; then
+            print_error "⚠️  CPU throttling is ACTIVE! Performance is reduced"
         fi
     fi
     
@@ -171,11 +179,14 @@ performance_recommendations() {
         echo "• Consider using a larger SD card"
     fi
     
-    # General recommendations
-    echo "• Use a fast SD card (Class 10 or better)"
-    echo "• Ensure good ventilation to prevent overheating"
-    echo "• Monitor logs regularly for errors"
-    echo "• Restart the application weekly to prevent memory leaks"
+    # General recommendations for Pi 4 Model B 2018
+    echo "• Use a fast microSD card (Class 10, A2, or better)"
+    echo "• OBLIGATORY: Use active cooling (fan) for Pi 4 Model B 2018"
+    echo "• Monitor temperature constantly - throttling starts at 80°C"
+    echo "• Use thermal paste between CPU and heatsink"
+    echo "• Consider reducing arm_freq in /boot/config.txt for stability"
+    echo "• Use stable power supply (5.1V/3A official adapter)"
+    echo "• Consider USB 3.0 SSD for better I/O performance"
     
     echo ""
 }
@@ -186,8 +197,8 @@ continuous_monitor() {
     
     while true; do
         clear
-        echo "🥗 Nutrition Tracker - Pi Zero 2W Monitor"
-        echo "=========================================="
+        echo "🥗 Nutrition Tracker - Pi 4 Model B 2018 Monitor"
+        echo "==============================================="
         echo "Last updated: $(date)"
         echo ""
         
@@ -202,15 +213,16 @@ continuous_monitor() {
 
 # Main menu
 show_menu() {
-    echo "🥗 Nutrition Tracker - Pi Zero 2W Monitor"
-    echo "=========================================="
+    echo "🥗 Nutrition Tracker - Pi 4 Model B 2018 Monitor"
+    echo "==============================================="
     echo "1. Check system resources"
     echo "2. Check Docker containers"
     echo "3. Check application health"
     echo "4. Check logs"
     echo "5. Performance recommendations"
     echo "6. Continuous monitoring"
-    echo "7. Exit"
+    echo "7. Temperature monitoring"
+    echo "8. Exit"
     echo ""
 }
 
@@ -226,7 +238,7 @@ main() {
     else
         while true; do
             show_menu
-            read -p "Select an option (1-7): " choice
+            read -p "Select an option (1-8): " choice
             
             case $choice in
                 1)
@@ -248,11 +260,14 @@ main() {
                     continuous_monitor
                     ;;
                 7)
+                    ./scripts/temp_monitor.sh
+                    ;;
+                8)
                     print_status "Goodbye!"
                     exit 0
                     ;;
                 *)
-                    print_error "Invalid option. Please select 1-7."
+                    print_error "Invalid option. Please select 1-8."
                     ;;
             esac
             

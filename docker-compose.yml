@@ -1,5 +1,5 @@
-# Docker Compose configuration optimized for Raspberry Pi Zero 2W
-# Memory-optimized settings for 512MB RAM constraint
+# Docker Compose configuration optimized for Raspberry Pi 4 Model B 2018
+# Raspberry Pi OS Lite 64-bit ARM64 optimized
 
 services:
   nutrition-tracker:
@@ -22,11 +22,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 300M # Limit memory usage to 300MB
-          cpus: '1.0' # Limit to 1 CPU core
+          memory: 800M # Conservative limit for Pi 4 Model B 2018
+          cpus: '1.5' # Conservative CPU limit for early revision
         reservations:
-          memory: 200M # Reserve 200MB
-          cpus: '0.5' # Reserve half CPU core
+          memory: 400M # Reserve 400MB
+          cpus: '0.75' # Reserve 3/4 CPU core
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 60s
@@ -53,11 +53,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 50M # Limit nginx memory usage
-          cpus: '0.5' # Limit nginx CPU usage
+          memory: 128M # Limit nginx memory usage for Pi 4
+          cpus: '1.0' # Limit nginx CPU usage
         reservations:
-          memory: 30M # Reserve 30MB for nginx
-          cpus: '0.25' # Reserve quarter CPU core
+          memory: 64M # Reserve 64MB for nginx
+          cpus: '0.5' # Reserve half CPU core
     logging:
       driver: "json-file"
       options:

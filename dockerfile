@@ -1,4 +1,5 @@
-# Multi-stage build for smaller final image
+# Multi-stage build optimized for Raspberry Pi 4 Model B 2018 ARM64
+# Raspberry Pi OS Lite 64-bit optimized
 FROM python:3.11-slim as builder
 
 # Set environment variables for optimization
@@ -7,10 +8,11 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Install build dependencies
+# Install build dependencies optimized for ARM64
 RUN apt-get update && apt-get install -y \
     gcc \
     python3-dev \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create virtual environment
@@ -29,10 +31,11 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
-# Install runtime dependencies only
+# Install runtime dependencies optimized for Raspberry Pi OS Lite 64-bit
 RUN apt-get update && apt-get install -y \
     sqlite3 \
     curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -61,9 +64,9 @@ USER appuser
 # Expose port
 EXPOSE 5000
 
-# Health check optimized for Pi Zero 2W
-HEALTHCHECK --interval=60s --timeout=15s --start-period=30s --retries=2 \
+# Health check optimized for Pi 4 Model B 2018 ARM64
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
-# Run application with Pi Zero 2W optimized settings
+# Run application with Pi 4 Model B 2018 ARM64 optimized settings
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:app"]

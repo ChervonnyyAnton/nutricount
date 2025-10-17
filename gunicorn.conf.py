@@ -1,53 +1,53 @@
-"""Gunicorn configuration optimized for Raspberry Pi Zero 2W
-Memory-optimized settings for 512MB RAM constraint"""
+"""Gunicorn configuration optimized for Raspberry Pi 4 Model B 2018
+Conservative settings for early revision with potential thermal issues"""
 
 import os
 import multiprocessing
 
 # Server socket
 bind = "0.0.0.0:5000"
-backlog = 128  # Reduced from 2048
+backlog = 256  # Conservative backlog for Pi 4 Model B 2018
 
-# Worker processes - optimized for Pi Zero 2W
-workers = 1  # Single worker to save memory
+# Worker processes - conservative for Pi 4 Model B 2018
+workers = 1  # Single worker to avoid thermal issues
 worker_class = "sync"
-worker_connections = 50  # Reduced from 1000
-timeout = 60  # Increased timeout for slower Pi
-keepalive = 5  # Increased keepalive
+worker_connections = 75  # Conservative connections
+timeout = 45  # Longer timeout for potential thermal throttling
+keepalive = 8  # Moderate keepalive
 
-# Restart workers after fewer requests to prevent memory leaks
-max_requests = 200  # Reduced from 1000
-max_requests_jitter = 20  # Reduced from 100
+# Restart workers more frequently to prevent thermal buildup
+max_requests = 300  # Conservative for Pi 4 Model B 2018
+max_requests_jitter = 30  # Conservative jitter
 
-# Disable preload to save memory
-preload_app = False
+# Enable preload for better performance
+preload_app = True
 
-# Logging - minimal logging to save disk I/O
+# Logging - detailed logging for troubleshooting
 accesslog = "-"  # Log to stdout instead of file
 errorlog = "-"   # Log to stderr instead of file
-loglevel = "warning"  # Reduced logging level
+loglevel = "info"  # Detailed logging for Pi 4 Model B 2018
 
 # Process naming
-proc_name = "nutrition_tracker_pi"
+proc_name = "nutrition_tracker_pi4_2018"
 
 # Server mechanics
 daemon = False
-pidfile = "/tmp/gunicorn_nutrition_pi.pid"
+pidfile = "/tmp/gunicorn_nutrition_pi4_2018.pid"
 user = None
 group = None
 tmp_upload_dir = None
 
 # Memory optimization settings
 worker_tmp_dir = "/dev/shm"  # Use RAM for temporary files
-max_requests_jitter = 20
+max_requests_jitter = 30
 
-# SSL (disabled for Pi Zero 2W to save resources)
+# SSL (disabled for local network)
 keyfile = None
 certfile = None
 
-# Additional Pi Zero 2W optimizations
+# Additional Pi 4 Model B 2018 optimizations
 worker_class = "sync"  # Most memory efficient
-worker_connections = 50  # Conservative connection limit
-timeout = 60  # Longer timeout for slower processing
-graceful_timeout = 30  # Graceful shutdown timeout
-keepalive = 5  # Keep connections alive longer
+worker_connections = 75  # Conservative connection limit
+timeout = 45  # Longer timeout for potential throttling
+graceful_timeout = 20  # Graceful shutdown timeout
+keepalive = 8  # Moderate keepalive
