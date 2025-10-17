@@ -12,6 +12,7 @@
 - **Docker Native**: Multi-stage Docker builds optimized for ARM64
 - **Temperature Monitoring**: Specialized monitoring for Pi 4 Model B 2018
 - **Auto Backup**: Automated database backups with integrity checks
+- **CI/CD Pipeline**: Automated testing and deployment with GitHub Actions
 
 ## 🏗️ Architecture
 
@@ -21,6 +22,7 @@ API:       Flask 2.3+, SQLite+WAL
 Infra:     Docker ARM64, docker-compose, Gunicorn, Nginx
 Pi 4:      ARM64 optimized, thermal-aware, conservative settings
 Monitoring: Temperature, performance, automated backups
+CI/CD:     GitHub Actions → Tests → Deploy to Pi
 ```
 
 **Admin Panel:** Ctrl+Alt+A or triple-click on page title!
