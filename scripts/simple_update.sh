@@ -20,6 +20,14 @@ sleep 2
 echo "💾 Creating backup..."
 if [ -d "$APP_DIR/data" ]; then
     cp -r "$APP_DIR/data" "$APP_DIR/data.backup.$(date +%Y%m%d_%H%M%S)"
+    echo "✅ Data backed up successfully"
+else
+    echo "⚠️ No data directory found"
+fi
+
+# Backup logs and other important files
+if [ -d "$APP_DIR/logs" ]; then
+    cp -r "$APP_DIR/logs" "$APP_DIR/logs.backup.$(date +%Y%m%d_%H%M%S)"
 fi
 
 # Update code
@@ -43,8 +51,8 @@ echo "📦 Updating dependencies..."
 source venv/bin/activate
 pip install -r requirements.txt
 
-# Update database
-echo "🗄️  Updating database..."
+# Update database (only if needed)
+echo "🗄️ Checking database..."
 python init_db.py
 
 # Restart application

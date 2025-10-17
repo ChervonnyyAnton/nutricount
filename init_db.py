@@ -7,12 +7,43 @@ from src.config import Config
 
 def init_database():
     """Initialize the database with schema"""
-    print("🗄️ Initializing database...")
+    print("🗄️ Checking database...")
     
     # Create data directory if it doesn't exist
     os.makedirs(os.path.dirname(Config.DATABASE), exist_ok=True)
     
-    # Connect and initialize
+    # Check if database already exists
+    db_exists = os.path.exists(Config.DATABASE)
+    
+    if db_exists:
+        print("📊 Database already exists, checking schema...")
+        
+        # Connect and check if tables exist
+        conn = sqlite3.connect(Config.DATABASE)
+        try:
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='products'")
+            if cursor.fetchone():
+                print("✅ Database schema is up to date")
+                
+                # Show current data count
+                cursor = conn.execute("SELECT COUNT(*) FROM products")
+                count = cursor.fetchone()[0]
+                print(f"📊 Products in database: {count}")
+                
+                cursor = conn.execute("SELECT COUNT(*) FROM log_entries")
+                log_count = cursor.fetchone()[0]
+                print(f"📊 Log entries: {log_count}")
+                
+                return  # Database is fine, no need to recreate
+            else:
+                print("⚠️ Database exists but schema is missing, recreating...")
+        except Exception as e:
+            print(f"⚠️ Database check failed: {e}, recreating...")
+        finally:
+            conn.close()
+    
+    # Create or recreate database
+    print("🔄 Creating/updating database schema...")
     conn = sqlite3.connect(Config.DATABASE)
     
     try:
