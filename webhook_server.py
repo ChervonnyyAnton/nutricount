@@ -91,24 +91,88 @@ def github_webhook():
         # Parse payload
         data = json.loads(payload)
         
-        # Check if it's a push to main branch
-        if (data.get('ref') == 'refs/heads/main' and 
-            data.get('action') == 'push'):
+        # Check webhook event type
+        event_type = request.headers.get('X-GitHub-Event')
+        
+        if event_type == 'workflow_run':
+            # Handle workflow completion
+            workflow_data = data
+            workflow_name = workflow_data.get('workflow', {}).get('name', '')
+            workflow_conclusion = workflow_data.get('workflow_run', {}).get('conclusion', '')
+            workflow_status = workflow_data.get('workflow_run', {}).get('status', '')
             
-            logging.info(f"📥 Received push notification for commit: {data.get('head_commit', {}).get('id', 'unknown')}")
+            logging.info(f"📋 Workflow '{workflow_name}' status: {workflow_status}, conclusion: {workflow_conclusion}")
             
-            # Trigger update
-            if trigger_update():
-                return jsonify({'status': 'success', 'message': 'Update triggered'})
+            # Only deploy if workflow completed successfully
+            if (workflow_status == 'completed' and 
+                workflow_conclusion == 'success' and 
+                workflow_name == 'CI/CD Pipeline'):
+                
+                logging.info("✅ CI/CD pipeline passed successfully, triggering deployment")
+                
+                # Trigger update
+                if trigger_update():
+                    return jsonify({'status': 'success', 'message': 'Deployment triggered after successful CI/CD'})
+                else:
+                    return jsonify({'status': 'error', 'message': 'Deployment failed'}), 500
             else:
-                return jsonify({'status': 'error', 'message': 'Update failed'}), 500
+                logging.info(f"ℹ️ Workflow not ready for deployment: {workflow_status}/{workflow_conclusion}")
+                return jsonify({'status': 'ignored', 'message': f'Workflow not ready: {workflow_status}/{workflow_conclusion}'})
+        
+        elif event_type == 'push':
+            # Handle direct push (fallback for manual deployment)
+            if (data.get('ref') == 'refs/heads/main'):
+                logging.info(f"📥 Received push notification for commit: {data.get('head_commit', {}).get('id', 'unknown')}")
+                logging.warning("⚠️ Direct push detected - consider using CI/CD pipeline instead")
+                
+                # Ask for confirmation for direct push
+                return jsonify({
+                    'status': 'manual_deployment', 
+                    'message': 'Direct push detected. Use CI/CD pipeline for automatic deployment.',
+                    'confirmation_required': True
+                })
+            else:
+                logging.info("ℹ️ Ignoring non-main branch push")
+                return jsonify({'status': 'ignored', 'message': 'Not a main branch push'})
         
         else:
-            logging.info("ℹ️ Ignoring non-main branch push")
-            return jsonify({'status': 'ignored', 'message': 'Not a main branch push'})
+            logging.info(f"ℹ️ Ignoring event type: {event_type}")
+            return jsonify({'status': 'ignored', 'message': f'Event type {event_type} not supported'})
             
     except Exception as e:
         logging.error(f"❌ Webhook error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/deploy', methods=['POST'])
+def manual_deploy():
+    """Manual deployment endpoint"""
+    try:
+        # Get payload and signature
+        payload = request.get_data()
+        signature = request.headers.get('X-Hub-Signature-256')
+        
+        # Verify signature
+        if not verify_github_signature(payload, signature):
+            logging.warning("❌ Invalid signature for manual deploy")
+            return jsonify({'error': 'Invalid signature'}), 401
+        
+        # Parse payload
+        data = json.loads(payload)
+        
+        # Check if it's a push to main branch
+        if data.get('ref') == 'refs/heads/main':
+            logging.info(f"🚀 Manual deployment triggered for commit: {data.get('head_commit', {}).get('id', 'unknown')}")
+            
+            # Trigger update
+            if trigger_update():
+                return jsonify({'status': 'success', 'message': 'Manual deployment completed'})
+            else:
+                return jsonify({'status': 'error', 'message': 'Manual deployment failed'}), 500
+        else:
+            return jsonify({'status': 'ignored', 'message': 'Not a main branch push'})
+            
+    except Exception as e:
+        logging.error(f"❌ Manual deploy error: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/health', methods=['GET'])
