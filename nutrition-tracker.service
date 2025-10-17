@@ -1,0 +1,19 @@
+[Unit]
+Description=Nutrition Tracker Application
+After=network.target
+
+[Service]
+Type=forking
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/nutricount
+Environment=PATH=/home/pi/nutricount/venv/bin
+ExecStart=/home/pi/nutricount/venv/bin/gunicorn --config /home/pi/nutricount/gunicorn.conf.py app:app --daemon
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+PIDFile=/tmp/gunicorn_nutrition_pi4_2018.pid
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -12,8 +12,7 @@ echo "🔄 Updating Nutrition Tracker from $REPO_URL"
 
 # Stop current application
 echo "⏹️  Stopping current application..."
-pkill -f "gunicorn.*app:app" || echo "No running application found"
-pkill -f "python.*app.py" || echo "No running application found"
+sudo systemctl stop nutrition-tracker || echo "Service not running"
 sleep 2
 
 # Backup current data
@@ -57,7 +56,7 @@ python init_db.py
 
 # Restart application
 echo "🚀 Starting application..."
-nohup gunicorn --config gunicorn.conf.py app:app > /dev/null 2>&1 &
+sudo systemctl start nutrition-tracker
 
 # Wait and check
 sleep 5
