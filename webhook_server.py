@@ -126,7 +126,7 @@ def status():
     try:
         # Check if application is running
         result = subprocess.run(
-            ['systemctl', 'is-active', 'nutrition-tracker'],
+            ['/usr/bin/systemctl', 'is-active', 'nutrition-tracker'],
             capture_output=True,
             text=True
         )
