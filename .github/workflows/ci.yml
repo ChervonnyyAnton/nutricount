@@ -23,6 +23,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-cov
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Lint with flake8
       run: |
@@ -31,10 +33,14 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # Exit-zero treats all errors as warnings
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Test with pytest
       run: |
         pytest tests/ -v --cov=src --cov-report=xml
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -58,7 +64,7 @@ jobs:
     
     - name: Run tests in Docker
       run: |
-        docker run --rm nutrition-tracker:test pytest tests/ -v
+        docker run --rm -e PYTHONPATH=/app nutrition-tracker:test pytest tests/ -v
     
     - name: Test Docker image health
       run: |
