@@ -554,6 +554,7 @@ class TestTasksAPIErrorHandling:
         """Test tasks API with nonexistent task ID"""
         response = client.get('/api/tasks/nonexistent_task_id')
         
+        # In CI environment, Celery might not be available, so we expect 404 for NOT_FOUND status
         assert response.status_code == 404
         data = json.loads(response.data)
         assert data['status'] == 'error'

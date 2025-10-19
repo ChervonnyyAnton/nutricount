@@ -3068,7 +3068,12 @@ def create_background_task():
 
     except Exception as e:
         app.logger.error(f"Create task error: {e}")
-        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+        # Check if it's a Redis/Celery connection error
+        if 'redis' in str(e).lower() or 'celery' in str(e).lower() or 'connection refused' in str(e).lower():
+            error_message = f"❌ Task service unavailable: {str(e)}"
+        else:
+            error_message = ERROR_MESSAGES["server_error"]
+        return jsonify(json_response(None, error_message, 500)), 500
 
 
 @app.route("/api/tasks/<task_id>", methods=["GET"])

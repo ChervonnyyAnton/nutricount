@@ -386,7 +386,7 @@ class TestCompleteWorkflow:
             task_data = json.loads(task_response.data)
             assert task_data['status'] == 'error'
             # Redis connection error is expected in CI
-            assert 'redis' in task_data['message'].lower() or 'celery' in task_data['message'].lower()
+            assert 'redis' in task_data['message'].lower() or 'celery' in task_data['message'].lower() or 'task service unavailable' in task_data['message'].lower()
             return
         else:
             assert False, f"Unexpected response status: {task_response.status_code}"
