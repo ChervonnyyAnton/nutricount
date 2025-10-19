@@ -4,4 +4,5 @@ pytest-cov==4.1.0
 flake8==6.1.0
 black==25.9.0
 isort==5.13.2
+mypy==1.11.2
 bandit==1.7.5
