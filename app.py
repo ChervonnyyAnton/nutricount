@@ -3095,6 +3095,10 @@ def get_task_status(task_id):
         if status.get('status') == 'NOT_FOUND':
             return jsonify(json_response(None, "Task not found", status=HTTP_NOT_FOUND)), HTTP_NOT_FOUND
 
+        # Check if task status is FAILURE with any error (task doesn't exist)
+        if status.get('status') == 'FAILURE':
+            return jsonify(json_response(None, "Task not found", status=HTTP_NOT_FOUND)), HTTP_NOT_FOUND
+
         return jsonify(json_response(
             status,
             "Task status retrieved successfully",
