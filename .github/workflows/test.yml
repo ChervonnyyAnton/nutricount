@@ -222,6 +222,8 @@ jobs:
     - name: Test Docker Compose
       run: |
         docker-compose up -d
-        sleep 30
+        sleep 60
+        # Wait for health checks to pass
+        timeout 120 bash -c 'until docker-compose ps | grep -q "healthy"; do sleep 5; done'
         curl -f http://localhost/health || exit 1
         docker-compose down
