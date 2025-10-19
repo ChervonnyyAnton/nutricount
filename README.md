@@ -322,6 +322,7 @@ The application includes extensive testing capabilities:
 - **pytest-cov**: Coverage reporting
 - **pytest-mock**: Mocking and patching
 - **pytest-xdist**: Parallel test execution
+- **mutmut**: Mutation testing for test quality
 - **factory-boy**: Test data generation
 - **faker**: Fake data generation
 - **requests-mock**: HTTP request mocking
@@ -334,6 +335,7 @@ The application includes extensive testing capabilities:
 
 # Run all tests
 ./scripts/run_tests.sh all
+make test
 
 # Run specific test types
 ./scripts/run_tests.sh unit
@@ -342,10 +344,36 @@ The application includes extensive testing capabilities:
 
 # Run with coverage
 ./scripts/run_tests.sh report
+pytest tests/ --cov=src --cov-report=html
 
 # Clean test artifacts
 ./scripts/run_tests.sh clean
+make clean
 ```
+
+### Mutation Testing
+Mutation testing verifies test quality by introducing code mutations and checking if tests catch them.
+
+```bash
+# Run mutation testing
+make mutation-test
+./scripts/mutation_test.sh src/ run
+
+# View results
+make mutation-results
+./scripts/mutation_test.sh src/ results
+
+# Generate HTML report
+make mutation-html
+./scripts/mutation_test.sh src/ html
+
+# Test specific module
+./scripts/mutation_test.sh src/utils.py run
+```
+
+**Target Mutation Score:** 80%+ (indicates high-quality tests)
+
+See [MUTATION_TESTING.md](MUTATION_TESTING.md) for complete guide.
 
 ### Test Structure
 ```
@@ -376,6 +404,7 @@ tests/
 - **Performance Testing**: Locust load testing
 - **Docker Testing**: Container and compose testing
 - **Coverage Reporting**: Codecov integration
+- **Mutation Testing**: Weekly mutation testing runs (optional)
 
 ## 🎨 Advanced UX/UI Features
 

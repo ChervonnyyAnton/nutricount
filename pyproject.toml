@@ -76,3 +76,9 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+
+[tool.mutmut]
+paths_to_mutate = "src/"
+backup = false
+runner = "pytest --tb=short --disable-warnings -x -q"
+tests_dir = "tests/"
