@@ -2,10 +2,64 @@
 
 import re
 import sqlite3
+from contextlib import contextmanager
 from datetime import date, datetime, timezone
+from functools import wraps
 from typing import Any, Dict, Optional
 
 from .nutrition_calculator import calculate_calories_from_macros
+
+
+@contextmanager
+def database_connection(db_path: str):
+    """Context manager for database connections with automatic cleanup"""
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+
+    # Enable WAL mode for better concurrency (only for file databases)
+    if db_path != ":memory:":
+        conn.execute("PRAGMA journal_mode = WAL")
+        conn.execute("PRAGMA synchronous = NORMAL")
+
+    conn.execute("PRAGMA foreign_keys = ON")
+
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def handle_api_errors(error_message: str = "Operation failed"):
+    """Decorator to handle common API errors and return consistent responses"""
+
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except ValueError as e:
+                from flask import jsonify
+
+                return (
+                    jsonify(json_response(None, str(e), 400)),
+                    400,
+                )
+            except Exception as e:
+                from flask import current_app, jsonify
+
+                current_app.logger.error(f"{f.__name__} error: {e}")
+                return (
+                    jsonify(json_response(None, error_message, 500)),
+                    500,
+                )
+
+        return wrapper
+
+    return decorator
 
 
 def safe_float(value: Any, default: float = 0.0) -> float:
