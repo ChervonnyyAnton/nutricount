@@ -4,6 +4,7 @@ Handles background tasks with Celery
 """
 
 import logging
+from datetime import datetime
 from typing import Any, Dict
 
 try:
