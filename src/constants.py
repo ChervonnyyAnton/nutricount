@@ -32,27 +32,27 @@ DEFAULT_MACRO = 0.0
 # UI Messages
 SUCCESS_MESSAGES = {
     "product_created": "✅ Product created successfully!",
-    "product_updated": "✅ Product updated successfully!",
+        "product_updated": "✅ Product updated successfully!",
     "product_deleted": "✅ Product deleted successfully!",
     "dish_created": "✅ Dish created successfully!",
-    "dish_deleted": "✅ Dish deleted successfully!",
+        "dish_deleted": "✅ Dish deleted successfully!",
     "log_added": "✅ Food logged successfully!",
     "log_deleted": "✅ Log entry deleted successfully!",
-    "backup_created": "✅ Backup created successfully!",
+        "backup_created": "✅ Backup created successfully!",
     "database_optimized": "✅ Database optimized successfully!",
 }
 
 ERROR_MESSAGES = {
-    "invalid_data": "❌ Invalid data provided",
+        "invalid_data": "❌ Invalid data provided",
     "not_found": "❌ Item not found",
     "database_error": "❌ Database error occurred",
-    "validation_error": "❌ Validation failed",
+        "validation_error": "❌ Validation failed",
     "server_error": "❌ Internal server error",
     "cache_error": "❌ Cache operation failed",
-    "permission_denied": "❌ Permission denied",
+        "permission_denied": "❌ Permission denied",
     "rate_limit_exceeded": "❌ Too many requests, please slow down",
     "file_too_large": "❌ File size exceeds limit",
-    "invalid_json": "❌ Invalid JSON format",
+        "invalid_json": "❌ Invalid JSON format",
     "missing_required_field": "❌ Required field is missing",
     "constraint_violation": "❌ Data constraint violation",
 }
@@ -60,17 +60,17 @@ ERROR_MESSAGES = {
 # Emojis for UI
 EMOJIS = {
     "food": "🥗",
-    "stats": "📊",
+        "stats": "📊",
     "product": "🥩",
     "dish": "🍽️",
-    "log": "📝",
+        "log": "📝",
     "success": "✅",
     "error": "❌",
-    "warning": "⚠️",
+        "warning": "⚠️",
     "info": "ℹ️",
     "keto": "🥑",
-    "calories": "🔥",
+        "calories": "🔥",
     "protein": "💪",
     "fat": "🧈",
-    "carbs": "🍞",
+        "carbs": "🍞",
 }
