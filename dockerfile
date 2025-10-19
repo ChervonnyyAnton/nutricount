@@ -1,6 +1,6 @@
 # Multi-stage build optimized for Raspberry Pi 4 Model B 2018 ARM64
 # Raspberry Pi OS Lite 64-bit optimized
-FROM python:3.11-slim as builder
+FROM python:3.12-slim as builder
 
 # Set environment variables for optimization
 ENV PYTHONUNBUFFERED=1 \
@@ -24,7 +24,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Final stage
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \

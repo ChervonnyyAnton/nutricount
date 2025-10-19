@@ -124,11 +124,12 @@ jobs:
     
     - name: Install security tools
       run: |
+        pip install -r requirements.txt
         pip install bandit safety semgrep
     
     - name: Run bandit security scan
       run: |
-        bandit -r src/ -f json -o bandit-report.json
+        bandit -r src/ -f json -o bandit-report.json -c .bandit
     
     - name: Run safety check
       run: |

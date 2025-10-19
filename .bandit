@@ -1,0 +1,3 @@
+[bandit]
+exclude_dirs = tests,venv,htmlcov,backups,logs
+skips = B101,B601,B603,B607,B608
