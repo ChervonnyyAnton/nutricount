@@ -76,7 +76,7 @@ jobs:
     
     - name: Run tests in Docker
       run: |
-        docker run --rm -e PYTHONPATH=/app nutrition-tracker:test pytest tests/ -v
+        docker run --rm -e PYTHONPATH=/usr/src/app nutrition-tracker:test pytest tests/ -v
     
     - name: Test Docker image health
       run: |
