@@ -46,6 +46,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
     
     - name: Lint with flake8
       run: |
@@ -59,22 +60,27 @@ jobs:
     
     - name: Run unit tests
       run: |
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-report=xml
     
     - name: Run integration tests
       run: |
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/integration/ -v --cov=src --cov-report=term-missing
     
     - name: Run e2e tests
       run: |
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/e2e/ -v --cov=src --cov-report=term-missing
     
     - name: Run security tests
       run: |
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/ -v -m security --cov=src --cov-report=term-missing
     
     - name: Run performance tests
       run: |
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/ -v -m performance --cov=src --cov-report=term-missing
     
     - name: Upload coverage to Codecov
@@ -153,6 +159,7 @@ jobs:
       run: |
         pip install -r requirements.txt
         pip install locust
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
     
     - name: Start application
       run: |
