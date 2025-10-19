@@ -206,8 +206,8 @@ class TestTaskManager:
         status = manager.get_task_status('test_task_id')
         
         assert status['id'] == 'test_task_id'
-        assert status['status'] == 'SUCCESS'
-        assert status['result'] == 'Task completed synchronously'
+        assert status['status'] == 'NOT_FOUND'
+        assert 'Celery unavailable' in status['error']
     
     @patch('src.task_manager.CELERY_AVAILABLE', False)
     @patch('shutil.copy2')
