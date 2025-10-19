@@ -46,42 +46,52 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Lint with flake8
       run: |
         flake8 src/ --max-line-length=100 --ignore=E501,W503
         black --check src/
         isort --check-only src/
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Type check with mypy
       run: |
         mypy src/ --ignore-missing-imports
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Run unit tests
       run: |
-        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-report=xml
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Run integration tests
       run: |
-        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/integration/ -v --cov=src --cov-report=term-missing
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Run e2e tests
       run: |
-        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/e2e/ -v --cov=src --cov-report=term-missing
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Run security tests
       run: |
-        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/ -v -m security --cov=src --cov-report=term-missing
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Run performance tests
       run: |
-        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
         pytest tests/ -v -m performance --cov=src --cov-report=term-missing
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -159,12 +169,15 @@ jobs:
       run: |
         pip install -r requirements.txt
         pip install locust
-        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Start application
       run: |
         python app.py &
         sleep 10
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Run performance tests
       run: |
