@@ -92,7 +92,8 @@ class TestStructuredLogger:
         assert logger.es_client is None
     
     @patch('src.advanced_logging.LOGURU_AVAILABLE', True)
-    def test_log_application_event_with_loguru(self):
+    @patch('src.advanced_logging.loguru_logger')
+    def test_log_application_event_with_loguru(self, mock_loguru):
         """Test logging application event with loguru"""
         logger = StructuredLogger()
         logger.logger = Mock()
@@ -113,7 +114,8 @@ class TestStructuredLogger:
         logger.logger.log.assert_called_once()
     
     @patch('src.advanced_logging.LOGURU_AVAILABLE', True)
-    def test_log_access_event_with_loguru(self):
+    @patch('src.advanced_logging.loguru_logger')
+    def test_log_access_event_with_loguru(self, mock_loguru):
         """Test logging access event with loguru"""
         logger = StructuredLogger()
         logger.logger = Mock()
@@ -134,7 +136,8 @@ class TestStructuredLogger:
         logger.logger.info.assert_called_once()
     
     @patch('src.advanced_logging.LOGURU_AVAILABLE', True)
-    def test_log_security_event_with_loguru(self):
+    @patch('src.advanced_logging.loguru_logger')
+    def test_log_security_event_with_loguru(self, mock_loguru):
         """Test logging security event with loguru"""
         logger = StructuredLogger()
         logger.logger = Mock()
@@ -155,7 +158,8 @@ class TestStructuredLogger:
         logger.logger.warning.assert_called_once()
     
     @patch('src.advanced_logging.LOGURU_AVAILABLE', True)
-    def test_log_performance_event_with_loguru(self):
+    @patch('src.advanced_logging.loguru_logger')
+    def test_log_performance_event_with_loguru(self, mock_loguru):
         """Test logging performance event with loguru"""
         logger = StructuredLogger()
         logger.logger = Mock()
@@ -176,7 +180,8 @@ class TestStructuredLogger:
         logger.logger.info.assert_called_once()
     
     @patch('src.advanced_logging.LOGURU_AVAILABLE', True)
-    def test_log_business_event_with_loguru(self):
+    @patch('src.advanced_logging.loguru_logger')
+    def test_log_business_event_with_loguru(self, mock_loguru):
         """Test logging business event with loguru"""
         logger = StructuredLogger()
         logger.logger = Mock()
@@ -388,10 +393,7 @@ class TestElasticsearchIntegration:
         logger = StructuredLogger("test_app")
         logger.es_client = MagicMock()
         
-        with patch.object(logger, '_send_to_elasticsearch') as mock_send, \
-             patch('src.advanced_logging.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value.isoformat.return_value = "2023-01-01T00:00:00"
-            
+        with patch.object(logger, '_send_to_elasticsearch') as mock_send:
             logger.log_application_event("INFO", "Test message", extra="data")
             
             # Should call _send_to_elasticsearch
@@ -402,10 +404,7 @@ class TestElasticsearchIntegration:
         logger = StructuredLogger("test_app")
         logger.es_client = MagicMock()
         
-        with patch.object(logger, '_send_to_elasticsearch') as mock_send, \
-             patch('src.advanced_logging.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value.isoformat.return_value = "2023-01-01T00:00:00"
-            
+        with patch.object(logger, '_send_to_elasticsearch') as mock_send:
             logger.log_access_event("GET", "/test", 200, 0.1, user_id=1, ip="127.0.0.1")
             
             # Should call _send_to_elasticsearch
@@ -416,10 +415,7 @@ class TestElasticsearchIntegration:
         logger = StructuredLogger("test_app")
         logger.es_client = MagicMock()
         
-        with patch.object(logger, '_send_to_elasticsearch') as mock_send, \
-             patch('src.advanced_logging.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value.isoformat.return_value = "2023-01-01T00:00:00"
-            
+        with patch.object(logger, '_send_to_elasticsearch') as mock_send:
             logger.log_security_event("login", "User logged in", user_id=1, ip="127.0.0.1")
             
             # Should call _send_to_elasticsearch
@@ -430,10 +426,7 @@ class TestElasticsearchIntegration:
         logger = StructuredLogger("test_app")
         logger.es_client = MagicMock()
         
-        with patch.object(logger, '_send_to_elasticsearch') as mock_send, \
-             patch('src.advanced_logging.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value.isoformat.return_value = "2023-01-01T00:00:00"
-            
+        with patch.object(logger, '_send_to_elasticsearch') as mock_send:
             logger.log_performance_event("database_query", 0.5, {"table": "users"})
             
             # Should call _send_to_elasticsearch
@@ -444,10 +437,7 @@ class TestElasticsearchIntegration:
         logger = StructuredLogger("test_app")
         logger.es_client = MagicMock()
         
-        with patch.object(logger, '_send_to_elasticsearch') as mock_send, \
-             patch('src.advanced_logging.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value.isoformat.return_value = "2023-01-01T00:00:00"
-            
+        with patch.object(logger, '_send_to_elasticsearch') as mock_send:
             logger.log_business_event("purchase", "User made a purchase", user_id=1, amount=100)
             
             # Should call _send_to_elasticsearch
