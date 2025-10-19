@@ -3083,6 +3083,9 @@ def get_task_status(task_id):
     """Get background task status"""
     try:
         status = task_manager.get_task_status(task_id)
+        
+        # Debug logging
+        app.logger.info(f"Task status for {task_id}: {status}")
 
         # Check if task exists (if status is FAILURE and has specific error)
         if status.get('status') == 'FAILURE' and 'not found' in str(status.get('error', '')).lower():
