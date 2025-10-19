@@ -10,7 +10,7 @@ import os
 import shutil
 import sqlite3
 import time
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from functools import wraps
 
 from flask import Flask, jsonify, render_template, request, send_from_directory
@@ -18,14 +18,9 @@ from flask_cors import CORS
 from werkzeug.exceptions import BadRequest
 
 # Import our modular components
+from src.advanced_logging import structured_logger
+from src.cache_manager import cache_invalidate, cache_manager
 from src.config import Config
-
-def safe_get_json():
-    """Safely get JSON data from request, handling invalid JSON gracefully"""
-    try:
-        return request.get_json() or {}
-    except BadRequest:
-        return None
 from src.constants import (
     ERROR_MESSAGES,
     HTTP_BAD_REQUEST,
@@ -36,7 +31,9 @@ from src.constants import (
     SUCCESS_MESSAGES,
 )
 from src.fasting_manager import FastingManager
+from src.monitoring import metrics_collector, monitor_http_request, system_monitor
 from src.nutrition_calculator import (
+    KETO_INDEX_CATEGORIES,
     calculate_bmr_katch_mcardle,
     calculate_bmr_mifflin_st_jeor,
     calculate_calories_from_macros,
@@ -47,8 +44,17 @@ from src.nutrition_calculator import (
     calculate_net_carbs_advanced,
     calculate_target_calories,
     calculate_tdee,
-    KETO_INDEX_CATEGORIES,
 )
+from src.security import (
+    SecurityHeaders,
+    audit_logger,
+    rate_limit,
+    require_admin,
+    require_auth,
+    security_manager,
+)
+from src.ssl_config import setup_security_middleware
+from src.task_manager import task_manager
 from src.utils import (
     clean_string,
     get_database_stats,
@@ -60,13 +66,15 @@ from src.utils import (
     validate_nutrition_values,
     validate_product_data,
 )
-from src.fasting_manager import FastingManager
-from src.cache_manager import cache_manager, cache_invalidate
-from src.task_manager import task_manager
-from src.monitoring import metrics_collector, monitor_http_request, system_monitor
-from src.security import security_manager, require_auth, require_admin, rate_limit, SecurityHeaders, audit_logger
-from src.ssl_config import setup_security_middleware
-from src.advanced_logging import structured_logger
+
+
+def safe_get_json():
+    """Safely get JSON data from request, handling invalid JSON gracefully"""
+    try:
+        return request.get_json() or {}
+    except BadRequest:
+        return None
+
 
 # Initialize Flask app
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -78,15 +86,18 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 # Setup security middleware
 setup_security_middleware(app)
 
+
 # Add security headers to all responses
 @app.after_request
 def add_security_headers(response):
     return SecurityHeaders.add_security_headers(response)
 
+
 # Add request logging
 @app.before_request
 def log_request_start():
     request.start_time = time.time()
+
 
 @app.after_request
 def log_request_end(response):
@@ -103,9 +114,11 @@ def log_request_end(response):
 
     return response
 
+
 # Simple in-memory cache for Pi Zero 2W
 _cache = {}
 _cache_timeout = 300  # 5 minutes
+
 
 def cached_response(timeout=300):
     """Simple cache decorator for API responses"""
@@ -1284,7 +1297,6 @@ def daily_stats_api(date_str):
     try:
         # Validate date format
         try:
-            from datetime import datetime
             parsed_date = datetime.strptime(date_str, '%Y-%m-%d').date()
             today = datetime.now().date()
             if parsed_date > today:
@@ -1357,7 +1369,6 @@ def daily_stats_api(date_str):
                 profile_dict = dict(profile)
 
                 # Calculate age
-                from datetime import date, datetime, timezone
 
                 birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
                 today = date.today()
@@ -1501,7 +1512,6 @@ def weekly_stats_api(date_str):
     db = get_db()
 
     try:
-        from datetime import datetime, timedelta
 
         # Validate date format
         try:
@@ -1582,7 +1592,6 @@ def weekly_stats_api(date_str):
                 profile_dict = dict(profile)
 
                 # Calculate age
-                from datetime import date, datetime, timezone
 
                 birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
                 today = date.today()
@@ -1821,7 +1830,6 @@ def profile_api():
             if profile:
                 profile_dict = dict(profile)
                 # Calculate age from birth_date
-                from datetime import date, datetime, timezone
 
                 birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
                 today = date.today()
@@ -1853,7 +1861,6 @@ def profile_api():
                 errors.append("Birth date is required")
             else:
                 try:
-                    from datetime import datetime
 
                     datetime.strptime(birth_date, "%Y-%m-%d")
                 except ValueError:
@@ -1915,7 +1922,6 @@ def profile_api():
 
             profile_dict = dict(updated_profile)
             # Calculate age
-            from datetime import date, datetime, timezone
 
             birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
             today = date.today()
@@ -1954,7 +1960,6 @@ def profile_macros_api():
         profile_dict = dict(profile)
 
         # Calculate age
-        from datetime import date, datetime, timezone
 
         birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
         today = date.today()
@@ -2064,7 +2069,6 @@ def system_backup_api():
     """Create a backup of the database"""
     try:
         import shutil
-        from datetime import datetime
 
         # Create backups directory if it doesn't exist
         os.makedirs("backups", exist_ok=True)
@@ -2141,7 +2145,6 @@ def system_restore_api():
 
         # Create backup of current database before restore
         import shutil
-        from datetime import datetime
 
         os.makedirs("backups", exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -2317,10 +2320,10 @@ def maintenance_cleanup_test_data_api():
     try:
         db = get_db()
 
-        # Count test data before deletion
-        test_products = db.execute("SELECT COUNT(*) FROM products WHERE name LIKE 'TEST%'").fetchone()[0]
-        test_dishes = db.execute("SELECT COUNT(*) FROM dishes WHERE name LIKE 'TEST%'").fetchone()[0]
-        test_logs = db.execute(
+        # Count test data before deletion (for logging)
+        count_products = db.execute("SELECT COUNT(*) FROM products WHERE name LIKE 'TEST%'").fetchone()[0]
+        count_dishes = db.execute("SELECT COUNT(*) FROM dishes WHERE name LIKE 'TEST%'").fetchone()[0]
+        count_logs = db.execute(
             """
             SELECT COUNT(*) FROM log_entries le
             LEFT JOIN products p ON le.item_type = 'product' AND le.item_id = p.id
@@ -2355,6 +2358,11 @@ def maintenance_cleanup_test_data_api():
         message = f"Test data cleanup completed! Removed {total_deleted} items"
         if total_deleted == 0:
             message += " (no test data found)"
+
+        app.logger.info(
+            f"Test data cleanup: {count_products} products, "
+            f"{count_dishes} dishes, {count_logs} logs checked"
+        )
 
         return jsonify(
             json_response(
@@ -2512,8 +2520,6 @@ def verify_telegram_webapp_data(init_data: str, bot_token: str) -> bool:
 
     except Exception:
         return False
-
-
 
 
 # ============================================
@@ -3083,7 +3089,7 @@ def get_task_status(task_id):
     """Get background task status"""
     try:
         status = task_manager.get_task_status(task_id)
-        
+
         # Debug logging
         app.logger.info(f"Task status for {task_id}: {status}")
 
@@ -3286,8 +3292,9 @@ def start_fasting_api():
         fasting_type = data.get('fasting_type', '16:8')
         notes = data.get('notes', '')
 
-        # Get user ID from auth (if implemented)
-        user_id = 1  # Default user for now
+        # Note: User authentication to be implemented
+        # For now, using default user ID
+        _ = 1  # Placeholder for future user_id implementation
 
         # Start fasting session
         fasting_manager = FastingManager(Config.DATABASE)
@@ -3310,6 +3317,7 @@ def start_fasting_api():
     except Exception as e:
         app.logger.error(f"Start fasting error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
 
 @app.route("/api/fasting/end", methods=["POST"])
 @monitor_http_request
@@ -3355,6 +3363,7 @@ def end_fasting_api():
         app.logger.error(f"End fasting error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
+
 @app.route("/api/fasting/status", methods=["GET"])
 @monitor_http_request
 @rate_limit('api')
@@ -3397,6 +3406,7 @@ def fasting_status_api():
         app.logger.error(f"Fasting status error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
+
 @app.route("/api/fasting/sessions", methods=["GET"])
 @monitor_http_request
 @rate_limit('api')
@@ -3431,6 +3441,7 @@ def fasting_sessions_api():
         app.logger.error(f"Fasting sessions error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
+
 @app.route("/api/fasting/stats", methods=["GET"])
 @monitor_http_request
 @rate_limit('api')
@@ -3452,6 +3463,7 @@ def fasting_stats_api():
     except Exception as e:
         app.logger.error(f"Fasting stats error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
 
 @app.route("/api/fasting/settings", methods=["GET", "POST", "PUT"])
 @monitor_http_request
@@ -3540,6 +3552,7 @@ def fasting_settings_api():
     except Exception as e:
         app.logger.error(f"Fasting settings error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
 
 # ============================================
 # Main Entry Point
