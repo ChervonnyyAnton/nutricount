@@ -5,16 +5,16 @@ Handles metrics collection with Prometheus
 
 import logging
 import time
-from typing import Dict, Any
 from functools import wraps
+from typing import Any, Dict
 
 try:
     from prometheus_client import (
-        Counter,
-        Histogram,
-        Gauge,
-        Summary,
         CollectorRegistry,
+        Counter,
+        Gauge,
+        Histogram,
+        Summary,
         generate_latest,
     )
 

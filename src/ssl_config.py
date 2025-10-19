@@ -4,9 +4,10 @@ Handles SSL certificates and HTTPS configuration
 """
 
 import logging
-from typing import Optional, Dict, Any
 from pathlib import Path
-from flask import request, redirect, jsonify
+from typing import Any, Dict, Optional
+
+from flask import jsonify, redirect, request
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +34,12 @@ class SSLManager:
     ) -> bool:
         """Generate self-signed SSL certificate"""
         try:
+            from datetime import datetime, timedelta, timezone
+
             from cryptography import x509
-            from cryptography.x509.oid import NameOID
             from cryptography.hazmat.primitives import hashes, serialization
             from cryptography.hazmat.primitives.asymmetric import rsa
-            from datetime import datetime, timedelta, timezone
+            from cryptography.x509.oid import NameOID
 
             # Generate private key
             private_key = rsa.generate_private_key(
@@ -134,8 +136,9 @@ class SSLManager:
             if not self.cert_file.exists() or not self.key_file.exists():
                 return False
 
-            from cryptography import x509
             from datetime import datetime, timezone
+
+            from cryptography import x509
 
             with open(self.cert_file, "rb") as f:
                 cert_data = f.read()

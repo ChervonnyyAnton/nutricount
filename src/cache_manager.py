@@ -6,8 +6,8 @@ Handles Redis caching and performance optimization
 import json
 import logging
 import time
-from typing import Any, Optional
 from functools import wraps
+from typing import Any, Optional
 
 try:
     import redis
