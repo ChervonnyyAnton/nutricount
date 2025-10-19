@@ -14,6 +14,7 @@ The primary goals of this refactoring were:
 3. **Enhance Consistency**: Apply consistent formatting across the codebase
 4. **Add Development Tools**: Provide configuration for code quality tools
 5. **Reduce Code Duplication**: Add reusable utilities and patterns
+6. **Implement Mutation Testing**: Add mutation testing to verify test quality and effectiveness
 
 ## Changes Made
 
@@ -114,7 +115,50 @@ Benefits:
 - Proper logging
 - Type-specific error handling (ValueError vs generic Exception)
 
-### 6. Code Quality Metrics
+### 6. Mutation Testing Implementation
+
+Added comprehensive mutation testing framework to verify test quality:
+
+**Tool Added:**
+- **mutmut 2.4.5**: Industry-standard mutation testing framework for Python
+
+**Configuration:**
+- Added to `requirements-minimal.txt` for CI/CD compatibility
+- Configured in `pyproject.toml` with:
+  - Paths to mutate: `src/`
+  - Test runner: `pytest --tb=short --disable-warnings -x -q`
+  - Tests directory: `tests/`
+
+**Tooling:**
+- Created `scripts/mutation_test.sh` - Interactive script for mutation testing
+- Updated `Makefile` with mutation testing targets:
+  - `make mutation-test` - Run mutation testing
+  - `make mutation-results` - View results summary
+  - `make mutation-html` - Generate HTML report
+  - `make mutation-clean` - Clean cache
+
+**Documentation:**
+- Created comprehensive `MUTATION_TESTING.md` guide (9,400+ words)
+- Updated `README.md` with mutation testing section
+- Updated `.gitignore` for mutation testing artifacts
+
+**Target Mutation Score:** 80%+ (indicates high-quality tests)
+
+**Benefits:**
+- Verifies tests actually catch bugs, not just execute code
+- Identifies gaps in test coverage and edge cases
+- Ensures tests are meaningful and effective
+- Provides confidence in test suite quality
+
+**Usage:**
+```bash
+make mutation-test          # Run mutation testing
+make mutation-results       # Show results
+make mutation-html          # Generate HTML report
+./scripts/mutation_test.sh  # Interactive script
+```
+
+### 7. Code Quality Metrics
 
 **Before Refactoring:**
 - Lines of code: 3,555 (app.py)
@@ -122,6 +166,7 @@ Benefits:
 - Import organization: Poor
 - Code duplication: High (62 try blocks, 18 db connections)
 - Formatting consistency: Mixed
+- Mutation testing: Not available
 
 **After Refactoring:**
 - Lines of code: 3,555 (no functionality removed, ready for extraction)
@@ -129,8 +174,9 @@ Benefits:
 - Import organization: Excellent
 - Code duplication: Identified, utilities added (ready for application)
 - Formatting consistency: 100% (black/isort)
+- Mutation testing: Configured and ready to use
 
-### 7. Test Coverage
+### 8. Test Coverage
 
 **All tests passing:**
 - Unit tests: ✅
@@ -191,6 +237,25 @@ Based on code analysis, the following areas have been identified for future work
 - Implement repository pattern for data access
 - Add DTOs (Data Transfer Objects) for API responses
 
+### 5. Mutation Testing Execution
+- **Priority**: HIGH - Verifies test quality and effectiveness
+- Run baseline mutation testing on all modules
+- Achieve 80%+ mutation score for critical modules (security, utils)
+- Achieve 75%+ mutation score for core modules (cache, monitoring, fasting)
+- Fix surviving mutants by improving test coverage
+- Document mutation testing results and improvements
+
+**Execution Plan:**
+1. ✅ Configure mutation testing framework (mutmut)
+2. ✅ Create mutation testing scripts and documentation
+3. Run baseline mutation testing: `make mutation-test`
+4. Analyze results: `make mutation-results`
+5. Fix surviving mutants by adding/improving tests
+6. Re-run until target scores achieved
+7. Add mutation testing to CI/CD pipeline (optional)
+
+See `MUTATION_TESTING.md` for detailed guide.
+
 ## Recommendations
 
 ### Immediate (Can be done now)
@@ -198,24 +263,29 @@ Based on code analysis, the following areas have been identified for future work
 2. ✅ Use `handle_api_errors()` decorator for new routes
 3. ✅ Run `black .` and `isort .` before committing
 4. ✅ Keep linting clean with `flake8`
+5. ✅ Mutation testing configured and ready to use
 
 ### Short-term (Next sprint)
-1. Extract top 5 longest functions into smaller, focused functions
-2. Apply context manager to existing database connections
-3. Apply error decorator to existing routes
-4. Add more unit tests for edge cases
+1. **Run baseline mutation testing** on all modules
+2. **Fix critical surviving mutants** in security.py and utils.py
+3. Extract top 5 longest functions into smaller, focused functions
+4. Apply context manager to existing database connections
+5. Apply error decorator to existing routes
+6. Add more unit tests for edge cases identified by mutation testing
 
 ### Medium-term (Next month)
-1. Create API blueprints for major resource types
-2. Implement service layer architecture
-3. Add comprehensive API documentation (OpenAPI/Swagger)
-4. Performance profiling and optimization
+1. **Achieve 80%+ mutation score** across critical modules
+2. Create API blueprints for major resource types
+3. Implement service layer architecture
+4. Add comprehensive API documentation (OpenAPI/Swagger)
+5. Performance profiling and optimization
 
 ### Long-term (Next quarter)
-1. Migrate to modern Python patterns (dataclasses, Protocol)
-2. Add comprehensive type hints with mypy strict mode
-3. Implement caching strategy across all endpoints
-4. Add comprehensive integration tests for all workflows
+1. **Maintain 80%+ mutation score** for all new code
+2. Migrate to modern Python patterns (dataclasses, Protocol)
+3. Add comprehensive type hints with mypy strict mode
+4. Implement caching strategy across all endpoints
+5. Add comprehensive integration tests for all workflows
 
 ## Metrics
 
@@ -228,6 +298,12 @@ Based on code analysis, the following areas have been identified for future work
 - Current: 80%+ (as per pytest.ini)
 - Target: Maintain 80%+ during refactoring
 - Goal: Increase to 90%+ over time
+
+### Mutation Testing Score
+- Current: Baseline not yet run
+- Target: 80%+ for critical modules (security, utils)
+- Target: 75%+ for core modules (cache, monitoring, fasting)
+- Goal: 80%+ overall across all modules
 
 ### Performance
 - Test suite: 27 seconds (538 tests)
