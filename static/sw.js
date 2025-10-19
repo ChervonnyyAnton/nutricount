@@ -11,8 +11,8 @@ const urlsToCache = [
     '/static/js/notifications.js',
     '/static/js/admin.js',
     '/manifest.json',
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js'
+    '/static/vendor/bootstrap/bootstrap.min.css',
+    '/static/vendor/bootstrap/bootstrap.bundle.min.js'
 ];
 
 // Install event - cache resources

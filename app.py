@@ -10,14 +10,22 @@ import os
 import shutil
 import sqlite3
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from functools import wraps
 
-from flask import Flask, jsonify, render_template, request, send_file, send_from_directory
+from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_cors import CORS
+from werkzeug.exceptions import BadRequest
 
 # Import our modular components
 from src.config import Config
+
+def safe_get_json():
+    """Safely get JSON data from request, handling invalid JSON gracefully"""
+    try:
+        return request.get_json() or {}
+    except BadRequest:
+        return None
 from src.constants import (
     ERROR_MESSAGES,
     HTTP_BAD_REQUEST,
@@ -27,6 +35,7 @@ from src.constants import (
     MEAL_TYPES,
     SUCCESS_MESSAGES,
 )
+from src.fasting_manager import FastingManager
 from src.nutrition_calculator import (
     calculate_bmr_katch_mcardle,
     calculate_bmr_mifflin_st_jeor,
@@ -51,6 +60,13 @@ from src.utils import (
     validate_nutrition_values,
     validate_product_data,
 )
+from src.fasting_manager import FastingManager
+from src.cache_manager import cache_manager, cache_invalidate
+from src.task_manager import task_manager
+from src.monitoring import metrics_collector, monitor_http_request, system_monitor
+from src.security import security_manager, require_auth, require_admin, rate_limit, SecurityHeaders, audit_logger
+from src.ssl_config import setup_security_middleware
+from src.advanced_logging import structured_logger
 
 # Initialize Flask app
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -58,6 +74,34 @@ app.config.from_object(Config)
 
 # Enable CORS for API endpoints
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# Setup security middleware
+setup_security_middleware(app)
+
+# Add security headers to all responses
+@app.after_request
+def add_security_headers(response):
+    return SecurityHeaders.add_security_headers(response)
+
+# Add request logging
+@app.before_request
+def log_request_start():
+    request.start_time = time.time()
+
+@app.after_request
+def log_request_end(response):
+    duration = time.time() - getattr(request, 'start_time', time.time())
+
+    # Log access event
+    structured_logger.log_access_event(
+        method=request.method,
+        path=request.path,
+        status_code=response.status_code,
+        duration=duration,
+        ip=request.remote_addr
+    )
+
+    return response
 
 # Simple in-memory cache for Pi Zero 2W
 _cache = {}
@@ -70,22 +114,22 @@ def cached_response(timeout=300):
         def decorated_function(*args, **kwargs):
             # Create cache key from function name and arguments
             cache_key = f"{f.__name__}:{hash(str(args) + str(kwargs))}"
-            
+
             # Check if cached response exists and is not expired
             if cache_key in _cache:
                 cached_data, timestamp = _cache[cache_key]
                 if time.time() - timestamp < timeout:
                     return cached_data
-            
+
             # Execute function and cache result
             result = f(*args, **kwargs)
             _cache[cache_key] = (result, time.time())
-            
+
             # Clean old cache entries (simple cleanup)
             if len(_cache) > 50:  # Limit cache size
                 oldest_key = min(_cache.keys(), key=lambda k: _cache[k][1])
                 del _cache[oldest_key]
-            
+
             return result
         return decorated_function
     return decorator
@@ -104,7 +148,7 @@ def get_db():
     if app.config['DATABASE'] != ':memory:':
         db.execute("PRAGMA journal_mode = WAL")
         db.execute("PRAGMA synchronous = NORMAL")
-    
+
     db.execute("PRAGMA foreign_keys = ON")
 
     return db
@@ -122,7 +166,7 @@ def init_db():
         db.close()
 
         print("✅ Database initialized successfully")
-        
+
         # Load sample data only for non-testing environments
         if not app.config.get('TESTING', False) and app.config['DATABASE'] != ':memory:':
             db = get_db()
@@ -137,18 +181,18 @@ def init_db():
                 ('Blueberries', 57, 0.7, 0.3, 14.5, 2.4, 'berries', 25, 'raw'),
                 ('Sweet Potato', 86, 1.6, 0.1, 20.1, 3.0, 'root_vegetables', 70, 'minimal')
             ]
-            
+
             for product in sample_products:
                 db.execute(
                     "INSERT OR IGNORE INTO products (name, calories_per_100g, protein_per_100g, fat_per_100g, carbs_per_100g, fiber_per_100g, category, glycemic_index, processing_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     product
                 )
-            
+
             db.commit()
             db.close()
-            
+
             print(f"📊 Sample products loaded: {len(sample_products)}")
-        
+
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")
         raise
@@ -177,7 +221,7 @@ def health():
             {
                 "status": "healthy",
                 "version": Config.VERSION,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "database": "ok",
             }
         )
@@ -187,7 +231,7 @@ def health():
                 {
                     "status": "unhealthy",
                     "version": Config.VERSION,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "error": str(e),
                 }
             ),
@@ -218,6 +262,8 @@ def service_worker():
 
 
 @app.route("/api/products", methods=["GET", "POST"])
+@monitor_http_request
+@rate_limit('api')
 def products_api():
     """Products CRUD endpoint"""
     db = get_db()
@@ -229,10 +275,18 @@ def products_api():
             limit = min(int(request.args.get("limit", 50)), Config.API_MAX_PER_PAGE)
             offset = max(0, int(request.args.get("offset", 0)))
 
+            # Create cache key
+            cache_key = f"products:{search}:{limit}:{offset}"
+
+            # Try to get from cache first
+            cached_result = cache_manager.get(cache_key)
+            if cached_result is not None:
+                return jsonify(json_response(cached_result, "Products retrieved from cache", HTTP_OK)), HTTP_OK
+
             query = """
-                SELECT * FROM products 
-                WHERE name LIKE ? 
-                ORDER BY name COLLATE NOCASE 
+                SELECT * FROM products
+                WHERE name LIKE ?
+                ORDER BY name COLLATE NOCASE
                 LIMIT ? OFFSET ?
             """
 
@@ -285,10 +339,18 @@ def products_api():
 
                 products.append(product)
 
+            # Cache the result
+            cache_manager.set(cache_key, products, 300)  # Cache for 5 minutes
+
             return jsonify(json_response(products))
 
         else:  # POST
-            data = request.get_json() or {}
+            data = safe_get_json()
+            if data is None:
+                return (
+                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
 
             # Validate product data
             is_valid, errors, cleaned_data = validate_product_data(data)
@@ -318,8 +380,8 @@ def products_api():
                 # Extract additional fields
                 fiber_per_100g = safe_float(data.get("fiber_per_100g"))
                 sugars_per_100g = safe_float(data.get("sugars_per_100g"))
-                category = clean_string(data.get("category"))
-                processing_level = clean_string(data.get("processing_level"))
+                category = data.get("category") if data.get("category") else None
+                processing_level = data.get("processing_level") if data.get("processing_level") else None
                 glycemic_index = safe_float(data.get("glycemic_index"))
                 region = clean_string(data.get("region", "US"))
 
@@ -348,7 +410,7 @@ def products_api():
                     """
                     INSERT INTO products (name, calories_per_100g, protein_per_100g, fat_per_100g, carbs_per_100g,
                                         fiber_per_100g, sugars_per_100g, category, processing_level, glycemic_index, region,
-                                        net_carbs_per_100g, keto_index, keto_category, carbs_score, fat_score, 
+                                        net_carbs_per_100g, keto_index, keto_category, carbs_score, fat_score,
                                         quality_score, gi_score, fiber_estimated, fiber_deduction_coefficient)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -377,6 +439,9 @@ def products_api():
                 )
 
                 db.commit()
+
+                # Invalidate products cache
+                cache_invalidate("products:*")
 
                 # Return created product with enhanced data
                 product_id = cursor.lastrowid
@@ -469,7 +534,12 @@ def product_detail_api(product_id):
 
         elif request.method == "PUT":
             # Update product
-            data = request.get_json() or {}
+            data = safe_get_json()
+            if data is None:
+                return (
+                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
 
             # Validate required fields
             name = clean_string(data.get("name", "").strip())
@@ -535,8 +605,8 @@ def product_detail_api(product_id):
             # Update product
             cursor = db.execute(
                 """
-                UPDATE products 
-                SET name = ?, calories_per_100g = ?, protein_per_100g = ?, 
+                UPDATE products
+                SET name = ?, calories_per_100g = ?, protein_per_100g = ?,
                     fat_per_100g = ?, carbs_per_100g = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             """,
@@ -562,6 +632,8 @@ def product_detail_api(product_id):
 
 
 @app.route("/api/dishes", methods=["GET", "POST"])
+@monitor_http_request
+@rate_limit('api')
 def dishes_api():
     """Dishes CRUD endpoint"""
     db = get_db()
@@ -571,7 +643,7 @@ def dishes_api():
             # Get dishes with pre-calculated nutrition (using advanced recipe calculation)
             dishes = db.execute(
                 """
-                SELECT d.*, 
+                SELECT d.*,
                        COUNT(di.id) as ingredient_count,
                        -- Use pre-calculated values from advanced recipe calculation
                        d.calories_per_100g * d.cooked_weight_grams / 100.0 as total_calories,
@@ -591,7 +663,12 @@ def dishes_api():
             return jsonify(json_response(dishes_data))
 
         else:  # POST
-            data = request.get_json() or {}
+            data = safe_get_json()
+            if data is None:
+                return (
+                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
 
             # Validate dish data
             is_valid, errors, cleaned_data = validate_dish_data(data)
@@ -702,7 +779,7 @@ def dishes_api():
 
                 # Update dish with calculated nutrition and weights
                 db.execute(
-                    """UPDATE dishes SET 
+                    """UPDATE dishes SET
                         total_weight_grams = ?,
                         cooked_weight_grams = ?,
                         calories_per_100g = ?,
@@ -773,7 +850,7 @@ def dish_detail_api(dish_id):
             # Get ingredients
             ingredients = db.execute(
                 """
-                SELECT di.*, p.name as product_name, p.calories_per_100g, p.protein_per_100g, 
+                SELECT di.*, p.name as product_name, p.calories_per_100g, p.protein_per_100g,
                        p.fat_per_100g, p.carbs_per_100g, p.fiber_per_100g, p.sugars_per_100g,
                        p.category, p.processing_level, p.glycemic_index, p.region
                 FROM dish_ingredients di
@@ -791,7 +868,12 @@ def dish_detail_api(dish_id):
 
         elif request.method == "PUT":
             # Update dish
-            data = request.get_json() or {}
+            data = safe_get_json()
+            if data is None:
+                return (
+                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
 
             # Validate required fields
             name = clean_string(data.get("name", "").strip())
@@ -832,7 +914,7 @@ def dish_detail_api(dish_id):
             # Update dish
             cursor = db.execute(
                 """
-                UPDATE dishes 
+                UPDATE dishes
                 SET name = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             """,
@@ -912,6 +994,8 @@ def dish_detail_api(dish_id):
 
 
 @app.route("/api/log", methods=["GET", "POST"])
+@monitor_http_request
+@rate_limit('api')
 def log_api():
     """Food log CRUD endpoint"""
     db = get_db()
@@ -923,16 +1007,16 @@ def log_api():
 
             if date_filter:
                 query = """
-                    SELECT * FROM log_entries_with_details 
-                    WHERE date = ? 
-                    ORDER BY created_at DESC 
+                    SELECT * FROM log_entries_with_details
+                    WHERE date = ?
+                    ORDER BY created_at DESC
                     LIMIT ?
                 """
                 params = (date_filter, limit)
             else:
                 query = """
-                    SELECT * FROM log_entries_with_details 
-                    ORDER BY date DESC, created_at DESC 
+                    SELECT * FROM log_entries_with_details
+                    ORDER BY date DESC, created_at DESC
                     LIMIT ?
                 """
                 params = (limit,)
@@ -977,7 +1061,12 @@ def log_api():
             return jsonify(json_response(processed_entries))
 
         else:  # POST
-            data = request.get_json() or {}
+            data = safe_get_json()
+            if data is None:
+                return (
+                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
 
             # Validate log data
             is_valid, errors, cleaned_data = validate_log_data(data)
@@ -1078,7 +1167,12 @@ def log_detail_api(log_id):
 
         elif request.method == "PUT":
             # Update log entry
-            data = request.get_json() or {}
+            data = safe_get_json()
+            if data is None:
+                return (
+                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
 
             # Validate required fields
             date = (data.get("date") or "").strip()
@@ -1139,8 +1233,8 @@ def log_detail_api(log_id):
             # Update log entry
             cursor = db.execute(
                 """
-                UPDATE log_entries 
-                SET date = ?, item_type = ?, item_id = ?, quantity_grams = ?, 
+                UPDATE log_entries
+                SET date = ?, item_type = ?, item_id = ?, quantity_grams = ?,
                     meal_time = ?, notes = ?
                 WHERE id = ?
             """,
@@ -1180,30 +1274,47 @@ def log_detail_api(log_id):
 
 
 @app.route("/api/stats/<date_str>")
+@monitor_http_request
+@rate_limit('api')
 @cached_response(timeout=300)  # Cache stats for 5 minutes
 def daily_stats_api(date_str):
     """Get daily nutrition statistics"""
     db = get_db()
 
     try:
+        # Validate date format
+        try:
+            from datetime import datetime
+            parsed_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            today = datetime.now().date()
+            if parsed_date > today:
+                return (
+                    jsonify(json_response(None, "Future date not allowed", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
+        except ValueError:
+            return (
+                jsonify(json_response(None, "Invalid date format. Use YYYY-MM-DD", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
         # Calculate nutrition totals for the day (optimized query)
         stats_query = """
-            SELECT 
+            SELECT
                 SUM(calculated_calories) as calories,
-                SUM(CASE 
+                SUM(CASE
                     WHEN item_type = 'product' THEN protein_per_100g * quantity_grams / 100.0
                     WHEN item_type = 'dish' THEN dish_protein_per_100g * quantity_grams / 100.0
-                    ELSE 0 
+                    ELSE 0
                 END) as protein,
-                SUM(CASE 
+                SUM(CASE
                     WHEN item_type = 'product' THEN fat_per_100g * quantity_grams / 100.0
                     WHEN item_type = 'dish' THEN dish_fat_per_100g * quantity_grams / 100.0
-                    ELSE 0 
+                    ELSE 0
                 END) as fat,
-                SUM(CASE 
+                SUM(CASE
                     WHEN item_type = 'product' THEN carbs_per_100g * quantity_grams / 100.0
                     WHEN item_type = 'dish' THEN dish_carbs_per_100g * quantity_grams / 100.0
-                    ELSE 0 
+                    ELSE 0
                 END) as carbs,
                 COUNT(*) as entries_count
             FROM log_entries_with_details
@@ -1246,7 +1357,7 @@ def daily_stats_api(date_str):
                 profile_dict = dict(profile)
 
                 # Calculate age
-                from datetime import date, datetime
+                from datetime import date, datetime, timezone
 
                 birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
                 today = date.today()
@@ -1383,6 +1494,8 @@ def daily_stats_api(date_str):
 
 
 @app.route("/api/stats/weekly/<date_str>")
+@monitor_http_request
+@rate_limit('api')
 def weekly_stats_api(date_str):
     """Get weekly nutrition statistics"""
     db = get_db()
@@ -1390,29 +1503,43 @@ def weekly_stats_api(date_str):
     try:
         from datetime import datetime, timedelta
 
+        # Validate date format
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            today = datetime.now().date()
+            if target_date > today:
+                return (
+                    jsonify(json_response(None, "Future date not allowed", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
+        except ValueError:
+            return (
+                jsonify(json_response(None, "Invalid date format. Use YYYY-MM-DD", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
+
         # Parse the date and calculate week start (Monday)
-        target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
         week_start = target_date - timedelta(days=target_date.weekday())
         week_end = week_start + timedelta(days=6)
 
         # Calculate nutrition totals for the week
         stats_query = """
-            SELECT 
+            SELECT
                 SUM(calculated_calories) as calories,
-                SUM(CASE 
+                SUM(CASE
                     WHEN item_type = 'product' THEN protein_per_100g * quantity_grams / 100.0
                     WHEN item_type = 'dish' THEN dish_protein_per_100g * quantity_grams / 100.0
-                    ELSE 0 
+                    ELSE 0
                 END) as protein,
-                SUM(CASE 
+                SUM(CASE
                     WHEN item_type = 'product' THEN fat_per_100g * quantity_grams / 100.0
                     WHEN item_type = 'dish' THEN dish_fat_per_100g * quantity_grams / 100.0
-                    ELSE 0 
+                    ELSE 0
                 END) as fat,
-                SUM(CASE 
+                SUM(CASE
                     WHEN item_type = 'product' THEN carbs_per_100g * quantity_grams / 100.0
                     WHEN item_type = 'dish' THEN dish_carbs_per_100g * quantity_grams / 100.0
-                    ELSE 0 
+                    ELSE 0
                 END) as carbs,
                 COUNT(*) as entries_count
             FROM log_entries_with_details
@@ -1455,7 +1582,7 @@ def weekly_stats_api(date_str):
                 profile_dict = dict(profile)
 
                 # Calculate age
-                from datetime import date, datetime
+                from datetime import date, datetime, timezone
 
                 birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
                 today = date.today()
@@ -1569,22 +1696,22 @@ def weekly_stats_api(date_str):
 
             day_stats = db.execute(
                 """
-                SELECT 
+                SELECT
                     SUM(calculated_calories) as calories,
-                    SUM(CASE 
+                    SUM(CASE
                         WHEN item_type = 'product' THEN protein_per_100g * quantity_grams / 100.0
                         WHEN item_type = 'dish' THEN dish_protein_per_100g * quantity_grams / 100.0
-                        ELSE 0 
+                        ELSE 0
                     END) as protein,
-                    SUM(CASE 
+                    SUM(CASE
                         WHEN item_type = 'product' THEN fat_per_100g * quantity_grams / 100.0
                         WHEN item_type = 'dish' THEN dish_fat_per_100g * quantity_grams / 100.0
-                        ELSE 0 
+                        ELSE 0
                     END) as fat,
-                    SUM(CASE 
+                    SUM(CASE
                         WHEN item_type = 'product' THEN carbs_per_100g * quantity_grams / 100.0
                         WHEN item_type = 'dish' THEN dish_carbs_per_100g * quantity_grams / 100.0
-                        ELSE 0 
+                        ELSE 0
                     END) as carbs,
                     COUNT(*) as entries_count
                 FROM log_entries_with_details
@@ -1633,7 +1760,12 @@ def weekly_stats_api(date_str):
 def gki_api():
     """Calculate Glucose-Ketone Index (GKI)"""
     try:
-        data = request.get_json() or {}
+        data = safe_get_json()
+        if data is None:
+            return (
+                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
 
         # Validate input data
         glucose_mgdl = safe_float(data.get("glucose_mgdl"))
@@ -1689,7 +1821,7 @@ def profile_api():
             if profile:
                 profile_dict = dict(profile)
                 # Calculate age from birth_date
-                from datetime import date, datetime
+                from datetime import date, datetime, timezone
 
                 birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
                 today = date.today()
@@ -1701,7 +1833,12 @@ def profile_api():
                 return jsonify(json_response(None, "No profile found", status=HTTP_NOT_FOUND)), HTTP_NOT_FOUND
 
         else:  # POST or PUT
-            data = request.get_json() or {}
+            data = safe_get_json()
+            if data is None:
+                return (
+                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
 
             # Validate profile data
             errors = []
@@ -1751,8 +1888,8 @@ def profile_api():
                 # Update existing profile
                 db.execute(
                     """
-                    UPDATE user_profile 
-                    SET gender = ?, birth_date = ?, height_cm = ?, weight_kg = ?, 
+                    UPDATE user_profile
+                    SET gender = ?, birth_date = ?, height_cm = ?, weight_kg = ?,
                         activity_level = ?, goal = ?, updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
                 """,
@@ -1778,7 +1915,7 @@ def profile_api():
 
             profile_dict = dict(updated_profile)
             # Calculate age
-            from datetime import date, datetime
+            from datetime import date, datetime, timezone
 
             birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
             today = date.today()
@@ -1817,7 +1954,7 @@ def profile_macros_api():
         profile_dict = dict(profile)
 
         # Calculate age
-        from datetime import date, datetime
+        from datetime import date, datetime, timezone
 
         birth_date = datetime.strptime(profile_dict["birth_date"], "%Y-%m-%d").date()
         today = date.today()
@@ -1921,6 +2058,8 @@ def system_status_api():
 
 
 @app.route("/api/system/backup", methods=["POST"])
+@require_admin
+@rate_limit('admin')
 def system_backup_api():
     """Create a backup of the database"""
     try:
@@ -2183,7 +2322,7 @@ def maintenance_cleanup_test_data_api():
         test_dishes = db.execute("SELECT COUNT(*) FROM dishes WHERE name LIKE 'TEST%'").fetchone()[0]
         test_logs = db.execute(
             """
-            SELECT COUNT(*) FROM log_entries le 
+            SELECT COUNT(*) FROM log_entries le
             LEFT JOIN products p ON le.item_type = 'product' AND le.item_id = p.id
             LEFT JOIN dishes d ON le.item_type = 'dish' AND le.item_id = d.id
             WHERE p.name LIKE 'TEST%' OR d.name LIKE 'TEST%'
@@ -2194,7 +2333,7 @@ def maintenance_cleanup_test_data_api():
         deleted_logs = db.execute(
             """
             DELETE FROM log_entries WHERE id IN (
-                SELECT le.id FROM log_entries le 
+                SELECT le.id FROM log_entries le
                 LEFT JOIN products p ON le.item_type = 'product' AND le.item_id = p.id
                 LEFT JOIN dishes d ON le.item_type = 'dish' AND le.item_id = d.id
                 WHERE p.name LIKE 'TEST%' OR d.name LIKE 'TEST%'
@@ -2258,9 +2397,17 @@ def maintenance_wipe_database_api():
         db.commit()
         db.close()
 
+        # Reinitialize database with initial data
+        init_db()
+
+        # Get count of initial products after reinitialization
+        db = get_db()
+        initial_products_count = db.execute("SELECT COUNT(*) FROM products").fetchone()[0]
+        db.close()
+
         total_deleted = products_count + dishes_count + logs_count
 
-        message = f"Database wiped! Removed {total_deleted} items"
+        message = f"Database wiped and reset! Removed {total_deleted} items, loaded {initial_products_count} initial products"
         if total_deleted == 0:
             message += " (database was already empty)"
 
@@ -2271,6 +2418,7 @@ def maintenance_wipe_database_api():
                     "deleted_dishes": dishes_count,
                     "deleted_logs": logs_count,
                     "total_deleted": total_deleted,
+                    "initial_products_loaded": initial_products_count,
                     "wipe_time": datetime.now().isoformat(),
                 },
                 message,
@@ -2300,7 +2448,7 @@ def export_all_api():
         for dish in dishes:
             ingredients = db.execute(
                 """
-                SELECT di.*, p.name as product_name 
+                SELECT di.*, p.name as product_name
                 FROM dish_ingredients di
                 JOIN products p ON di.product_id = p.id
                 WHERE di.dish_id = ?
@@ -2418,6 +2566,968 @@ def initialize_app():
 # Initialize app when Flask starts
 with app.app_context():
     initialize_app()
+
+
+# ============================================
+# Fasting API Endpoints
+# ============================================
+
+@app.route("/api/fasting/start", methods=["POST"])
+@monitor_http_request
+@rate_limit('api')
+def start_fasting():
+    """Start a new fasting session"""
+    try:
+        data = safe_get_json()
+        if data is None:
+            return (
+                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
+        fasting_type = data.get("fasting_type", "16:8")
+        notes = data.get("notes", "")
+        target_hours = data.get("target_hours")
+
+        # Validate fasting type
+        valid_types = ["16:8", "18:6", "20:4", "OMAD", "Custom"]
+        if fasting_type not in valid_types:
+            return jsonify(json_response(
+                None,
+                ERROR_MESSAGES["validation_error"],
+                HTTP_BAD_REQUEST,
+                errors=[f"Invalid fasting type. Must be one of: {', '.join(valid_types)}"]
+            )), HTTP_BAD_REQUEST
+
+        # Validate target_hours if provided
+        if target_hours is not None and target_hours < 0:
+            return jsonify(json_response(
+                None,
+                ERROR_MESSAGES["validation_error"],
+                HTTP_BAD_REQUEST,
+                errors=["Target hours must be non-negative"]
+            )), HTTP_BAD_REQUEST
+
+        fasting_manager = FastingManager(Config.DATABASE)
+
+        # Check if there's already an active session
+        active_session = fasting_manager.get_active_session()
+        if active_session:
+            return jsonify(json_response(
+                None,
+                "You already have an active fasting session",
+                HTTP_BAD_REQUEST
+            )), HTTP_BAD_REQUEST
+
+        # Start new session
+        session = fasting_manager.start_fasting_session(fasting_type, notes)
+
+        return jsonify(json_response(
+            {
+                "session_id": session.id,
+                "start_time": session.start_time.isoformat(),
+                "fasting_type": session.fasting_type,
+                "status": session.status
+            },
+            "Fasting session started successfully",
+            HTTP_CREATED
+        )), HTTP_CREATED
+
+    except Exception as e:
+        app.logger.error(f"Start fasting error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/fasting/end", methods=["POST"])
+@monitor_http_request
+@rate_limit('api')
+def end_fasting():
+    """End current fasting session"""
+    try:
+        fasting_manager = FastingManager(Config.DATABASE)
+
+        # Get active session
+        active_session = fasting_manager.get_active_session()
+        if not active_session:
+            return jsonify(json_response(
+                None,
+                "No active fasting session found",
+                HTTP_BAD_REQUEST
+            )), HTTP_BAD_REQUEST
+
+        # End session
+        ended_session = fasting_manager.end_fasting_session(active_session.id)
+
+        if ended_session:
+            return jsonify(json_response(
+                {
+                    "session_id": ended_session.id,
+                    "duration_hours": ended_session.duration_hours,
+                    "end_time": ended_session.end_time.isoformat()
+                },
+                "Fasting session completed successfully",
+                HTTP_OK
+            )), HTTP_OK
+        else:
+            return jsonify(json_response(
+                None,
+                "Failed to end fasting session",
+                HTTP_BAD_REQUEST
+            )), HTTP_BAD_REQUEST
+
+    except Exception as e:
+        app.logger.error(f"End fasting error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/fasting/pause", methods=["POST"])
+@monitor_http_request
+@rate_limit('api')
+def pause_fasting():
+    """Pause current fasting session"""
+    try:
+        fasting_manager = FastingManager(Config.DATABASE)
+
+        active_session = fasting_manager.get_active_session()
+        if not active_session:
+            return jsonify(json_response(
+                None,
+                "No active fasting session found",
+                HTTP_BAD_REQUEST
+            )), HTTP_BAD_REQUEST
+
+        success = fasting_manager.pause_fasting_session(active_session.id)
+
+        if success:
+            return jsonify(json_response(
+                {"session_id": active_session.id},
+                "Fasting session paused successfully",
+                HTTP_OK
+            )), HTTP_OK
+        else:
+            return jsonify(json_response(
+                None,
+                "Failed to pause fasting session",
+                HTTP_BAD_REQUEST
+            )), HTTP_BAD_REQUEST
+
+    except Exception as e:
+        app.logger.error(f"Pause fasting error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/fasting/resume", methods=["POST"])
+@monitor_http_request
+@rate_limit('api')
+def resume_fasting():
+    """Resume paused fasting session"""
+    try:
+        data = safe_get_json()
+        if data is None:
+            return (
+                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
+        session_id = data.get("session_id")
+
+        if not session_id:
+            return jsonify(json_response(
+                None,
+                "Session ID is required",
+                HTTP_BAD_REQUEST
+            )), HTTP_BAD_REQUEST
+
+        fasting_manager = FastingManager(Config.DATABASE)
+        success = fasting_manager.resume_fasting_session(session_id)
+
+        if success:
+            return jsonify(json_response(
+                {"session_id": session_id},
+                "Fasting session resumed successfully",
+                HTTP_OK
+            )), HTTP_OK
+        else:
+            return jsonify(json_response(
+                None,
+                "Failed to resume fasting session",
+                HTTP_BAD_REQUEST
+            )), HTTP_BAD_REQUEST
+
+    except Exception as e:
+        app.logger.error(f"Resume fasting error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/fasting/cancel", methods=["POST"])
+@monitor_http_request
+@rate_limit('api')
+def cancel_fasting():
+    """Cancel current fasting session"""
+    try:
+        fasting_manager = FastingManager(Config.DATABASE)
+
+        active_session = fasting_manager.get_active_session()
+        if not active_session:
+            return jsonify(json_response(
+                None,
+                "No active fasting session found",
+                HTTP_BAD_REQUEST
+            )), HTTP_BAD_REQUEST
+
+        success = fasting_manager.cancel_fasting_session(active_session.id)
+
+        if success:
+            return jsonify(json_response(
+                {"session_id": active_session.id},
+                "Fasting session cancelled successfully",
+                HTTP_OK
+            )), HTTP_OK
+        else:
+            return jsonify(json_response(
+                None,
+                "Failed to cancel fasting session",
+                HTTP_BAD_REQUEST
+            )), HTTP_BAD_REQUEST
+
+    except Exception as e:
+        app.logger.error(f"Cancel fasting error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/fasting/status", methods=["GET"])
+@monitor_http_request
+@rate_limit('api')
+def get_fasting_status():
+    """Get current fasting status and progress"""
+    try:
+        fasting_manager = FastingManager(Config.DATABASE)
+        progress = fasting_manager.get_fasting_progress()
+
+        return jsonify(json_response(
+            progress,
+            "Fasting status retrieved successfully",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Get fasting status error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/fasting/sessions", methods=["GET"])
+@monitor_http_request
+@rate_limit('api')
+def get_fasting_sessions():
+    """Get recent fasting sessions"""
+    try:
+        limit = request.args.get("limit", 30, type=int)
+        fasting_manager = FastingManager(Config.DATABASE)
+        sessions = fasting_manager.get_fasting_sessions(limit=limit)
+
+        # Convert sessions to dict format
+        sessions_data = []
+        for session in sessions:
+            session_dict = {
+                "id": session.id,
+                "start_time": session.start_time.isoformat() if session.start_time else None,
+                "end_time": session.end_time.isoformat() if session.end_time else None,
+                "duration_hours": session.duration_hours,
+                "fasting_type": session.fasting_type,
+                "status": session.status,
+                "notes": session.notes
+            }
+            sessions_data.append(session_dict)
+
+        return jsonify(json_response(
+            {"sessions": sessions_data},
+            "Fasting sessions retrieved successfully",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Get fasting sessions error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/fasting/stats", methods=["GET"])
+@monitor_http_request
+@rate_limit('api')
+def get_fasting_stats():
+    """Get fasting statistics"""
+    try:
+        days = request.args.get("days", 30, type=int)
+        fasting_manager = FastingManager(Config.DATABASE)
+        stats = fasting_manager.get_fasting_stats(days=days)
+
+        return jsonify(json_response(
+            stats,
+            "Fasting statistics retrieved successfully",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Get fasting stats error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/fasting/goals", methods=["GET"])
+@monitor_http_request
+@rate_limit('api')
+def get_fasting_goals():
+    """Get fasting goals"""
+    try:
+        fasting_manager = FastingManager(Config.DATABASE)
+        goals = fasting_manager.get_fasting_goals()
+
+        # Convert goals to dict format
+        goals_data = []
+        for goal in goals:
+            goal_dict = {
+                "id": goal.id,
+                "goal_type": goal.goal_type,
+                "target_value": goal.target_value,
+                "current_value": goal.current_value,
+                "period_start": goal.period_start.isoformat() if goal.period_start else None,
+                "period_end": goal.period_end.isoformat() if goal.period_end else None,
+                "status": goal.status,
+                "progress_percentage": (goal.current_value / goal.target_value * 100) if goal.target_value > 0 else 0
+            }
+            goals_data.append(goal_dict)
+
+        return jsonify(json_response(
+            {"goals": goals_data},
+            "Fasting goals retrieved successfully",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Get fasting goals error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/fasting/goals", methods=["POST"])
+@monitor_http_request
+@rate_limit('api')
+def create_fasting_goal():
+    """Create a new fasting goal"""
+    try:
+        data = safe_get_json()
+        if data is None:
+            return (
+                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
+
+        goal_type = data.get("goal_type")
+        target_value = data.get("target_value")
+        period_start = data.get("period_start")
+        period_end = data.get("period_end")
+
+        # Validate required fields
+        if not all([goal_type, target_value, period_start, period_end]):
+            return jsonify(json_response(
+                None,
+                ERROR_MESSAGES["validation_error"],
+                HTTP_BAD_REQUEST,
+                errors=["All fields are required: goal_type, target_value, period_start, period_end"]
+            )), HTTP_BAD_REQUEST
+
+        # Validate goal type
+        valid_types = ["daily_hours", "weekly_sessions", "monthly_hours"]
+        if goal_type not in valid_types:
+            return jsonify(json_response(
+                None,
+                ERROR_MESSAGES["validation_error"],
+                HTTP_BAD_REQUEST,
+                errors=[f"Invalid goal type. Must be one of: {', '.join(valid_types)}"]
+            )), HTTP_BAD_REQUEST
+
+        # Parse dates
+        try:
+            from datetime import date
+            period_start = date.fromisoformat(period_start)
+            period_end = date.fromisoformat(period_end)
+        except ValueError:
+            return jsonify(json_response(
+                None,
+                ERROR_MESSAGES["validation_error"],
+                HTTP_BAD_REQUEST,
+                errors=["Invalid date format. Use YYYY-MM-DD"]
+            )), HTTP_BAD_REQUEST
+
+        fasting_manager = FastingManager(Config.DATABASE)
+        goal = fasting_manager.create_fasting_goal(goal_type, target_value, period_start, period_end)
+
+        return jsonify(json_response(
+            {
+                "goal_id": goal.id,
+                "goal_type": goal.goal_type,
+                "target_value": goal.target_value,
+                "period_start": goal.period_start.isoformat(),
+                "period_end": goal.period_end.isoformat()
+            },
+            "Fasting goal created successfully",
+            HTTP_CREATED
+        )), HTTP_CREATED
+
+    except Exception as e:
+        app.logger.error(f"Create fasting goal error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+# ============================================
+# Monitoring and Metrics Endpoints
+# ============================================
+
+@app.route("/metrics", methods=["GET"])
+@monitor_http_request
+def prometheus_metrics():
+    """Prometheus metrics endpoint"""
+    try:
+        # Update system metrics
+        system_monitor.update_metrics()
+
+        # Get metrics in Prometheus format
+        metrics_data = metrics_collector.get_metrics()
+
+        return metrics_data, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    except Exception as e:
+        app.logger.error(f"Metrics error: {e}")
+        return f"# Error getting metrics: {e}\n", 500, {'Content-Type': 'text/plain; charset=utf-8'}
+
+
+@app.route("/api/metrics/summary", methods=["GET"])
+@monitor_http_request
+@rate_limit('api')
+def metrics_summary():
+    """Get metrics summary for API"""
+    try:
+        summary = metrics_collector.get_metrics_summary()
+
+        # Add cache stats
+        cache_stats = cache_manager.get_stats()
+        summary['cache_stats'] = cache_stats
+
+        return jsonify(json_response(
+            summary,
+            "Metrics summary retrieved successfully",
+            HTTP_OK
+        )), HTTP_OK
+    except Exception as e:
+        app.logger.error(f"Metrics summary error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/tasks", methods=["POST"])
+@monitor_http_request
+@rate_limit('api')
+def create_background_task():
+    """Create a background task"""
+    try:
+        data = safe_get_json()
+        if data is None:
+            return (
+                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
+        task_type = data.get("task_type")
+
+        if not task_type:
+            return jsonify(json_response(
+                None,
+                ERROR_MESSAGES["validation_error"],
+                HTTP_BAD_REQUEST,
+                errors=["task_type is required"]
+            )), HTTP_BAD_REQUEST
+
+        task_id = None
+
+        if task_type == "backup":
+            backup_path = data.get("backup_path")
+            task_id = task_manager.backup_database(backup_path)
+        elif task_type == "optimize":
+            task_id = task_manager.optimize_database()
+        elif task_type == "export":
+            export_format = data.get("export_format", "json")
+            task_id = task_manager.export_data(export_format)
+        elif task_type == "cleanup":
+            days = data.get("days", 30)
+            task_id = task_manager.cleanup_old_logs(days)
+        else:
+            return jsonify(json_response(
+                None,
+                ERROR_MESSAGES["validation_error"],
+                HTTP_BAD_REQUEST,
+                errors=[f"Unknown task type: {task_type}"]
+            )), HTTP_BAD_REQUEST
+
+        return jsonify(json_response(
+            {"task_id": task_id, "task_type": task_type},
+            "Background task created successfully",
+            HTTP_CREATED
+        )), HTTP_CREATED
+
+    except Exception as e:
+        app.logger.error(f"Create task error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/tasks/<task_id>", methods=["GET"])
+@monitor_http_request
+@rate_limit('api')
+def get_task_status(task_id):
+    """Get background task status"""
+    try:
+        status = task_manager.get_task_status(task_id)
+
+        # Check if task exists (if status is FAILURE and has specific error)
+        if status.get('status') == 'FAILURE' and 'not found' in str(status.get('error', '')).lower():
+            return jsonify(json_response(None, "Task not found", status=HTTP_NOT_FOUND)), HTTP_NOT_FOUND
+
+        # Check if task status is NOT_FOUND
+        if status.get('status') == 'NOT_FOUND':
+            return jsonify(json_response(None, "Task not found", status=HTTP_NOT_FOUND)), HTTP_NOT_FOUND
+
+        return jsonify(json_response(
+            status,
+            "Task status retrieved successfully",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Get task status error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+# ============================================
+# Authentication API Endpoints
+# ============================================
+
+@app.route("/api/auth/login", methods=["POST"])
+@monitor_http_request
+@rate_limit('auth')
+def login_api():
+    """User login endpoint"""
+    try:
+        data = safe_get_json()
+        if data is None:
+            return (
+                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
+        username = data.get("username", "").strip()
+        password = data.get("password", "")
+
+        if not username or not password:
+            return jsonify(json_response(
+                None,
+                ERROR_MESSAGES["validation_error"],
+                HTTP_BAD_REQUEST,
+                errors=["Username and password are required"]
+            )), HTTP_BAD_REQUEST
+
+        # For demo purposes, we'll use a simple hardcoded admin user
+        # In production, this would check against a user database
+        if username == "admin" and password == "admin123":
+            # Generate tokens
+            access_token = security_manager.generate_token(1, username, is_refresh=False)
+            refresh_token = security_manager.generate_token(1, username, is_refresh=True)
+
+            # Log successful authentication
+            audit_logger.log_auth_attempt(username, True, request.remote_addr, request.headers.get('User-Agent', ''))
+
+            return jsonify(json_response(
+                {
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                    "user": {
+                        "id": 1,
+                        "username": username,
+                        "is_admin": True
+                    }
+                },
+                "Login successful",
+                HTTP_OK
+            )), HTTP_OK
+        else:
+            # Log failed authentication
+            audit_logger.log_auth_attempt(username, False, request.remote_addr, request.headers.get('User-Agent', ''))
+
+            return jsonify(json_response(
+                None,
+                "Invalid username or password",
+                401
+            )), 401
+
+    except Exception as e:
+        app.logger.error(f"Login error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/auth/refresh", methods=["POST"])
+@monitor_http_request
+@rate_limit('auth')
+def refresh_token_api():
+    """Refresh access token"""
+    try:
+        # Try to get refresh token from JSON first, then from Authorization header
+        data = safe_get_json()
+        refresh_token = None
+
+        if data is not None:
+            refresh_token = data.get("refresh_token")
+
+        # If not in JSON, try to get from Authorization header
+        if not refresh_token:
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                refresh_token = auth_header[7:]  # Remove 'Bearer ' prefix
+
+        if not refresh_token:
+            return jsonify(json_response(
+                None,
+                ERROR_MESSAGES["validation_error"],
+                HTTP_BAD_REQUEST,
+                errors=["Refresh token is required"]
+            )), HTTP_BAD_REQUEST
+
+        # Generate new tokens
+        new_tokens = security_manager.refresh_token(refresh_token)
+
+        if new_tokens:
+            return jsonify(json_response(
+                new_tokens,
+                "Token refreshed successfully",
+                HTTP_OK
+            )), HTTP_OK
+        else:
+            return jsonify(json_response(
+                None,
+                "Invalid refresh token",
+                401
+            )), 401
+
+    except Exception as e:
+        app.logger.error(f"Token refresh error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/auth/verify", methods=["GET"])
+@monitor_http_request
+@require_auth
+def verify_token_api():
+    """Verify token validity"""
+    try:
+        user_info = request.current_user
+
+        return jsonify(json_response(
+            {
+                "valid": True,
+                "user": user_info
+            },
+            "Token is valid",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Token verification error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+@monitor_http_request
+@require_auth
+def logout_api():
+    """User logout endpoint"""
+    try:
+        user_info = request.current_user
+
+        # Log logout
+        audit_logger.log_token_usage(user_info['user_id'], 'logout', request.remote_addr)
+
+        return jsonify(json_response(
+            None,
+            "Logout successful",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Logout error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
+# ============================================
+# Fasting API Endpoints
+# ============================================
+
+@app.route("/api/fasting/start", methods=["POST"])
+@monitor_http_request
+@rate_limit('api')
+def start_fasting_api():
+    """Start a new fasting session"""
+    try:
+        data = safe_get_json()
+        if data is None:
+            return (
+                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
+        fasting_type = data.get('fasting_type', '16:8')
+        notes = data.get('notes', '')
+
+        # Get user ID from auth (if implemented)
+        user_id = 1  # Default user for now
+
+        # Start fasting session
+        fasting_manager = FastingManager(Config.DATABASE)
+        session = fasting_manager.start_fasting_session(fasting_type, notes)
+
+        return jsonify(json_response(
+            {
+                'id': session.id,
+                'fasting_type': session.fasting_type,
+                'start_time': session.start_time.isoformat() if session.start_time else None,
+                'status': session.status,
+                'notes': session.notes
+            },
+            "Fasting session started successfully",
+            HTTP_CREATED
+        )), HTTP_CREATED
+
+    except ValueError as e:
+        return jsonify(json_response(None, str(e), HTTP_BAD_REQUEST)), HTTP_BAD_REQUEST
+    except Exception as e:
+        app.logger.error(f"Start fasting error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+@app.route("/api/fasting/end", methods=["POST"])
+@monitor_http_request
+@rate_limit('api')
+def end_fasting_api():
+    """End current fasting session"""
+    try:
+        data = safe_get_json()
+        if data is None:
+            return (
+                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                HTTP_BAD_REQUEST,
+            )
+        session_id = data.get('session_id')
+
+        if not session_id:
+            return jsonify(json_response(None, "Session ID required", HTTP_BAD_REQUEST)), HTTP_BAD_REQUEST
+
+        # End fasting session
+        fasting_manager = FastingManager(Config.DATABASE)
+        session = fasting_manager.end_fasting_session(session_id)
+
+        if not session:
+            return jsonify(json_response(None, "No active session found", HTTP_NOT_FOUND)), HTTP_NOT_FOUND
+
+        return jsonify(json_response(
+            {
+                'id': session.id,
+                'fasting_type': session.fasting_type,
+                'start_time': session.start_time.isoformat() if session.start_time else None,
+                'end_time': session.end_time.isoformat() if session.end_time else None,
+                'duration_hours': session.duration_hours,
+                'status': session.status,
+                'notes': session.notes
+            },
+            "Fasting session ended successfully",
+            HTTP_OK
+        )), HTTP_OK
+
+    except ValueError as e:
+        return jsonify(json_response(None, str(e), HTTP_BAD_REQUEST)), HTTP_BAD_REQUEST
+    except Exception as e:
+        app.logger.error(f"End fasting error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+@app.route("/api/fasting/status", methods=["GET"])
+@monitor_http_request
+@rate_limit('api')
+def fasting_status_api():
+    """Get current fasting status"""
+    try:
+        user_id = 1  # Default user for now
+
+        # Get active session
+        fasting_manager = FastingManager(Config.DATABASE)
+        active_session = fasting_manager.get_active_session(user_id)
+
+        if not active_session:
+            return jsonify(json_response(
+                {'status': 'none', 'message': 'No active fasting session'},
+                "No active session",
+                HTTP_OK
+            )), HTTP_OK
+
+        # Calculate progress
+        if active_session.start_time:
+            elapsed_hours = (datetime.now() - active_session.start_time).total_seconds() / 3600
+        else:
+            elapsed_hours = 0
+
+        return jsonify(json_response(
+            {
+                'id': active_session.id,
+                'fasting_type': active_session.fasting_type,
+                'start_time': active_session.start_time.isoformat() if active_session.start_time else None,
+                'elapsed_hours': round(elapsed_hours, 2),
+                'status': active_session.status,
+                'notes': active_session.notes
+            },
+            "Active session found",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Fasting status error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+@app.route("/api/fasting/sessions", methods=["GET"])
+@monitor_http_request
+@rate_limit('api')
+def fasting_sessions_api():
+    """Get fasting sessions history"""
+    try:
+        user_id = 1  # Default user for now
+
+        # Get sessions
+        fasting_manager = FastingManager(Config.DATABASE)
+        sessions = fasting_manager.get_fasting_sessions(user_id)
+
+        sessions_data = []
+        for session in sessions:
+            sessions_data.append({
+                'id': session.id,
+                'fasting_type': session.fasting_type,
+                'start_time': session.start_time.isoformat() if session.start_time else None,
+                'end_time': session.end_time.isoformat() if session.end_time else None,
+                'duration_hours': session.duration_hours,
+                'status': session.status,
+                'notes': session.notes
+            })
+
+        return jsonify(json_response(
+            sessions_data,
+            f"Found {len(sessions_data)} sessions",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Fasting sessions error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+@app.route("/api/fasting/stats", methods=["GET"])
+@monitor_http_request
+@rate_limit('api')
+def fasting_stats_api():
+    """Get fasting statistics"""
+    try:
+        user_id = 1  # Default user for now
+
+        # Get stats
+        fasting_manager = FastingManager(Config.DATABASE)
+        stats = fasting_manager.get_fasting_stats(user_id)
+
+        return jsonify(json_response(
+            stats,
+            "Fasting statistics retrieved",
+            HTTP_OK
+        )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Fasting stats error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+@app.route("/api/fasting/settings", methods=["GET", "POST", "PUT"])
+@monitor_http_request
+@rate_limit('api')
+def fasting_settings_api():
+    """Get, create, or update fasting settings"""
+    try:
+        user_id = 1  # Default user for now
+
+        if request.method == "GET":
+            # Get fasting settings
+            fasting_manager = FastingManager(Config.DATABASE)
+            settings = fasting_manager.get_fasting_settings(user_id)
+
+            return jsonify(json_response(
+                settings,
+                "Fasting settings retrieved",
+                HTTP_OK
+            )), HTTP_OK
+
+        elif request.method in ["POST", "PUT"]:
+            # Create or update fasting settings
+            data = safe_get_json()
+            if data is None:
+                return (
+                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
+
+            # Validate required fields
+            required_fields = ["fasting_goal", "preferred_start_time"]
+            errors = []
+
+            for field in required_fields:
+                if not data.get(field):
+                    errors.append(f"{field} is required")
+
+            if errors:
+                return jsonify(json_response(
+                    None,
+                    "Validation failed",
+                    HTTP_BAD_REQUEST,
+                    errors=errors
+                )), HTTP_BAD_REQUEST
+
+            # Validate fasting goal
+            valid_goals = ["16:8", "18:6", "20:4", "OMAD"]
+            if data.get("fasting_goal") not in valid_goals:
+                errors.append(f"fasting_goal must be one of: {', '.join(valid_goals)}")
+
+            if errors:
+                return jsonify(json_response(
+                    None,
+                    "Validation failed",
+                    HTTP_BAD_REQUEST,
+                    errors=errors
+                )), HTTP_BAD_REQUEST
+
+            # Prepare settings data
+            settings_data = {
+                "user_id": user_id,
+                "fasting_goal": data.get("fasting_goal"),
+                "preferred_start_time": data.get("preferred_start_time"),
+                "enable_reminders": data.get("enable_reminders", False),
+                "enable_notifications": data.get("enable_notifications", False),
+                "default_notes": data.get("default_notes", "")
+            }
+
+            fasting_manager = FastingManager(Config.DATABASE)
+
+            if request.method == "POST":
+                # Create new settings
+                settings = fasting_manager.create_fasting_settings(settings_data)
+                message = "Fasting settings created successfully"
+            else:
+                # Update existing settings
+                settings = fasting_manager.update_fasting_settings(user_id, settings_data)
+                message = "Fasting settings updated successfully"
+
+            return jsonify(json_response(
+                settings,
+                message,
+                HTTP_OK
+            )), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Fasting settings error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
 # ============================================
 # Main Entry Point

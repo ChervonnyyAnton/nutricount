@@ -600,8 +600,8 @@ class NutritionTracker {
                 // New fields according to NUTRIENTS.md
                 fiber_per_100g: parseFloat(formData.get('fiber_per_100g')) || null,
                 sugars_per_100g: parseFloat(formData.get('sugars_per_100g')) || null,
-                category: formData.get('category') || null,
-                processing_level: formData.get('processing_level') || null,
+                category: (formData.get('category') === 'Select category') ? null : formData.get('category'),
+                processing_level: (formData.get('processing_level') === 'Select processing level') ? null : formData.get('processing_level'),
                 glycemic_index: parseFloat(formData.get('glycemic_index')) || null,
                 region: formData.get('region') || 'US'
             };
@@ -1418,13 +1418,30 @@ class NutritionTracker {
     }
 
     calculateEntryCalories(entry) {
-        // Calculate calories based on the item's nutrition info
+        // Debug logging
+        console.log('calculateEntryCalories called with:', {
+            item_name: entry.item_name,
+            calories: entry.calories,
+            calories_per_100g: entry.calories_per_100g,
+            quantity_grams: entry.quantity_grams,
+            item_type: entry.item_type
+        });
+        
+        // Use the calories already calculated by the server
+        if (entry.calories !== undefined && entry.calories !== null) {
+            console.log('Using server calories:', entry.calories);
+            return Math.round(entry.calories);
+        }
+        
+        // Fallback calculation if server data is missing
         if (entry.item_type === 'product') {
-            // For products: calories_per_100g * quantity_grams / 100
-            return Math.round((entry.calories_per_100g || 0) * entry.quantity_grams / 100);
+            const calculated = Math.round((entry.calories_per_100g || 0) * entry.quantity_grams / 100);
+            console.log('Fallback calculation for product:', calculated);
+            return calculated;
         } else if (entry.item_type === 'dish') {
-            // For dishes: use calculated_calories from the API response
-            return Math.round(entry.calculated_calories || 0);
+            const calculated = Math.round(entry.calculated_calories || 0);
+            console.log('Fallback calculation for dish:', calculated);
+            return calculated;
         }
         return 0;
     }

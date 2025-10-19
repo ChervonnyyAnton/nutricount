@@ -160,11 +160,11 @@ def test_api_error_handling(client):
     response = client.get('/api/nonexistent')
     assert response.status_code == 404
     
-    # Test invalid JSON - expect 500 for malformed JSON
+    # Test invalid JSON - expect 400 for malformed JSON
     response = client.post('/api/products', 
                           data='invalid json',
                           content_type='application/json')
-    assert response.status_code == 500
+    assert response.status_code == 400
 
 
 if __name__ == '__main__':

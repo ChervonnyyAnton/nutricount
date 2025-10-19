@@ -13,16 +13,23 @@
 - **Temperature Monitoring**: Specialized monitoring for Pi 4 Model B 2018
 - **Auto Backup**: Automated database backups with integrity checks
 - **CI/CD Pipeline**: Automated testing and deployment with GitHub Actions
+- **Intermittent Fasting**: Complete fasting tracking with goals and statistics
+- **High Performance**: Redis caching, async tasks, and optimized database queries
+- **Advanced Monitoring**: Prometheus metrics, system monitoring, and performance analytics
+- **Enterprise Security**: JWT authentication, rate limiting, HTTPS, audit logging
 
 ## 🏗️ Architecture
 
 ```
 Frontend:  HTML5, CSS3 (+Bootstrap 5), Vanilla JS
-API:       Flask 2.3+, SQLite+WAL
-Infra:     Docker ARM64, docker-compose, Gunicorn, Nginx
+API:       Flask 2.3+, SQLite+WAL, Redis Cache
+Infra:     Docker ARM64, docker-compose, Gunicorn, Nginx, Redis
 Pi 4:      ARM64 optimized, thermal-aware, conservative settings
-Monitoring: Temperature, performance, automated backups
+Monitoring: Temperature, Prometheus metrics, system monitoring
 CI/CD:     GitHub Actions → Tests → Deploy to Pi
+Fasting:   Complete intermittent fasting tracking system
+Performance: Redis caching, async tasks, optimized queries
+Security:  JWT auth, rate limiting, HTTPS, audit logging
 ```
 
 **Admin Panel:** Ctrl+Alt+A or triple-click on page title!
@@ -144,6 +151,311 @@ docker-compose up -d
 - **Web Interface**: `http://<pi-ip>/`
 - **API**: `http://<pi-ip>/api/`
 - **Health Check**: `http://<pi-ip>/health`
+- **Prometheus Metrics**: `http://<pi-ip>/metrics`
+- **Fasting API**: `http://<pi-ip>/api/fasting/`
+- **Background Tasks**: `http://<pi-ip>/api/tasks/`
+
+## ⏰ Intermittent Fasting
+
+The application now includes a complete intermittent fasting tracking system:
+
+### Features
+- **Multiple Fasting Types**: 16:8, 18:6, 20:4, OMAD, Custom
+- **Session Management**: Start, pause, resume, end, cancel sessions
+- **Progress Tracking**: Real-time duration and progress percentage
+- **Statistics**: Total sessions, average duration, longest session, current streak
+- **Goals**: Set daily, weekly, or monthly fasting goals
+- **History**: Complete fasting session history with filtering
+
+### Usage
+1. Navigate to the **Fasting** tab
+2. Select your fasting type and add optional notes
+3. Click **Start Fasting** to begin tracking
+4. Monitor your progress with real-time updates
+5. End your session when complete
+
+### API Endpoints
+- `POST /api/fasting/start` - Start a new fasting session
+- `POST /api/fasting/end` - End current session
+- `POST /api/fasting/pause` - Pause current session
+- `POST /api/fasting/resume` - Resume paused session
+- `GET /api/fasting/status` - Get current fasting status
+- `GET /api/fasting/stats` - Get fasting statistics
+- `GET /api/fasting/goals` - Get fasting goals
+
+## ⚡ Performance Features
+
+### Redis Caching
+- **Automatic Caching**: Products, dishes, and statistics are cached
+- **Smart Invalidation**: Cache is automatically invalidated on data changes
+- **Fallback Support**: Falls back to in-memory cache if Redis is unavailable
+- **Configurable TTL**: Different cache expiration times for different data types
+
+### Background Tasks
+- **Async Processing**: Database backups, optimization, and exports run in background
+- **Task Monitoring**: Track task progress and status via API
+- **Celery Integration**: Full Celery support for distributed task processing
+- **Fallback Mode**: Synchronous execution if Celery is not available
+
+### Monitoring & Metrics
+- **Prometheus Integration**: Complete metrics collection
+- **System Monitoring**: CPU, memory, and disk usage tracking
+- **Application Metrics**: HTTP requests, database operations, cache performance
+- **Custom Metrics**: Fasting sessions, nutrition calculations, user activity
+
+### API Endpoints
+- `GET /metrics` - Prometheus metrics endpoint
+- `GET /api/metrics/summary` - Metrics summary for API
+- `POST /api/tasks` - Create background tasks
+- `GET /api/tasks/<task_id>` - Get task status
+
+## 🔒 Security Features
+
+The application includes comprehensive security measures:
+
+### Authentication & Authorization
+- **JWT Tokens**: Secure access and refresh tokens
+- **Role-based Access**: Admin and user roles
+- **Session Management**: Automatic token refresh
+- **Password Security**: Bcrypt hashing with strength requirements
+
+### Rate Limiting
+- **API Endpoints**: 100 requests per hour
+- **Authentication**: 10 attempts per hour
+- **Admin Operations**: 200 requests per hour
+- **Redis-based**: Distributed rate limiting
+
+### HTTPS & SSL
+- **Automatic HTTPS**: HTTP to HTTPS redirect
+- **Self-signed Certificates**: For development
+- **SSL Security**: TLS 1.2+ with secure ciphers
+- **Security Headers**: HSTS, CSP, XSS protection
+
+### Audit Logging
+- **Authentication Events**: Login attempts and failures
+- **Token Usage**: Access and refresh token tracking
+- **Admin Actions**: All administrative operations
+- **Rate Limit Hits**: Suspicious activity monitoring
+
+### Input Validation
+- **Data Sanitization**: XSS and injection prevention
+- **Email Validation**: RFC-compliant email checking
+- **Password Strength**: Multi-criteria validation
+- **Numeric Validation**: Range and type checking
+
+### API Endpoints
+- `POST /api/auth/login` - User authentication
+- `POST /api/auth/refresh` - Token refresh
+- `GET /api/auth/verify` - Token verification
+- `POST /api/auth/logout` - User logout
+
+### SSL Setup
+```bash
+# Generate SSL certificates
+./scripts/setup_ssl.sh [hostname]
+
+# Default credentials (change in production):
+# Username: admin
+# Password: admin123
+```
+
+## 📊 Advanced Monitoring & Logging
+
+The application includes comprehensive monitoring and logging capabilities:
+
+### Prometheus Metrics
+- **System Metrics**: CPU, memory, disk usage, temperature
+- **Application Metrics**: Request rates, response times, error rates
+- **Database Metrics**: Query performance, connection pool status
+- **Custom Metrics**: Business logic metrics, user activity
+
+### Structured Logging
+- **Loguru Integration**: High-performance structured logging
+- **Structured Logs**: JSON format with context and metadata
+- **Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
+- **Log Rotation**: Automatic log file rotation and cleanup
+
+### ELK Stack Integration
+- **Elasticsearch**: Centralized log storage and search
+- **Logstash**: Log processing and enrichment
+- **Kibana**: Log visualization and analysis
+- **Real-time Monitoring**: Live log streaming and alerts
+
+### Grafana Dashboards
+- **System Dashboards**: Hardware and performance metrics
+- **Application Dashboards**: API performance and usage
+- **Business Dashboards**: User activity and nutrition trends
+- **Custom Dashboards**: Configurable metrics visualization
+
+### API Endpoints
+- `GET /metrics` - Prometheus metrics endpoint
+- `GET /api/metrics/summary` - Application metrics summary
+- `POST /api/tasks` - Create background tasks
+- `GET /api/tasks/<task_id>` - Get task status
+
+### Monitoring Features
+- **Real-time Alerts**: Temperature, memory, disk space warnings
+- **Performance Tracking**: Response times, throughput metrics
+- **Error Monitoring**: Exception tracking and analysis
+- **Health Checks**: Service availability and status monitoring
+
+## 🧪 Comprehensive Testing
+
+The application includes extensive testing capabilities:
+
+### Test Types
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: API endpoint testing
+- **End-to-End Tests**: Complete workflow testing
+- **Security Tests**: Authentication and authorization testing
+- **Performance Tests**: Load and stress testing
+
+### Test Coverage
+- **Code Coverage**: Minimum 80% coverage requirement
+- **API Coverage**: All endpoints tested
+- **Business Logic**: Core functionality tested
+- **Error Handling**: Exception scenarios tested
+- **Edge Cases**: Boundary conditions tested
+
+### Test Tools
+- **pytest**: Main testing framework
+- **pytest-cov**: Coverage reporting
+- **pytest-mock**: Mocking and patching
+- **pytest-xdist**: Parallel test execution
+- **factory-boy**: Test data generation
+- **faker**: Fake data generation
+- **requests-mock**: HTTP request mocking
+- **freezegun**: Time mocking
+
+### Running Tests
+```bash
+# Install test dependencies
+./scripts/run_tests.sh install
+
+# Run all tests
+./scripts/run_tests.sh all
+
+# Run specific test types
+./scripts/run_tests.sh unit
+./scripts/run_tests.sh integration
+./scripts/run_tests.sh e2e
+
+# Run with coverage
+./scripts/run_tests.sh report
+
+# Clean test artifacts
+./scripts/run_tests.sh clean
+```
+
+### Test Structure
+```
+tests/
+├── conftest.py          # Test configuration and fixtures
+├── unit/                # Unit tests
+│   ├── test_fasting_manager.py
+│   ├── test_cache_manager.py
+│   ├── test_security.py
+│   └── test_monitoring.py
+├── integration/         # Integration tests
+│   ├── test_api.py
+│   ├── test_database.py
+│   └── test_redis.py
+├── e2e/                # End-to-end tests
+│   ├── test_workflows.py
+│   └── test_user_journeys.py
+└── fixtures/           # Test data fixtures
+    ├── products.json
+    ├── dishes.json
+    └── users.json
+```
+
+### CI/CD Testing
+- **GitHub Actions**: Automated testing on push/PR
+- **Multi-Python**: Tests on Python 3.9, 3.10, 3.11
+- **Security Scanning**: Bandit, Safety, Semgrep
+- **Performance Testing**: Locust load testing
+- **Docker Testing**: Container and compose testing
+- **Coverage Reporting**: Codecov integration
+
+## 🎨 Advanced UX/UI Features
+
+The application includes comprehensive user experience and interface enhancements:
+
+### Theme System
+- **Multiple Themes**: Light, Dark, Blue, Green, Purple
+- **Custom Colors**: Primary, secondary, accent colors
+- **Theme Persistence**: User preferences saved locally
+- **Theme Preview**: Visual theme selection
+- **Keyboard Shortcuts**: Ctrl+Shift+T for theme toggle
+
+### Personalization
+- **Dashboard Layout**: Grid, list, or compact view
+- **Display Preferences**: Font size, compact mode, icons
+- **Nutrition Settings**: Unit system, field visibility
+- **Fasting Preferences**: Default type, notifications
+- **Accessibility Options**: High contrast, reduced motion
+
+### Responsive Design
+- **Mobile-First**: Optimized for all screen sizes
+- **Breakpoint System**: 576px, 768px, 992px, 1200px
+- **Adaptive Layout**: Cards, tables, forms adapt to screen
+- **Touch-Friendly**: Large buttons and touch targets
+- **Orientation Support**: Portrait and landscape modes
+
+### Accessibility Features
+- **WCAG 2.2 Compliance**: AA level accessibility
+- **Keyboard Navigation**: Full keyboard support
+- **Screen Reader**: ARIA labels and roles
+- **High Contrast**: Enhanced visibility mode
+- **Reduced Motion**: Respects user preferences
+- **Focus Indicators**: Clear focus management
+
+### User Experience
+- **Intuitive Interface**: Clean, modern design
+- **Quick Actions**: Fast access to common tasks
+- **Recent Items**: Quick access to recent data
+- **Statistics Dashboard**: Visual data representation
+- **Fasting Status**: Real-time fasting information
+- **Tooltips**: Contextual help and information
+
+### Customization Options
+- **Layout Control**: Choose your preferred layout
+- **Field Visibility**: Show/hide nutrition fields
+- **Notification Settings**: Customize alerts
+- **Export/Import**: Backup and restore preferences
+- **Keyboard Shortcuts**: Power user features
+
+### Visual Enhancements
+- **Smooth Animations**: Subtle transitions and effects
+- **Hover Effects**: Interactive feedback
+- **Loading States**: Clear loading indicators
+- **Error Handling**: User-friendly error messages
+- **Success Feedback**: Confirmation of actions
+- **Progress Indicators**: Visual progress tracking
+
+### Theme Customization
+```javascript
+// Access theme manager
+window.themeManager.applyTheme('dark');
+
+// Get current theme
+const currentTheme = window.themeManager.getCurrentTheme();
+
+// Get theme colors
+const colors = window.themeManager.getThemeColors();
+```
+
+### Personalization API
+```javascript
+// Access personalization manager
+window.personalizationManager.setPreference('dashboard', 'layout', 'grid');
+
+// Get preference
+const layout = window.personalizationManager.getPreference('dashboard', 'layout');
+
+// Reset preferences
+window.personalizationManager.resetPreferences();
+```
 
 ## 🛠️ Troubleshooting
 

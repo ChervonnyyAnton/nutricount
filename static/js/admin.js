@@ -18,6 +18,9 @@ function openAdminPanel() {
 
         // Initialize profile form after modal is shown
         setTimeout(initializeProfileForm, 100);
+        
+        // Initialize fasting settings form
+        setTimeout(initializeFastingSettingsForm, 100);
     });
 
     modalElement.addEventListener('hidden.bs.modal', function () {
@@ -515,5 +518,126 @@ function initializeProfileForm() {
         if (weightInput) {
             weightInput.addEventListener('input', calculateLBMFromBodyFat);
         }
+    }
+}
+
+// Fasting settings management functions
+async function loadFastingSettings() {
+    try {
+        const response = await fetch('/api/fasting/settings');
+        const data = await response.json();
+
+        if (data.status === 'success' && data.data) {
+            const settings = data.data;
+
+            // Populate form fields
+            document.getElementById('fastingGoal').value = settings.fasting_goal || '';
+            document.getElementById('fastingStartTime').value = settings.preferred_start_time || '';
+            document.getElementById('fastingReminders').checked = settings.enable_reminders || false;
+            document.getElementById('fastingNotifications').checked = settings.enable_notifications || false;
+            document.getElementById('fastingNotes').value = settings.default_notes || '';
+
+            // Load fasting statistics
+            await loadFastingStatistics();
+        }
+    } catch (error) {
+        console.error('Error loading fasting settings:', error);
+    }
+}
+
+async function loadFastingStatistics() {
+    try {
+        const response = await fetch('/api/fasting/stats');
+        const data = await response.json();
+
+        if (data.status === 'success' && data.data) {
+            const stats = data.data;
+
+            // Update statistics display
+            document.getElementById('fasting-total-sessions').textContent = stats.total_sessions || 0;
+            document.getElementById('fasting-completed').textContent = stats.completed_sessions || 0;
+            document.getElementById('fasting-avg-duration').textContent = stats.average_duration || '0h';
+            document.getElementById('fasting-success-rate').textContent = stats.success_rate || '0%';
+
+            // Show statistics section
+            document.getElementById('fastingStats').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading fasting statistics:', error);
+        document.getElementById('fastingStats').style.display = 'none';
+    }
+}
+
+async function handleFastingSettingsSubmit(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const spinner = submitBtn.querySelector('.spinner-border');
+
+    try {
+        // Show loading state
+        spinner.classList.remove('d-none');
+        submitBtn.disabled = true;
+
+        const settingsData = {
+            fasting_goal: formData.get('fasting_goal'),
+            preferred_start_time: formData.get('preferred_start_time'),
+            enable_reminders: formData.get('enable_reminders') === 'on',
+            enable_notifications: formData.get('enable_notifications') === 'on',
+            default_notes: formData.get('default_notes')
+        };
+
+        // Check if settings exist to determine method
+        const checkResponse = await fetch('/api/fasting/settings');
+        const checkData = await checkResponse.json();
+        const method = (checkData.status === 'success' && checkData.data) ? 'PUT' : 'POST';
+
+        const response = await fetch('/api/fasting/settings', {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(settingsData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            if (window.showSuccess) {
+                showSuccess(data.message || 'Fasting settings saved successfully!');
+            }
+            // Reload statistics after saving
+            await loadFastingStatistics();
+        } else {
+            // Handle validation errors
+            if (data.errors && data.errors.length > 0) {
+                const errorMessage = data.errors.join('\n• ');
+                if (window.showError) {
+                    showError(`Validation failed:\n• ${errorMessage}`);
+                }
+            } else {
+                throw new Error(data.message || 'Failed to save fasting settings');
+            }
+        }
+    } catch (error) {
+        console.error('Error saving fasting settings:', error);
+        if (window.showError) {
+            showError(error.message);
+        }
+    } finally {
+        // Hide loading state
+        spinner.classList.add('d-none');
+        submitBtn.disabled = false;
+    }
+}
+
+// Initialize fasting settings form when admin panel opens
+function initializeFastingSettingsForm() {
+    const fastingSettingsForm = document.getElementById('fastingSettingsForm');
+    if (fastingSettingsForm) {
+        fastingSettingsForm.addEventListener('submit', handleFastingSettingsSubmit);
+        loadFastingSettings();
     }
 }

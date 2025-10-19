@@ -21,20 +21,26 @@ def init_database():
         # Connect and check if tables exist
         conn = sqlite3.connect(Config.DATABASE)
         try:
+            # Check for essential tables
             cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='products'")
             if cursor.fetchone():
-                print("✅ Database schema is up to date")
-                
-                # Show current data count
-                cursor = conn.execute("SELECT COUNT(*) FROM products")
-                count = cursor.fetchone()[0]
-                print(f"📊 Products in database: {count}")
-                
-                cursor = conn.execute("SELECT COUNT(*) FROM log_entries")
-                log_count = cursor.fetchone()[0]
-                print(f"📊 Log entries: {log_count}")
-                
-                return  # Database is fine, no need to recreate
+                # Check for fasting tables
+                cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='fasting_sessions'")
+                if cursor.fetchone():
+                    print("✅ Database schema is up to date")
+                    
+                    # Show current data count
+                    cursor = conn.execute("SELECT COUNT(*) FROM products")
+                    count = cursor.fetchone()[0]
+                    print(f"📊 Products in database: {count}")
+                    
+                    cursor = conn.execute("SELECT COUNT(*) FROM log_entries")
+                    log_count = cursor.fetchone()[0]
+                    print(f"📊 Log entries: {log_count}")
+                    
+                    return  # Database is fine, no need to recreate
+                else:
+                    print("⚠️ Database exists but fasting tables are missing, updating schema...")
             else:
                 print("⚠️ Database exists but schema is missing, recreating...")
         except Exception as e:

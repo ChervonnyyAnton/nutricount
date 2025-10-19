@@ -363,3 +363,79 @@ CREATE INDEX IF NOT EXISTS idx_log_entries_date_meal ON log_entries(date, meal_t
 CREATE INDEX IF NOT EXISTS idx_dish_ingredients_dish ON dish_ingredients(dish_id);
 CREATE INDEX IF NOT EXISTS idx_dish_ingredients_product ON dish_ingredients(product_id);
 CREATE INDEX IF NOT EXISTS idx_dishes_name ON dishes(name);
+
+-- ============================================
+-- FASTING TABLES
+-- ============================================
+
+-- Fasting sessions table
+CREATE TABLE IF NOT EXISTS fasting_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER DEFAULT 1, -- For future multi-user support
+    start_time DATETIME NOT NULL,
+    end_time DATETIME,
+    duration_hours REAL,
+    fasting_type TEXT DEFAULT '16:8', -- 16:8, 18:6, 20:4, OMAD, Custom
+    status TEXT DEFAULT 'active', -- active, completed, paused, cancelled
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_duration CHECK (duration_hours IS NULL OR duration_hours >= 0),
+    CONSTRAINT chk_status CHECK (status IN ('active', 'completed', 'paused', 'cancelled'))
+);
+
+-- Fasting goals table
+CREATE TABLE IF NOT EXISTS fasting_goals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER DEFAULT 1,
+    goal_type TEXT NOT NULL, -- daily_hours, weekly_sessions, monthly_hours
+    target_value REAL NOT NULL,
+    current_value REAL DEFAULT 0,
+    period_start DATE NOT NULL,
+    period_end DATE NOT NULL,
+    status TEXT DEFAULT 'active', -- active, completed, paused
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_target_value CHECK (target_value > 0),
+    CONSTRAINT chk_current_value CHECK (current_value >= 0)
+);
+
+-- Fasting statistics view
+CREATE VIEW IF NOT EXISTS fasting_stats AS
+SELECT 
+    DATE(start_time) as fasting_date,
+    COUNT(*) as sessions_count,
+    AVG(duration_hours) as avg_duration_hours,
+    SUM(duration_hours) as total_hours,
+    MAX(duration_hours) as longest_session
+FROM fasting_sessions 
+WHERE status = 'completed'
+GROUP BY DATE(start_time)
+ORDER BY fasting_date DESC;
+
+-- Fasting indexes
+CREATE INDEX IF NOT EXISTS idx_fasting_sessions_user ON fasting_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_fasting_sessions_start ON fasting_sessions(start_time);
+CREATE INDEX IF NOT EXISTS idx_fasting_sessions_status ON fasting_sessions(status);
+CREATE INDEX IF NOT EXISTS idx_fasting_goals_user ON fasting_goals(user_id);
+CREATE INDEX IF NOT EXISTS idx_fasting_goals_period ON fasting_goals(period_start, period_end);
+
+-- Fasting settings table
+CREATE TABLE IF NOT EXISTS fasting_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER DEFAULT 1,
+    fasting_goal TEXT NOT NULL DEFAULT '16:8', -- 16:8, 18:6, 20:4, OMAD
+    preferred_start_time TIME, -- Preferred time to start fasting
+    enable_reminders BOOLEAN DEFAULT 0, -- Enable fasting reminders
+    enable_notifications BOOLEAN DEFAULT 0, -- Enable completion notifications
+    default_notes TEXT, -- Default notes for fasting sessions
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_fasting_goal CHECK (fasting_goal IN ('16:8', '18:6', '20:4', 'OMAD')),
+    CONSTRAINT chk_reminders CHECK (enable_reminders IN (0, 1)),
+    CONSTRAINT chk_notifications CHECK (enable_notifications IN (0, 1))
+);
+
+-- Fasting settings indexes
+CREATE INDEX IF NOT EXISTS idx_fasting_settings_user ON fasting_settings(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_fasting_settings_user_unique ON fasting_settings(user_id);

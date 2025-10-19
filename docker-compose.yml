@@ -9,7 +9,7 @@ services:
     container_name: nutrition-tracker
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "5001:5000"
       - "8080:5000" # Alternative port
     volumes:
       - ./data:/usr/src/app/data
@@ -27,6 +27,8 @@ services:
         reservations:
           memory: 400M # Reserve 400MB
           cpus: '0.75' # Reserve 3/4 CPU core
+    depends_on:
+      - redis
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 60s
@@ -45,11 +47,14 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./static:/usr/share/nginx/html/static:ro
+      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - nutrition-tracker
+      - redis
     deploy:
       resources:
         limits:
@@ -64,7 +69,38 @@ services:
         max-size: "5m"
         max-file: "1"
 
+  redis:
+    image: redis:7-alpine
+    container_name: nutrition-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "1"
+
 networks:
   default:
     name: nutrition-network
     driver: bridge
+
+volumes:
+  redis_data:
