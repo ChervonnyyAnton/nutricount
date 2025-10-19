@@ -55,11 +55,11 @@ COPY . .
 RUN mkdir -p data logs backups \
     && chown -R appuser:appuser /usr/src/app
 
-# Initialize database
-RUN python init_db.py
-
-# Switch to non-root user
+# Switch to non-root user before initializing database
 USER appuser
+
+# Initialize database as appuser
+RUN python init_db.py
 
 # Expose port
 EXPOSE 5000

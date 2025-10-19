@@ -187,6 +187,8 @@ class TestCacheManager:
         """Test cache delete"""
         with patch('src.cache_manager.redis.Redis', return_value=mock_redis):
             cache_manager = CacheManager()
+            cache_manager.use_redis = True
+            cache_manager.redis_client = mock_redis
             
             result = cache_manager.delete('test-key')
             

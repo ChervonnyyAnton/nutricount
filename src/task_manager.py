@@ -116,10 +116,11 @@ class TaskManager:
                     'error': str(e)
                 }
         else:
+            # In fallback mode, we can't check task status, so return NOT_FOUND for any task_id
             return {
                 'id': task_id,
-                'status': 'SUCCESS',
-                'result': 'Task completed synchronously'
+                'status': 'NOT_FOUND',
+                'error': 'Task not found (Celery unavailable)'
             }
     
     def _backup_database_sync(self, backup_path: str = None) -> str:
