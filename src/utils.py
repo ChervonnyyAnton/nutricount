@@ -40,7 +40,8 @@ def clean_string(text: str, max_length: int = 100) -> str:
     return cleaned[:max_length]
 
 
-# Removed deprecated calculate_keto_index function - use nutrition_calculator.calculate_keto_index_advanced instead
+# Removed deprecated calculate_keto_index function -
+# use nutrition_calculator.calculate_keto_index_advanced instead
 
 
 def get_keto_rating(keto_index: float) -> str:
@@ -73,7 +74,10 @@ def parse_date(date_str: str) -> Optional[date]:
 
 def json_response(data: Any = None, message: str = "", status: int = 200, **kwargs) -> Dict:
     """Create consistent JSON response"""
-    response = {"status": "success" if status < 400 else "error", "timestamp": datetime.now(timezone.utc).isoformat()}
+    response = {
+        "status": "success" if status < 400 else "error",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
     if data is not None:
         response["data"] = data
@@ -126,7 +130,10 @@ def validate_nutrition_values(
     if not calories_optional and calories > 0:
         calculated_calories = calculate_calories_from_macros(protein, fat, carbs)
         if abs(calories - calculated_calories) > 0.1:
-            errors.append(f"Provided calories ({calories}) don't match calculated calories ({calculated_calories:.1f})")
+            errors.append(
+                f"Provided calories ({calories}) don't match "
+                f"calculated calories ({calculated_calories:.1f})"
+            )
 
     return errors
 
@@ -154,12 +161,19 @@ def validate_product_data(data: dict) -> tuple[bool, list, dict]:
     carbs = safe_float(data.get("carbs_per_100g"))
 
     # Calories are now optional - will be calculated from macros if not provided
-    nutrition_errors = validate_nutrition_values(calories, protein, fat, carbs, calories_optional=True)
+    nutrition_errors = validate_nutrition_values(
+        calories, protein, fat, carbs, calories_optional=True
+    )
     errors.extend(nutrition_errors)
 
     if not errors:
         cleaned_data.update(
-            {"calories_per_100g": calories, "protein_per_100g": protein, "fat_per_100g": fat, "carbs_per_100g": carbs}
+            {
+                "calories_per_100g": calories,
+                "protein_per_100g": protein,
+                "fat_per_100g": fat,
+                "carbs_per_100g": carbs,
+            }
         )
 
     return len(errors) == 0, errors, cleaned_data
@@ -206,8 +220,17 @@ def validate_dish_data(data: dict) -> tuple[bool, list, dict]:
             else:
                 # Validate optional preparation method
                 preparation_method = ingredient.get("preparation_method", "raw")
-                if preparation_method not in ["raw", "boiled", "steamed", "grilled", "fried", "baked"]:
-                    errors.append(f"Ingredient {i+1}: Invalid preparation method '{preparation_method}'")
+                if preparation_method not in [
+                    "raw",
+                    "boiled",
+                    "steamed",
+                    "grilled",
+                    "fried",
+                    "baked",
+                ]:
+                    errors.append(
+                        f"Ingredient {i+1}: Invalid preparation method '{preparation_method}'"
+                    )
                     continue
 
                 # Validate optional edible portion
@@ -309,7 +332,7 @@ def get_database_stats() -> Dict:
         # Get date range
         date_range = conn.execute(
             """
-            SELECT MIN(date) as first_date, MAX(date) as last_date 
+            SELECT MIN(date) as first_date, MAX(date) as last_date
             FROM log_entries
         """
         ).fetchone()

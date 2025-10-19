@@ -14,7 +14,9 @@ class Config:
     FLASK_ENV = os.environ.get("FLASK_ENV") or "development"
 
     # Database
-    DATABASE = (os.environ.get("DATABASE_URL") or "sqlite:///data/nutrition.db").replace("sqlite:///", "")
+    DATABASE = (os.environ.get("DATABASE_URL") or "sqlite:///data/nutrition.db").replace(
+        "sqlite:///", ""
+    )
 
     # Limits (prevent abuse)
     MAX_PRODUCTS = 1000

@@ -26,7 +26,13 @@ CALORIES_PER_GRAM = {
 }
 
 # Коэффициенты активности (Harris-Benedict)
-ACTIVITY_MULTIPLIERS = {"sedentary": 1.2, "light": 1.375, "moderate": 1.55, "active": 1.725, "very_active": 1.9}
+ACTIVITY_MULTIPLIERS = {
+    "sedentary": 1.2,
+    "light": 1.375,
+    "moderate": 1.55,
+    "active": 1.725,
+    "very_active": 1.9,
+}
 
 # Корректировки по целям
 GOAL_ADJUSTMENTS = {
@@ -98,7 +104,13 @@ COOKING_YIELD_FACTORS = {
 # Факторы сохранности нутриентов при готовке
 NUTRIENT_RETENTION_FACTORS = {
     "protein": {"boiled": 0.95, "fried": 0.97, "grilled": 0.96, "steamed": 0.98, "raw": 1.00},
-    "fats": {"boiled": 0.98, "fried": 0.85, "grilled": 0.90, "steamed": 1.00, "raw": 1.00},  # +8% веса от масла
+    "fats": {
+        "boiled": 0.98,
+        "fried": 0.85,
+        "grilled": 0.90,
+        "steamed": 1.00,
+        "raw": 1.00,
+    },  # +8% веса от масла
     "carbs": {"boiled": 0.95, "fried": 0.97, "grilled": 0.96, "steamed": 0.98, "raw": 1.00},
 }
 
@@ -228,10 +240,14 @@ def validate_nutrition_data(
         calculated_calories = calculate_calories_from_macros(protein, fats, carbs)
         calorie_diff = abs(calories - calculated_calories)
         if calorie_diff / max(calories, 1) > 0.25:  # 25% расхождение
-            issues.append(f"Калории расходятся на {calorie_diff:.0f} ккал ({calorie_diff/calories*100:.0f}%)")
+            issues.append(
+                f"Калории расходятся на {calorie_diff:.0f} ккал ({calorie_diff/calories*100:.0f}%)"
+            )
 
     # Определение серьезности
-    severity = "critical" if any("превышает разумный предел" in issue for issue in issues) else "warning"
+    severity = (
+        "critical" if any("превышает разумный предел" in issue for issue in issues) else "warning"
+    )
 
     return ValidationResult(
         valid=len(issues) == 0,
@@ -287,15 +303,22 @@ def calculate_calories_from_macros(protein: float, fats: float, carbs: float) ->
         logger.warning(f"Nutrition data validation issues: {validation.issues}")
 
     calories = (
-        protein * CALORIES_PER_GRAM["protein"] + fats * CALORIES_PER_GRAM["fats"] + carbs * CALORIES_PER_GRAM["carbs"]
+        protein * CALORIES_PER_GRAM["protein"]
+        + fats * CALORIES_PER_GRAM["fats"]
+        + carbs * CALORIES_PER_GRAM["carbs"]
     )
 
-    logger.info(f"Calories calculation: protein={protein}, fats={fats}, carbs={carbs} -> {calories} kcal")
+    logger.info(
+        f"Calories calculation: protein={protein}, fats={fats}, carbs={carbs} -> {calories} kcal"
+    )
     return round(calories, 1)
 
 
 def calculate_net_carbs_advanced(
-    total_carbs: float, fiber: Optional[float] = None, category: Optional[str] = None, region: str = "US"
+    total_carbs: float,
+    fiber: Optional[float] = None,
+    category: Optional[str] = None,
+    region: str = "US",
 ) -> Dict[str, Union[float, bool, str]]:
     """
     Расчет чистых углеводов с учетом клетчатки и категории продукта
@@ -342,7 +365,10 @@ def calculate_net_carbs_advanced(
         estimation_method = "unknown_category_conservative"
         deduction_coeff = 0.0
 
-    logger.info(f"Net carbs calculation: total_carbs={total_carbs}, category={category} -> net_carbs={net_carbs}")
+    logger.info(
+        f"Net carbs calculation: total_carbs={total_carbs}, "
+        f"category={category} -> net_carbs={net_carbs}"
+    )
 
     return {
         "net_carbs": round(max(0, net_carbs), 1),
@@ -365,7 +391,8 @@ def calculate_keto_index_advanced(
     """
     Расчет кето-индекса продукта согласно NUTRIENTS.md (улучшенная версия)
 
-    Формула: keto_score = (carbs_score * 0.5) + (fat_ratio_score * 0.25) + (quality_score * 0.15) + (gi_score * 0.10)
+    Формула: keto_score = (carbs_score * 0.5) + (fat_ratio_score * 0.25) +
+    (quality_score * 0.15) + (gi_score * 0.10)
 
     Args:
         protein: количество белка в граммах на 100г продукта
@@ -401,7 +428,9 @@ def calculate_keto_index_advanced(
     gi_score = calculate_gi_score_advanced(glycemic_index)
 
     # Итоговый кето-индекс
-    keto_index = (carbs_score * 0.5) + (fat_ratio_score * 0.25) + (quality_score * 0.15) + (gi_score * 0.10)
+    keto_index = (
+        (carbs_score * 0.5) + (fat_ratio_score * 0.25) + (quality_score * 0.15) + (gi_score * 0.10)
+    )
 
     # Определение категории
     keto_category = "Исключить"
@@ -423,7 +452,8 @@ def calculate_keto_index_advanced(
     }
 
     logger.info(
-        f"Advanced keto index calculation: protein={protein}, fats={fats}, carbs={carbs} -> keto_index={keto_index}"
+        f"Advanced keto index calculation: protein={protein}, fats={fats}, "
+        f"carbs={carbs} -> keto_index={keto_index}"
     )
     return result
 
@@ -462,7 +492,9 @@ def calculate_fat_ratio_score_advanced(fats: float, protein: float, carbs: float
         return 20
 
 
-def calculate_quality_score_advanced(processing_level: Optional[str], category: Optional[str]) -> float:
+def calculate_quality_score_advanced(
+    processing_level: Optional[str], category: Optional[str]
+) -> float:
     """Оценка качества для кето-индекса (15% веса) согласно NUTRIENTS.md"""
     base_score = 90  # RAW/минимально обработано
 
@@ -520,10 +552,13 @@ def calculate_bmr_mifflin_st_jeor(weight: float, height: float, age: int, gender
     if gender == "male":
         bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
     else:
-        bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
+        bmr = (
+            (10 * weight) + (6.25 * height) - (5 * age) - 161
+        )
 
     logger.info(
-        f"BMR calculation (Mifflin-St Jeor): weight={weight}, height={height}, age={age}, gender={gender} -> {bmr} kcal"
+        f"BMR calculation (Mifflin-St Jeor): weight={weight}, "
+        f"height={height}, age={age}, gender={gender} -> {bmr} kcal"
     )
     return round(bmr, 0)
 
@@ -566,7 +601,9 @@ def calculate_lean_body_mass(weight_kg: float, body_fat_percentage: float) -> fl
 
     lbm = weight_kg * (1 - body_fat_percentage / 100)
 
-    logger.info(f"LBM calculation: weight={weight_kg}, body_fat={body_fat_percentage}% -> LBM={lbm} kg")
+    logger.info(
+        f"LBM calculation: weight={weight_kg}, body_fat={body_fat_percentage}% -> LBM={lbm} kg"
+    )
     return round(lbm, 2)
 
 
@@ -678,14 +715,17 @@ def calculate_keto_macros_advanced(
         "fats": round(fats_grams, 1),
         "calories": round(target_calories, 0),
         "carbs_percentage": round((carbs_calories / target_calories) * 100, 1),
-        "protein_percentage": round((protein_calories / target_calories) * 100, 1),
+        "protein_percentage": round(
+            (protein_calories / target_calories) * 100, 1
+        ),
         "fats_percentage": round((fats_calories / target_calories) * 100, 1),
         "keto_type": keto_type,
         "lbm_used": lbm is not None,
     }
 
     logger.info(
-        f"Advanced keto macros calculation: target_calories={target_calories}, keto_type={keto_type} -> {result}"
+        f"Advanced keto macros calculation: target_calories={target_calories}, "
+        f"keto_type={keto_type} -> {result}"
     )
     return result
 
@@ -758,7 +798,9 @@ def calculate_cooking_fat(ingredient: RecipeIngredient, cooking_method: str) -> 
     return 0.0
 
 
-def calculate_recipe_nutrition(ingredients: List[RecipeIngredient], recipe_name: str, servings: int = 1) -> Dict:
+def calculate_recipe_nutrition(
+    ingredients: List[RecipeIngredient], recipe_name: str, servings: int = 1
+) -> Dict:
     """
     Расчет нутриентов рецепта согласно NUTRIENTS.md
 
@@ -778,7 +820,9 @@ def calculate_recipe_nutrition(ingredients: List[RecipeIngredient], recipe_name:
 
     for ingredient in ingredients:
         # Коэффициент выхода
-        yield_factor = COOKING_YIELD_FACTORS.get(f"{ingredient.category}_{ingredient.preparation}", 1.0)
+        yield_factor = COOKING_YIELD_FACTORS.get(
+            f"{ingredient.category}_{ingredient.preparation}", 1.0
+        )
         cooked_weight = ingredient.raw_weight * yield_factor
 
         # Факторы сохранности нутриентов
@@ -787,9 +831,16 @@ def calculate_recipe_nutrition(ingredients: List[RecipeIngredient], recipe_name:
         retention_carbs = NUTRIENT_RETENTION_FACTORS["carbs"].get(ingredient.preparation, 1.0)
 
         # Расчет нутриентов после готовки
-        protein = ingredient.nutrition_per_100g["protein"] * ingredient.raw_weight / 100 * retention_protein
+        protein = (
+            ingredient.nutrition_per_100g["protein"]
+            * ingredient.raw_weight
+            / 100
+            * retention_protein
+        )
         fats = ingredient.nutrition_per_100g["fats"] * ingredient.raw_weight / 100 * retention_fats
-        carbs = ingredient.nutrition_per_100g["carbs"] * ingredient.raw_weight / 100 * retention_carbs
+        carbs = (
+            ingredient.nutrition_per_100g["carbs"] * ingredient.raw_weight / 100 * retention_carbs
+        )
 
         # Дополнительный жир при готовке
         cooking_fat = calculate_cooking_fat(ingredient, ingredient.preparation)
@@ -823,7 +874,9 @@ def calculate_recipe_nutrition(ingredients: List[RecipeIngredient], recipe_name:
     nutrition_per_100g = {}
     for nutrient in total_nutrition:
         nutrition_per_100g[nutrient] = (
-            round(total_nutrition[nutrient] * 100 / total_cooked_weight, 1) if total_cooked_weight > 0 else 0
+            round(total_nutrition[nutrient] * 100 / total_cooked_weight, 1)
+            if total_cooked_weight > 0
+            else 0
         )
 
     # Расчет на порцию
@@ -832,13 +885,18 @@ def calculate_recipe_nutrition(ingredients: List[RecipeIngredient], recipe_name:
         nutrition_per_serving[nutrient] = round(total_nutrition[nutrient] / servings, 1)
 
     # Расчет чистых углеводов для готового блюда
-    total_fiber = sum(ing.nutrition_per_100g.get("fiber", 0) * ing.raw_weight / 100 for ing in ingredients)
+    total_fiber = sum(
+        ing.nutrition_per_100g.get("fiber", 0) * ing.raw_weight / 100 for ing in ingredients
+    )
     fiber_per_100g = total_fiber * 100 / total_cooked_weight if total_cooked_weight > 0 else 0
     net_carbs_per_100g = nutrition_per_100g["carbs"] - fiber_per_100g
 
     # Расчет кето-индекса для готового блюда
     keto_result = calculate_keto_index_advanced(
-        nutrition_per_100g["protein"], nutrition_per_100g["fats"], nutrition_per_100g["carbs"], fiber=fiber_per_100g
+        nutrition_per_100g["protein"],
+        nutrition_per_100g["fats"],
+        nutrition_per_100g["carbs"],
+        fiber=fiber_per_100g,
     )
 
     # Добавляем net_carbs в nutrition_per_100g
@@ -851,7 +909,9 @@ def calculate_recipe_nutrition(ingredients: List[RecipeIngredient], recipe_name:
         "weights": {
             "total_raw": round(total_raw_weight, 1),
             "total_cooked": round(total_cooked_weight, 1),
-            "yield_factor": round(total_cooked_weight / total_raw_weight, 2) if total_raw_weight > 0 else 0,
+            "yield_factor": (
+                round(total_cooked_weight / total_raw_weight, 2) if total_raw_weight > 0 else 0
+            ),
         },
         "nutrition_total": {k: round(v, 1) for k, v in total_nutrition.items()},
         "nutrition_per_100g": nutrition_per_100g,
@@ -878,13 +938,16 @@ def validate_recipe_integrity(recipe_data: Dict) -> ValidationResult:
     issues = []
 
     ingredients = recipe_data.get("ingredients_breakdown", [])
-    calculated_raw_weight = sum(ing["raw_weight"] for ing in ingredients)
+    calculated_raw_weight = sum(
+        ing["raw_weight"] for ing in ingredients
+    )
     stated_raw_weight = recipe_data["weights"]["total_raw"]
 
     # Проверка соответствия веса сырых ингредиентов
     if abs(calculated_raw_weight - stated_raw_weight) > 1:
         issues.append(
-            f"Несоответствие веса сырых ингредиентов: {calculated_raw_weight:.0f}г vs {stated_raw_weight:.0f}г"
+            f"Несоответствие веса сырых ингредиентов: "
+            f"{calculated_raw_weight:.0f}г vs {stated_raw_weight:.0f}г"
         )
 
     # Проверка соответствия нутриентов
@@ -921,7 +984,9 @@ def validate_recipe_integrity(recipe_data: Dict) -> ValidationResult:
 # ============================================
 
 
-def round_nutrition_values(calories: float, carbs: float, protein: float, fats: float) -> Dict[str, float]:
+def round_nutrition_values(
+    calories: float, carbs: float, protein: float, fats: float
+) -> Dict[str, float]:
     """Стандартное округление пищевых значений"""
     return {
         "calories": round(calories, 0),  # Целые числа
@@ -942,7 +1007,10 @@ def log_calculation(func_name: str, inputs: Dict, result: Dict) -> None:
 
 
 def calculate_net_carbs(
-    total_carbs: float, fiber: Optional[float] = None, category: Optional[str] = None, region: str = "US"
+    total_carbs: float,
+    fiber: Optional[float] = None,
+    category: Optional[str] = None,
+    region: str = "US",
 ) -> Dict[str, Union[float, bool, str]]:
     """Обратная совместимость - вызывает продвинутую версию"""
     return calculate_net_carbs_advanced(total_carbs, fiber, category, region)
@@ -958,7 +1026,9 @@ def calculate_keto_index(
     check_total: bool = True,
 ) -> Dict[str, Union[float, str]]:
     """Обратная совместимость - вызывает продвинутую версию"""
-    return calculate_keto_index_advanced(protein, fats, carbs, fiber, category, glycemic_index, None, check_total)
+    return calculate_keto_index_advanced(
+        protein, fats, carbs, fiber, category, glycemic_index, None, check_total
+    )
 
 
 def calculate_bmr(weight: float, height: float, age: int, gender: str) -> float:
@@ -986,14 +1056,19 @@ def example_avocado_analysis():
     # Расчеты
     calories = calculate_calories_from_macros(protein, fats, total_carbs)
     net_carbs_result = calculate_net_carbs_advanced(total_carbs, fiber, "avocado_olives")
-    keto_result = calculate_keto_index_advanced(protein, fats, total_carbs, fiber, "avocado_olives", 15, "raw")
+    keto_result = calculate_keto_index_advanced(
+        protein, fats, total_carbs, fiber, "avocado_olives", 15, "raw"
+    )
 
-    print(f"Авокадо (на 100г):")
+    print("Авокадо (на 100г):")
     print(f"Калории: {calories} ккал")
     print(f"Чистые углеводы: {net_carbs_result['net_carbs']} г")
     print(f"Кето-индекс: {keto_result['keto_index']} - {keto_result['keto_category']}")
     print(
-        f"Компоненты: углеводы={keto_result['carbs_score']}, жиры={keto_result['fat_score']}, качество={keto_result['quality_score']}, ГИ={keto_result['gi_score']}"
+        f"Компоненты: углеводы={keto_result['carbs_score']}, "
+        f"жиры={keto_result['fat_score']}, "
+        f"качество={keto_result['quality_score']}, "
+        f"ГИ={keto_result['gi_score']}"
     )
 
     return {
@@ -1017,9 +1092,11 @@ def example_daily_macros():
     bmr = calculate_bmr_mifflin_st_jeor(weight, height, age, gender)
     tdee = calculate_tdee(bmr, "moderate")
     target_calories = calculate_target_calories(tdee, "weight_loss")
-    macros = calculate_keto_macros_advanced(target_calories, lbm, "moderate", "standard", "weight_loss")
+    macros = calculate_keto_macros_advanced(
+        target_calories, lbm, "moderate", "standard", "weight_loss"
+    )
 
-    print(f"Дневные макросы:")
+    print("Дневные макросы:")
     print(f"BMR: {bmr} ккал")
     print(f"TDEE: {tdee} ккал")
     print(f"Целевые калории: {target_calories} ккал")
@@ -1035,13 +1112,25 @@ def example_recipe_calculation():
     """Пример расчета сложного рецепта согласно NUTRIENTS.md"""
     ingredients = [
         RecipeIngredient(
-            "Куриное бедро", 600, {"protein": 18.4, "fats": 8.1, "carbs": 0, "fiber": 0}, "meat", "grilled"
+            "Куриное бедро",
+            600,
+            {"protein": 18.4, "fats": 8.1, "carbs": 0, "fiber": 0},
+            "meat",
+            "grilled",
         ),
         RecipeIngredient(
-            "Брокколи", 400, {"protein": 2.8, "fats": 0.4, "carbs": 6.6, "fiber": 2.6}, "cruciferous", "steamed"
+            "Брокколи",
+            400,
+            {"protein": 2.8, "fats": 0.4, "carbs": 6.6, "fiber": 2.6},
+            "cruciferous",
+            "steamed",
         ),
-        RecipeIngredient("Сыр чеддер", 150, {"protein": 25, "fats": 33, "carbs": 1.3, "fiber": 0}, "dairy", "raw"),
-        RecipeIngredient("Оливковое масло", 30, {"protein": 0, "fats": 100, "carbs": 0, "fiber": 0}, "oil", "raw"),
+        RecipeIngredient(
+            "Сыр чеддер", 150, {"protein": 25, "fats": 33, "carbs": 1.3, "fiber": 0}, "dairy", "raw"
+        ),
+        RecipeIngredient(
+            "Оливковое масло", 30, {"protein": 0, "fats": 100, "carbs": 0, "fiber": 0}, "oil", "raw"
+        ),
     ]
 
     recipe = calculate_recipe_nutrition(ingredients, "Кето-запеканка", servings=4)
@@ -1053,7 +1142,9 @@ def example_recipe_calculation():
     print(f"Вес готовый: {recipe['weights']['total_cooked']}г")
     print(f"Коэффициент выхода: {recipe['weights']['yield_factor']}")
     print(
-        f"На порцию: белки {recipe['nutrition_per_serving']['protein']}г, жиры {recipe['nutrition_per_serving']['fats']}г, углеводы {recipe['nutrition_per_serving']['carbs']}г"
+        f"На порцию: белки {recipe['nutrition_per_serving']['protein']}г, "
+        f"жиры {recipe['nutrition_per_serving']['fats']}г, "
+        f"углеводы {recipe['nutrition_per_serving']['carbs']}г"
     )
     print(f"Кето-индекс: {recipe['keto_index']} - {recipe['keto_category']}")
     print(f"Валидация: {'ОК' if validation.valid else validation.issues}")
