@@ -69,6 +69,13 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
   - Documentation templates
   - Quick start commands
 
+- **✅ [PHASE2_CHECKLIST.md](PHASE2_CHECKLIST.md)** - Phase 2 execution checklist (NEW!)
+  - Day-by-day execution plan
+  - Results tracking table
+  - Issue log and notes
+  - Success criteria
+  - Sign-off template
+
 - **🧪 [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md)** - Coverage report
   - Code coverage metrics
   - Test execution stats
@@ -106,6 +113,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 - [MUTATION_TESTING.md](MUTATION_TESTING.md) - Mutation testing guide and results
 - [MUTATION_TESTING_PLAN.md](MUTATION_TESTING_PLAN.md) - Implementation plan
 - [PHASE2_EXECUTION_GUIDE.md](PHASE2_EXECUTION_GUIDE.md) - Phase 2 baseline execution guide (NEW!)
+- [PHASE2_CHECKLIST.md](PHASE2_CHECKLIST.md) - Phase 2 execution checklist (NEW!)
 - [CODE_QUALITY.md](CODE_QUALITY.md) - Quality metrics
 
 ### 🔧 Development & Setup
