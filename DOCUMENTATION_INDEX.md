@@ -69,6 +69,12 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
   - Recommendations
 
 ### 🛠️ For Maintainers
+- **🔄 [REFACTORING_STATUS.md](REFACTORING_STATUS.md)** - Current refactoring status
+  - Phase completion tracking
+  - Next actions and timeline
+  - Progress metrics
+  - Risk assessment
+
 - **🔄 [REFACTORING.md](REFACTORING.md)** - Refactoring history
   - Past improvements
   - Current status
@@ -101,6 +107,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 
 ### 🔄 Refactoring & Analysis
 - [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Comprehensive analysis
+- [REFACTORING_STATUS.md](REFACTORING_STATUS.md) - Current refactoring status and progress
 - [REFACTORING.md](REFACTORING.md) - Refactoring documentation
 
 ---
@@ -135,6 +142,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 | Document | Purpose | Audience | Size |
 |----------|---------|----------|------|
 | [CODE_QUALITY.md](CODE_QUALITY.md) | Quality metrics | Developers | 225 lines |
+| [REFACTORING_STATUS.md](REFACTORING_STATUS.md) | Current status & progress | Maintainers | NEW |
 | [REFACTORING.md](REFACTORING.md) | Refactoring docs | Developers | 374 lines |
 
 ### GitHub Integration
@@ -170,9 +178,9 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ## 📊 Documentation Statistics
 
 ### Total Documentation
-- **Total Documents:** 9 markdown files (reduced from 12)
-- **Total Lines:** ~2,500 lines (reduced from ~3,500)
-- **Total Size:** ~120KB (reduced from ~150KB)
+- **Total Documents:** 10 markdown files (from 12, reduced 16.7%)
+- **Total Lines:** ~2,800 lines (from ~3,500, reduced 20%)
+- **Total Size:** ~130KB (from ~150KB, reduced 13%)
 - **Last Updated:** October 20, 2025
 
 ### Documentation by Category
@@ -180,7 +188,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 - **Developer Docs:** 4 files
 - **Architecture Docs:** 1 file (consolidated)
 - **Testing Docs:** 3 files (consolidated)
-- **Quality Docs:** 2 files
+- **Quality & Refactoring Docs:** 3 files (includes status tracking)
 
 ### Documentation Coverage
 - ✅ **User Documentation:** Comprehensive
@@ -214,7 +222,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 **A:** See [MUTATION_TESTING.md](MUTATION_TESTING.md)
 
 **Q: What's the refactoring plan?**  
-**A:** See [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Refactoring Plan section
+**A:** See [REFACTORING_STATUS.md](REFACTORING_STATUS.md) for current status, [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) for full roadmap
 
 **Q: Where are the architecture diagrams?**  
 **A:** See [ARCHITECTURE.md](ARCHITECTURE.md) - Complete architecture with diagrams
@@ -229,7 +237,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ### Essential Reading
 1. [README.md](README.md) - Start here!
 2. [ARCHITECTURE.md](ARCHITECTURE.md) - Understand the system
-3. [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Current status
+3. [REFACTORING_STATUS.md](REFACTORING_STATUS.md) - Current refactoring progress
 
 ### Deep Dives
 1. [ARCHITECTURE.md](ARCHITECTURE.md) - Complete architecture with diagrams
@@ -237,9 +245,10 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 3. [MUTATION_TESTING.md](MUTATION_TESTING.md) - Test quality and results
 
 ### Maintenance & Quality
-1. [CODE_QUALITY.md](CODE_QUALITY.md) - Quality standards
-2. [REFACTORING.md](REFACTORING.md) - Improvement history
-3. [PROJECT_SETUP.md](PROJECT_SETUP.md) - Development guide
+1. [REFACTORING_STATUS.md](REFACTORING_STATUS.md) - Current refactoring progress
+2. [CODE_QUALITY.md](CODE_QUALITY.md) - Quality standards
+3. [REFACTORING.md](REFACTORING.md) - Improvement history
+4. [PROJECT_SETUP.md](PROJECT_SETUP.md) - Development guide
 
 ---
 
