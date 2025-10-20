@@ -178,9 +178,9 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ## 📊 Documentation Statistics
 
 ### Total Documentation
-- **Total Documents:** 10 markdown files (from 12, reduced 16.7%)
-- **Total Lines:** ~2,800 lines (from ~3,500, reduced 20%)
-- **Total Size:** ~130KB (from ~150KB, reduced 13%)
+- **Total Documents:** 11 markdown files (from 14, reduced 21%)
+- **Total Lines:** ~4,884 lines
+- **Total Size:** ~164KB (from ~170KB)
 - **Last Updated:** October 20, 2025
 
 ### Documentation by Category
@@ -259,7 +259,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 - **ARCHITECTURE.md:** When architecture changes
 - **PROJECT_ANALYSIS.md:** Monthly review
 - **TEST_COVERAGE_REPORT.md:** After test improvements
-- **MUTATION_TEST_RESULTS.md:** After mutation test runs
+- **MUTATION_TESTING.md:** After mutation test runs
 
 ### Quality Checks
 - ✅ All links working
