@@ -83,6 +83,14 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
   - Success criteria
   - Sign-off template
 
+- **📝 [PHASE2_PROGRESS_NOTES.md](PHASE2_PROGRESS_NOTES.md)** - Phase 2 progress notes (NEW!)
+  - Infrastructure validation results
+  - Time estimate validation
+  - Initial testing findings
+  - Execution strategy options (A, B, C)
+  - Detailed recommendations
+  - Lessons learned
+
 - **🧪 [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md)** - Coverage report
   - Code coverage metrics
   - Test execution stats
@@ -122,6 +130,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 - [PHASE2_SUMMARY.md](PHASE2_SUMMARY.md) - Phase 2 setup summary (NEW!)
 - [PHASE2_EXECUTION_GUIDE.md](PHASE2_EXECUTION_GUIDE.md) - Phase 2 baseline execution guide (NEW!)
 - [PHASE2_CHECKLIST.md](PHASE2_CHECKLIST.md) - Phase 2 execution checklist (NEW!)
+- [PHASE2_PROGRESS_NOTES.md](PHASE2_PROGRESS_NOTES.md) - Phase 2 progress and findings (NEW!)
 - [CODE_QUALITY.md](CODE_QUALITY.md) - Quality metrics
 
 ### 🔧 Development & Setup
@@ -202,16 +211,16 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ## 📊 Documentation Statistics
 
 ### Total Documentation
-- **Total Documents:** 11 markdown files (from 14, reduced 21%)
-- **Total Lines:** ~4,884 lines
-- **Total Size:** ~164KB (from ~170KB)
+- **Total Documents:** 12 markdown files (Phase 2 docs added)
+- **Total Lines:** ~5,400 lines (including new Phase 2 documentation)
+- **Total Size:** ~180KB
 - **Last Updated:** October 20, 2025
 
 ### Documentation by Category
 - **User Docs:** 1 file (README.md)
 - **Developer Docs:** 4 files
 - **Architecture Docs:** 1 file (consolidated)
-- **Testing Docs:** 3 files (consolidated)
+- **Testing Docs:** 7 files (3 original + 4 Phase 2 docs)
 - **Quality & Refactoring Docs:** 3 files (includes status tracking)
 
 ### Documentation Coverage
@@ -244,6 +253,9 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 
 **Q: What is mutation testing?**  
 **A:** See [MUTATION_TESTING.md](MUTATION_TESTING.md)
+
+**Q: What's the status of Phase 2 (Mutation Testing)?**  
+**A:** See [PHASE2_PROGRESS_NOTES.md](PHASE2_PROGRESS_NOTES.md) for detailed progress and [PHASE2_CHECKLIST.md](PHASE2_CHECKLIST.md) for execution tracking
 
 **Q: What's the refactoring plan?**  
 **A:** See [REFACTORING_STATUS.md](REFACTORING_STATUS.md) for current status, [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) for full roadmap
