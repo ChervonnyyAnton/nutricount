@@ -174,6 +174,27 @@ class TestMetricsCollector:
         mock_products.set.assert_called_once_with(75)
         mock_dishes.set.assert_called_once_with(45)
         mock_logs.set.assert_called_once_with(300)
+    
+    @patch('src.monitoring.PROMETHEUS_AVAILABLE', False)
+    def test_get_metrics_without_prometheus(self):
+        """Test get_metrics when Prometheus is not available"""
+        collector = MetricsCollector()
+        
+        metrics = collector.get_metrics()
+        
+        assert isinstance(metrics, str)
+        assert "Prometheus metrics not available" in metrics
+    
+    @patch('src.monitoring.PROMETHEUS_AVAILABLE', False)
+    def test_init_metrics_without_prometheus(self):
+        """Test _init_metrics when Prometheus is not available"""
+        # This tests line 40-41 (the warning log)
+        with patch('src.monitoring.logger') as mock_logger:
+            collector = MetricsCollector()
+            
+            # Should log warning when Prometheus not available
+            mock_logger.warning.assert_called_once()
+            assert "Prometheus not available" in str(mock_logger.warning.call_args)
 
 
 class TestMonitorHttpRequest:
