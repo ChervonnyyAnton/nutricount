@@ -361,6 +361,51 @@ class TestCookingFunctions:
         assert isinstance(fat, float)
         assert fat >= 0.0
     
+    def test_calculate_cooking_fat_fried_fish(self):
+        """Test calculate_cooking_fat for fried fish"""
+        ingredient = RecipeIngredient(
+            name="Salmon",
+            raw_weight=150.0,
+            nutrition_per_100g={"protein": 20.0, "fats": 13.0, "carbs": 0.0},
+            category="fish",
+            preparation="raw"
+        )
+        
+        fat = calculate_cooking_fat(ingredient, "fried")
+        
+        # Should add 3% of weight = 150 * 0.03 = 4.5
+        assert fat == 4.5
+    
+    def test_calculate_cooking_fat_fried_vegetable(self):
+        """Test calculate_cooking_fat for fried vegetable"""
+        ingredient = RecipeIngredient(
+            name="Potato",
+            raw_weight=100.0,
+            nutrition_per_100g={"protein": 2.0, "fats": 0.1, "carbs": 17.0},
+            category="vegetable",
+            preparation="raw"
+        )
+        
+        fat = calculate_cooking_fat(ingredient, "fried")
+        
+        # Should add 8% of weight = 100 * 0.08 = 8.0
+        assert fat == 8.0
+    
+    def test_calculate_cooking_fat_grilled_meat(self):
+        """Test calculate_cooking_fat for grilled meat"""
+        ingredient = RecipeIngredient(
+            name="Beef",
+            raw_weight=200.0,
+            nutrition_per_100g={"protein": 26.0, "fats": 15.0, "carbs": 0.0},
+            category="meat",
+            preparation="raw"
+        )
+        
+        fat = calculate_cooking_fat(ingredient, "grilled")
+        
+        # Should subtract 5% of weight = -200 * 0.05 = -10.0
+        assert fat == -10.0
+    
     def test_calculate_recipe_nutrition(self):
         """Test calculate_recipe_nutrition"""
         ingredients = [
@@ -413,6 +458,50 @@ class TestValidationFunctions:
         assert isinstance(result, ValidationResult)
         assert hasattr(result, 'valid')
         assert hasattr(result, 'issues')
+    
+    def test_validate_recipe_integrity_weight_mismatch(self):
+        """Test validate_recipe_integrity with weight mismatch"""
+        recipe_data = {
+            "name": "Test Recipe",
+            "ingredients_breakdown": [
+                {
+                    "name": "Chicken", 
+                    "raw_weight": 200.0,
+                    "nutrition": {"protein": 25.0, "fats": 3.0, "carbs": 0.0, "calories": 120.0}
+                }
+            ],
+            "weights": {"total_raw": 250.0, "total_cooked": 180.0},  # Mismatch: 250 vs 200
+            "nutrition_total": {"protein": 50.0, "fats": 6.0, "carbs": 0.0, "calories": 240.0},
+            "servings": 2
+        }
+        
+        result = validate_recipe_integrity(recipe_data)
+        
+        assert isinstance(result, ValidationResult)
+        assert not result.valid  # Should be invalid due to weight mismatch
+        assert len(result.issues) > 0
+    
+    def test_validate_recipe_integrity_unusual_yield(self):
+        """Test validate_recipe_integrity with unusual yield coefficient"""
+        recipe_data = {
+            "name": "Test Recipe",
+            "ingredients_breakdown": [
+                {
+                    "name": "Chicken", 
+                    "raw_weight": 200.0,
+                    "nutrition": {"protein": 25.0, "fats": 3.0, "carbs": 0.0, "calories": 120.0}
+                }
+            ],
+            "weights": {"total_raw": 200.0, "total_cooked": 700.0},  # Unusual yield: 3.5
+            "nutrition_total": {"protein": 50.0, "fats": 6.0, "carbs": 0.0, "calories": 240.0},
+            "servings": 2
+        }
+        
+        result = validate_recipe_integrity(recipe_data)
+        
+        assert isinstance(result, ValidationResult)
+        assert not result.valid  # Should be invalid due to unusual yield
+        assert any("коэффициент выхода" in issue for issue in result.issues)
 
 
 class TestUtilityFunctions:
@@ -772,6 +861,50 @@ class TestAdditionalValidationAndErrorHandling:
         
         # Should use default carbs_grams = 35
         assert result["carbs"] == 35
+    
+    def test_calculate_keto_macros_advanced_active_level(self):
+        """Test calculate_keto_macros_advanced with active activity level"""
+        result = calculate_keto_macros_advanced(
+            target_calories=2500,
+            lbm=60,
+            activity_level="active",
+            keto_type="standard"
+        )
+        
+        # Should use protein_coeff = 2.1 for active level
+        assert isinstance(result, dict)
+        assert "protein" in result
+        assert "fats" in result
+        assert "carbs" in result
+        # Protein should be 60 * 2.1 = 126g
+        assert result["protein"] > 120
+    
+    def test_calculate_keto_macros_advanced_very_active_level(self):
+        """Test calculate_keto_macros_advanced with very_active level"""
+        result = calculate_keto_macros_advanced(
+            target_calories=3000,
+            lbm=70,
+            activity_level="very_active",
+            keto_type="standard"
+        )
+        
+        # Should use protein_coeff = 2.1 for very_active level
+        assert isinstance(result, dict)
+        assert result["protein"] > 140  # 70 * 2.1 = 147
+    
+    def test_calculate_keto_macros_advanced_weight_loss_goal(self):
+        """Test calculate_keto_macros_advanced with weight_loss goal"""
+        result = calculate_keto_macros_advanced(
+            target_calories=1800,
+            lbm=55,
+            activity_level="moderate",
+            goal="weight_loss",
+            keto_type="standard"
+        )
+        
+        # Should use protein_coeff = 1.8 + 0.2 = 2.0 for weight loss
+        assert isinstance(result, dict)
+        assert result["protein"] > 100  # 55 * 2.0 = 110
 
 
 class TestBoundaryAndEdgeCases:
