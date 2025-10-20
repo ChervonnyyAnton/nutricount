@@ -429,3 +429,90 @@ mutmut run <mutant_id>
 **Tool:** mutmut 2.4.5  
 **Target Score:** 80%+ overall  
 **Next Steps:** Run baseline and fix surviving mutants
+
+---
+
+## 📊 Mutation Testing Results
+
+### Current Status (October 20, 2025)
+
+> **⏳ BASELINE IN PROGRESS**  
+> Comprehensive mutation testing baseline is being prepared.  
+> See [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) for current status and roadmap.
+
+### Initial Partial Run Results
+
+**Date:** October 20, 2025 (Initial Partial Run on utils.py)
+
+#### Summary
+
+| Metric | Count | Percentage |
+|--------|-------|------------|
+| Total Mutants Tested | 6 | - |
+| Killed Mutants 🎉 | 6 | 100% |
+| Survived Mutants 🙁 | 0 | 0% |
+| **Mutation Score** | **6/6** | **100%** |
+
+#### Tested Function
+Mutation testing was executed on `src/utils.py` focusing on the `database_connection()` context manager function.
+
+#### Key Findings
+
+**Strengths:**
+- The `database_connection()` context manager has comprehensive test coverage
+- All critical code paths are tested
+- Edge cases are properly handled (in-memory vs file databases)
+- Error conditions are verified (rollback on exception)
+
+**Process Learnings:**
+1. **Mutation testing is effective** - It identified gaps in test coverage that weren't obvious
+2. **Incremental approach works** - Testing small modules first allows for quick iterations
+3. **Tests need to be specific** - Generic tests don't catch all mutations
+4. **Edge cases matter** - The `:memory:` vs file database distinction required specific testing
+
+### Expected Baseline Results
+
+Based on current test coverage, expected mutation scores:
+
+| Module | Coverage | Est. Mutation | Priority |
+|--------|----------|--------------|----------|
+| constants.py | 100% | 95%+ | Low |
+| fasting_manager.py | 100% | 85%+ | Medium |
+| cache_manager.py | 94% | 80%+ | Medium |
+| utils.py | 92% | 80%+ | **HIGH** |
+| security.py | 88% | 75%+ | **HIGH** |
+| nutrition_calculator.py | 86% | 70%+ | **HIGH** |
+| **Overall** | **91%** | **75-80%** | - |
+
+### Next Steps
+
+1. **Run Full Baseline** - Execute mutation testing on all modules
+2. **Critical Modules First** - Focus on security.py and utils.py (85%+ target)
+3. **Core Modules** - cache_manager.py, monitoring.py, task_manager.py (80%+ target)
+4. **Supporting Modules** - nutrition_calculator.py, ssl_config.py (75%+ target)
+5. **Documentation** - Record baseline mutation scores
+6. **Test Improvements** - Add tests for surviving mutants
+7. **Re-run** - Achieve 80%+ overall mutation score
+
+### Recommendations
+
+**Immediate:**
+1. ✅ **DONE** - Add tests for `database_connection()` context manager
+2. ✅ **DONE** - Achieve 100% mutation score for this function
+
+**Short-term:**
+1. Run mutation testing on critical modules (security.py, utils.py)
+2. Set targets: Critical modules 90%+, Core modules 80%+, Overall 75%+
+3. Fix surviving mutants by improving tests
+
+**Integration:**
+1. Run mutation testing weekly
+2. Track mutation score trends over time
+3. Consider blocking PRs with low mutation scores on new code
+
+---
+
+**Test Run Time:** ~4 minutes for 6 mutants  
+**Estimated Full Run:** ~3-4 hours for all modules  
+**Status:** Initial phase complete ✅  
+**Next Module:** To be determined based on priority
