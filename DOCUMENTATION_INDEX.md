@@ -49,17 +49,18 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
   - Quality metrics
 
 ### 🧪 For QA Engineers
-- **🧬 [MUTATION_TESTING.md](MUTATION_TESTING.md)** - Mutation testing guide
+- **🧬 [MUTATION_TESTING.md](MUTATION_TESTING.md)** - Mutation testing guide and results
   - What is mutation testing
   - Setup and configuration
   - Running tests
   - Analyzing results
+  - Current results
 
-- **📊 [MUTATION_TEST_RESULTS.md](MUTATION_TEST_RESULTS.md)** - Test results
-  - Current mutation scores
-  - Surviving mutants
-  - Test improvements
-  - Historical data
+- **📊 [MUTATION_TESTING_PLAN.md](MUTATION_TESTING_PLAN.md)** - Implementation plan
+  - Goals and timelines
+  - Module-by-module strategy
+  - Expected baseline results
+  - Weekly execution plan
 
 - **🧪 [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md)** - Coverage report
   - Code coverage metrics
@@ -68,6 +69,12 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
   - Recommendations
 
 ### 🛠️ For Maintainers
+- **🔄 [REFACTORING_STATUS.md](REFACTORING_STATUS.md)** - Current refactoring status
+  - Phase completion tracking
+  - Next actions and timeline
+  - Progress metrics
+  - Risk assessment
+
 - **🔄 [REFACTORING.md](REFACTORING.md)** - Refactoring history
   - Past improvements
   - Current status
@@ -85,14 +92,12 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ## 📖 Documentation by Topic
 
 ### 🏗️ Architecture & Design
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Main architecture guide
-- [NUTRICOUNT_ARCHITECTURE_DIAGRAM.md](NUTRICOUNT_ARCHITECTURE_DIAGRAM.md) - Visual diagrams
-- [NUTRICOUNT_MINDMAP_AND_TEST_COVERAGE.md](NUTRICOUNT_MINDMAP_AND_TEST_COVERAGE.md) - Mindmap
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Comprehensive architecture guide with diagrams
 
 ### 🧪 Testing & Quality
 - [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) - Coverage details
-- [MUTATION_TESTING.md](MUTATION_TESTING.md) - Mutation testing guide
-- [MUTATION_TEST_RESULTS.md](MUTATION_TEST_RESULTS.md) - Test results
+- [MUTATION_TESTING.md](MUTATION_TESTING.md) - Mutation testing guide and results
+- [MUTATION_TESTING_PLAN.md](MUTATION_TESTING_PLAN.md) - Implementation plan
 - [CODE_QUALITY.md](CODE_QUALITY.md) - Quality metrics
 
 ### 🔧 Development & Setup
@@ -102,6 +107,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 
 ### 🔄 Refactoring & Analysis
 - [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Comprehensive analysis
+- [REFACTORING_STATUS.md](REFACTORING_STATUS.md) - Current refactoring status and progress
 - [REFACTORING.md](REFACTORING.md) - Refactoring documentation
 
 ---
@@ -123,21 +129,20 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ### Architecture & Design
 | Document | Purpose | Audience | Size |
 |----------|---------|----------|------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Consolidated architecture | Developers | NEW |
-| [NUTRICOUNT_ARCHITECTURE_DIAGRAM.md](NUTRICOUNT_ARCHITECTURE_DIAGRAM.md) | Visual diagrams | Developers | 207 lines |
-| [NUTRICOUNT_MINDMAP_AND_TEST_COVERAGE.md](NUTRICOUNT_MINDMAP_AND_TEST_COVERAGE.md) | Mindmap | Developers | 648 lines |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Comprehensive architecture guide | Developers, Architects | 529 lines |
 
 ### Testing Documentation
 | Document | Purpose | Audience | Size |
 |----------|---------|----------|------|
-| [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) | Coverage report | QA, Developers | NEW |
-| [MUTATION_TESTING.md](MUTATION_TESTING.md) | Testing guide | QA, Developers | 425 lines |
-| [MUTATION_TEST_RESULTS.md](MUTATION_TEST_RESULTS.md) | Test results | QA, Developers | 121 lines |
+| [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) | Coverage report (91%, 545 tests) | QA, Developers | ~280 lines |
+| [MUTATION_TESTING.md](MUTATION_TESTING.md) | Testing guide with results | QA, Developers | ~500 lines |
+| [MUTATION_TESTING_PLAN.md](MUTATION_TESTING_PLAN.md) | Implementation plan | QA, Developers | ~350 lines |
 
 ### Quality & Refactoring
 | Document | Purpose | Audience | Size |
 |----------|---------|----------|------|
 | [CODE_QUALITY.md](CODE_QUALITY.md) | Quality metrics | Developers | 225 lines |
+| [REFACTORING_STATUS.md](REFACTORING_STATUS.md) | Current status & progress | Maintainers | NEW |
 | [REFACTORING.md](REFACTORING.md) | Refactoring docs | Developers | 374 lines |
 
 ### GitHub Integration
@@ -164,27 +169,26 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 5. **Day 5:** Start testing!
 
 ### Path 3: Architect Review
-1. **Read:** [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture overview
-2. **Read:** [NUTRICOUNT_ARCHITECTURE_DIAGRAM.md](NUTRICOUNT_ARCHITECTURE_DIAGRAM.md) - Diagrams
-3. **Read:** [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Analysis and plans
-4. **Read:** [REFACTORING.md](REFACTORING.md) - Historical improvements
+1. **Read:** [ARCHITECTURE.md](ARCHITECTURE.md) - Comprehensive architecture overview
+2. **Read:** [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Analysis and plans
+3. **Read:** [REFACTORING.md](REFACTORING.md) - Historical improvements
 
 ---
 
 ## 📊 Documentation Statistics
 
 ### Total Documentation
-- **Total Documents:** 12 markdown files
-- **Total Lines:** 3,500+ lines
-- **Total Size:** ~150KB
+- **Total Documents:** 11 markdown files (from 14, reduced 21%)
+- **Total Lines:** ~4,884 lines
+- **Total Size:** ~164KB (from ~170KB)
 - **Last Updated:** October 20, 2025
 
 ### Documentation by Category
 - **User Docs:** 1 file (README.md)
 - **Developer Docs:** 4 files
-- **Architecture Docs:** 3 files
-- **Testing Docs:** 3 files
-- **Quality Docs:** 2 files
+- **Architecture Docs:** 1 file (consolidated)
+- **Testing Docs:** 3 files (consolidated)
+- **Quality & Refactoring Docs:** 3 files (includes status tracking)
 
 ### Documentation Coverage
 - ✅ **User Documentation:** Comprehensive
@@ -218,10 +222,10 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 **A:** See [MUTATION_TESTING.md](MUTATION_TESTING.md)
 
 **Q: What's the refactoring plan?**  
-**A:** See [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Refactoring Plan section
+**A:** See [REFACTORING_STATUS.md](REFACTORING_STATUS.md) for current status, [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) for full roadmap
 
 **Q: Where are the architecture diagrams?**  
-**A:** See [NUTRICOUNT_ARCHITECTURE_DIAGRAM.md](NUTRICOUNT_ARCHITECTURE_DIAGRAM.md)
+**A:** See [ARCHITECTURE.md](ARCHITECTURE.md) - Complete architecture with diagrams
 
 **Q: How do I contribute?**  
 **A:** See [PROJECT_SETUP.md](PROJECT_SETUP.md) - Development section
@@ -233,17 +237,18 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ### Essential Reading
 1. [README.md](README.md) - Start here!
 2. [ARCHITECTURE.md](ARCHITECTURE.md) - Understand the system
-3. [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Current status
+3. [REFACTORING_STATUS.md](REFACTORING_STATUS.md) - Current refactoring progress
 
 ### Deep Dives
-1. [NUTRICOUNT_ARCHITECTURE_DIAGRAM.md](NUTRICOUNT_ARCHITECTURE_DIAGRAM.md) - Visual architecture
-2. [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) - Testing details
-3. [MUTATION_TESTING.md](MUTATION_TESTING.md) - Test quality
+1. [ARCHITECTURE.md](ARCHITECTURE.md) - Complete architecture with diagrams
+2. [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) - Testing details (91%, 545 tests)
+3. [MUTATION_TESTING.md](MUTATION_TESTING.md) - Test quality and results
 
 ### Maintenance & Quality
-1. [CODE_QUALITY.md](CODE_QUALITY.md) - Quality standards
-2. [REFACTORING.md](REFACTORING.md) - Improvement history
-3. [PROJECT_SETUP.md](PROJECT_SETUP.md) - Development guide
+1. [REFACTORING_STATUS.md](REFACTORING_STATUS.md) - Current refactoring progress
+2. [CODE_QUALITY.md](CODE_QUALITY.md) - Quality standards
+3. [REFACTORING.md](REFACTORING.md) - Improvement history
+4. [PROJECT_SETUP.md](PROJECT_SETUP.md) - Development guide
 
 ---
 
@@ -254,7 +259,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 - **ARCHITECTURE.md:** When architecture changes
 - **PROJECT_ANALYSIS.md:** Monthly review
 - **TEST_COVERAGE_REPORT.md:** After test improvements
-- **MUTATION_TEST_RESULTS.md:** After mutation test runs
+- **MUTATION_TESTING.md:** After mutation test runs
 
 ### Quality Checks
 - ✅ All links working
