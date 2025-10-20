@@ -80,70 +80,84 @@ The comprehensive refactoring plan outlined in [PROJECT_ANALYSIS.md](PROJECT_ANA
    - Execute mutation testing on all 11 source modules
    - Document baseline mutation scores
    - Identify surviving mutants
-   - Estimate time: 3-4 hours for complete run
+   - Estimate time: 8-12 hours for complete run
 
 2. **Critical Modules First**
-   - security.py (224 statements, 88% coverage)
-   - utils.py (223 statements, 92% coverage)
-   - Target: 85%+ mutation score
+   - security.py (224 statements, 88% coverage) - Est. 3-4 hours
+   - utils.py (223 statements, 92% coverage) - Est. 3-4 hours
+   - Target: 75-80%+ mutation score
 
 3. **Core Modules Second**
-   - cache_manager.py (172 statements, 94% coverage)
-   - monitoring.py (174 statements, 90% coverage)
-   - fasting_manager.py (203 statements, 100% coverage)
-   - Target: 80%+ mutation score
+   - cache_manager.py (172 statements, 94% coverage) - Est. 3 hours
+   - monitoring.py (174 statements, 90% coverage) - Est. 3 hours
+   - fasting_manager.py (203 statements, 100% coverage) - Est. 3 hours
+   - Target: 75-85%+ mutation score
 
 4. **Supporting Modules Third**
-   - nutrition_calculator.py (416 statements, 86% coverage)
-   - task_manager.py (197 statements, 92% coverage)
-   - advanced_logging.py (189 statements, 93% coverage)
-   - ssl_config.py (138 statements, 91% coverage)
-   - Target: 75%+ mutation score
+   - nutrition_calculator.py (416 statements, 86% coverage) - Est. 4-6 hours
+   - task_manager.py (197 statements, 92% coverage) - Est. 3 hours
+   - advanced_logging.py (189 statements, 93% coverage) - Est. 3 hours
+   - ssl_config.py (138 statements, 91% coverage) - Est. 2-3 hours
+   - Target: 70-80%+ mutation score
 
 ### Expected Results
 
-| Module | Code Coverage | Expected Mutation | Priority |
-|--------|---------------|------------------|----------|
-| constants.py | 100% | 95%+ | Low |
-| fasting_manager.py | 100% | 85%+ | Medium |
-| cache_manager.py | 94% | 80%+ | Medium |
-| utils.py | 92% | 80%+ | **HIGH** |
-| security.py | 88% | 75%+ | **HIGH** |
-| nutrition_calculator.py | 86% | 70%+ | **HIGH** |
-| **Overall** | **91%** | **75-80%** | - |
+| Module | Code Coverage | Expected Mutation | Priority | Est. Time |
+|--------|---------------|------------------|----------|-----------|
+| constants.py | 100% | 95%+ | Low | 30-60 min |
+| config.py | 92% | 85-90%+ | Low | 1-2 hrs |
+| fasting_manager.py | 100% | 85%+ | Medium | 3 hrs |
+| cache_manager.py | 94% | 80%+ | Medium | 3 hrs |
+| utils.py | 92% | 80%+ | **HIGH** | 3-4 hrs |
+| security.py | 88% | 75%+ | **HIGH** | 3-4 hrs |
+| nutrition_calculator.py | 86% | 70%+ | **HIGH** | 4-6 hrs |
+| **Overall** | **91%** | **75-80%** | - | **8-12 hrs** |
 
-### Execution Commands
+### New Tools & Scripts
+
+**Created:** ✅ `scripts/run_mutation_baseline.sh` - Comprehensive baseline script  
+**Created:** ✅ `PHASE2_EXECUTION_GUIDE.md` - Step-by-step execution guide
+
+### Quick Start
 
 ```bash
 # Setup environment
 export PYTHONPATH=/home/runner/work/nutricount/nutricount
-mkdir -p logs
+cd /home/runner/work/nutricount/nutricount
 
-# Run critical modules first
-./scripts/mutation_test.sh src/security.py run
-./scripts/mutation_test.sh src/utils.py run
+# Show help and options
+./scripts/run_mutation_baseline.sh help
 
-# Run core modules
-./scripts/mutation_test.sh src/cache_manager.py run
-./scripts/mutation_test.sh src/monitoring.py run
-./scripts/mutation_test.sh src/fasting_manager.py run
+# Run quick baseline (simple modules, 2-3 hours)
+./scripts/run_mutation_baseline.sh quick
 
-# Run supporting modules
-./scripts/mutation_test.sh src/nutrition_calculator.py run
-./scripts/mutation_test.sh src/task_manager.py run
+# Run critical modules (utils, security, 6-8 hours)
+./scripts/run_mutation_baseline.sh critical
 
-# View results and generate reports
-./scripts/mutation_test.sh src/ results
-./scripts/mutation_test.sh src/ html
+# Run specific module (e.g., utils.py)
+./scripts/run_mutation_baseline.sh utils
+
+# Run all modules (WARNING: 8-12 hours!)
+./scripts/run_mutation_baseline.sh all
 ```
+
+### Execution Guide
+
+See [PHASE2_EXECUTION_GUIDE.md](PHASE2_EXECUTION_GUIDE.md) for:
+- Detailed step-by-step instructions
+- Module-by-module guide with expectations
+- Analysis and troubleshooting tips
+- Documentation templates
+- Best practices and common pitfalls
 
 ### Deliverables
 
 - [ ] Baseline mutation scores documented (per module)
-- [ ] Surviving mutants analyzed
-- [ ] Test improvement plan created
-- [ ] HTML report generated
-- [ ] MUTATION_TESTING.md updated with results
+- [ ] Surviving mutants analyzed and categorized
+- [ ] Test improvement plan created for Phase 5
+- [ ] HTML reports generated for all modules
+- [ ] MUTATION_TESTING.md updated with baseline results
+- [ ] REFACTORING_STATUS.md updated with Phase 2 completion
 
 ---
 
