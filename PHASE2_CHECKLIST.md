@@ -1,8 +1,16 @@
 # ✅ Phase 2 Execution Checklist
 
 **Task:** Mutation Testing Baseline  
-**Status:** Ready to Execute  
-**Estimated Time:** 1-2 weeks (8-12 hours execution + analysis)
+**Status:** Infrastructure Complete - Strategy Decision Needed  
+**Estimated Time:** 18-50 hours (depending on strategy chosen)
+
+> **📌 STRATEGY DECISION REQUIRED**  
+> Before executing this checklist, choose an execution strategy:
+> - **Option A (Recommended):** Focused approach - 5 critical modules, 18-24 hours
+> - **Option B:** Comprehensive approach - All 11 modules, 35-50 hours  
+> - **Option C:** Sampling approach - 2 modules, 7-10 hours
+> 
+> See [PHASE2_PROGRESS_NOTES.md](PHASE2_PROGRESS_NOTES.md) for detailed analysis and recommendations.
 
 ---
 
@@ -14,7 +22,11 @@
 - [x] Linting clean (0 errors) ✅
 - [x] Execution scripts created
 - [x] Documentation complete
-- [ ] Ready to start Phase 2 execution
+- [x] Initial testing completed (constants.py partial)
+- [x] Time estimates validated and updated
+- [x] Execution strategy options documented
+- [ ] Execution strategy chosen (A, B, or C)
+- [ ] Ready to start full Phase 2 execution
 
 ---
 
