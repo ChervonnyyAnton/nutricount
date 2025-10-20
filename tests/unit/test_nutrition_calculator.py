@@ -905,6 +905,22 @@ class TestAdditionalValidationAndErrorHandling:
         # Should use protein_coeff = 1.8 + 0.2 = 2.0 for weight loss
         assert isinstance(result, dict)
         assert result["protein"] > 100  # 55 * 2.0 = 110
+    
+    def test_calculate_keto_macros_advanced_moderate_keto_type(self):
+        """Test calculate_keto_macros_advanced with moderate keto type"""
+        result = calculate_keto_macros_advanced(
+            target_calories=2000,
+            lbm=50,
+            activity_level="moderate",
+            keto_type="moderate"
+        )
+        
+        # Should use carbs_grams = 75 for moderate keto type
+        assert isinstance(result, dict)
+        assert result["carbs"] == 75
+        assert result["carbs_percentage"] > 0
+        assert "protein" in result
+        assert "fats" in result
 
 
 class TestBoundaryAndEdgeCases:
