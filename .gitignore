@@ -154,6 +154,7 @@ grafana_data/
 # Temporary files
 *.tmp
 *.temp
+*.bak
 tmp/
 temp/
 
