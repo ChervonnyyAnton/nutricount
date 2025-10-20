@@ -1,7 +1,15 @@
 # Mutation Testing Results - Initial Run
 
-## Date
-October 20, 2025
+## Status Update (October 20, 2025)
+
+> **⏳ BASELINE IN PROGRESS**  
+> Comprehensive mutation testing baseline is being prepared.  
+> See [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) for current status and roadmap.
+
+## Previous Results
+
+### Date
+October 20, 2025 (Initial Partial Run)
 
 ## Summary
 

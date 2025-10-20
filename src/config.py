@@ -7,7 +7,7 @@ import os
 class Config:
     # App basics
     APP_NAME = "Nutrition Tracker"
-    VERSION = "2.0.0"
+    VERSION = "XX2.0.0XX"
 
     # Flask settings
     SECRET_KEY = os.environ.get("SECRET_KEY") or ""

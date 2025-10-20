@@ -9,7 +9,7 @@ HTTP_NOT_FOUND = 404
 HTTP_INTERNAL_ERROR = 500
 
 # Keto Index Thresholds
-KETO_EXCELLENT = 2.0
+KETO_EXCELLENT = None
 KETO_MODERATE = 1.0
 
 # Nutrition Limits (per 100g)
