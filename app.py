@@ -7,7 +7,6 @@ Local nutrition tracking application optimized for Raspberry Pi Zero 2W
 import hashlib
 import hmac
 import os
-import shutil
 import sqlite3
 import time
 from datetime import date, datetime, timedelta, timezone
@@ -30,8 +29,7 @@ from src.constants import (
     MEAL_TYPES,
     SUCCESS_MESSAGES,
 )
-from src.fasting_manager import FastingManager
-from src.monitoring import metrics_collector, monitor_http_request, system_monitor
+from src.monitoring import monitor_http_request
 from src.nutrition_calculator import (
     KETO_INDEX_CATEGORIES,
     calculate_bmr_katch_mcardle,
@@ -45,19 +43,10 @@ from src.nutrition_calculator import (
     calculate_target_calories,
     calculate_tdee,
 )
-from src.security import (
-    SecurityHeaders,
-    audit_logger,
-    rate_limit,
-    require_admin,
-    require_auth,
-    security_manager,
-)
+from src.security import SecurityHeaders, rate_limit
 from src.ssl_config import setup_security_middleware
-from src.task_manager import task_manager
 from src.utils import (
     clean_string,
-    get_database_stats,
     json_response,
     safe_float,
     safe_int,
@@ -2310,7 +2299,6 @@ def profile_macros_api():
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
 
-
 # ============================================
 # Telegram Web App Integration
 # ============================================
@@ -2397,17 +2385,6 @@ def initialize_app():
 # Initialize app when Flask starts
 with app.app_context():
     initialize_app()
-
-
-# Monitoring and Metrics Endpoints
-# ============================================
-
-
-
-# ============================================
-# Authentication API Endpoints
-# ============================================
-
 
 
 # ============================================
