@@ -26,7 +26,7 @@ ITEM_TYPES = ["product", "dish"]
 
 # Default Values
 DEFAULT_QUANTITY = 100.0
-DEFAULT_CALORIES = 0.0
+DEFAULT_CALORIES = None
 DEFAULT_MACRO = 0.0
 
 # UI Messages
