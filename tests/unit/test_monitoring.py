@@ -102,6 +102,78 @@ class TestMetricsCollector:
         
         assert isinstance(prometheus_metrics, str)
         assert "http_requests_total" in prometheus_metrics
+    
+    def test_update_cache_hit_rate(self):
+        """Test updating cache hit rate"""
+        collector = MetricsCollector()
+        
+        # Test with rate value
+        collector.update_cache_hit_rate(0.85)
+        # Should not raise error even without Prometheus
+    
+    @patch('src.monitoring.PROMETHEUS_AVAILABLE', True)
+    def test_update_cache_hit_rate_with_prometheus(self):
+        """Test updating cache hit rate with Prometheus"""
+        collector = MetricsCollector()
+        
+        # Mock the cache_hit_rate metric
+        mock_metric = Mock()
+        collector.metrics["cache_hit_rate"] = mock_metric
+        
+        collector.update_cache_hit_rate(0.75)
+        
+        # Should call set on the metric
+        mock_metric.set.assert_called_once_with(0.75)
+    
+    def test_update_active_users(self):
+        """Test updating active users count"""
+        collector = MetricsCollector()
+        
+        # Test with user count
+        collector.update_active_users(42)
+        # Should not raise error even without Prometheus
+    
+    @patch('src.monitoring.PROMETHEUS_AVAILABLE', True)
+    def test_update_active_users_with_prometheus(self):
+        """Test updating active users with Prometheus"""
+        collector = MetricsCollector()
+        
+        # Mock the active_users metric
+        mock_metric = Mock()
+        collector.metrics["active_users"] = mock_metric
+        
+        collector.update_active_users(100)
+        
+        # Should call set on the metric
+        mock_metric.set.assert_called_once_with(100)
+    
+    def test_update_counts(self):
+        """Test updating entity counts"""
+        collector = MetricsCollector()
+        
+        # Test with various counts
+        collector.update_counts(50, 30, 200)
+        # Should not raise error even without Prometheus
+    
+    @patch('src.monitoring.PROMETHEUS_AVAILABLE', True)
+    def test_update_counts_with_prometheus(self):
+        """Test updating entity counts with Prometheus"""
+        collector = MetricsCollector()
+        
+        # Mock the count metrics
+        mock_products = Mock()
+        mock_dishes = Mock()
+        mock_logs = Mock()
+        collector.metrics["products_count"] = mock_products
+        collector.metrics["dishes_count"] = mock_dishes
+        collector.metrics["log_entries_count"] = mock_logs
+        
+        collector.update_counts(75, 45, 300)
+        
+        # Should call set on all metrics
+        mock_products.set.assert_called_once_with(75)
+        mock_dishes.set.assert_called_once_with(45)
+        mock_logs.set.assert_called_once_with(300)
 
 
 class TestMonitorHttpRequest:
