@@ -3740,6 +3740,7 @@ def logout_api():
         app.logger.error(f"Logout error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
+
 # ============================================
 # Main Entry Point
 # ============================================
