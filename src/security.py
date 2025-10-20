@@ -3,15 +3,17 @@ Authentication and Authorization Module
 Handles JWT tokens, user authentication, and security
 """
 
-import jwt
-import bcrypt
-import secrets
 import logging
 import re
+import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional, Any
 from functools import wraps
-from flask import request, jsonify
+from typing import Any, Dict, Optional
+
+import bcrypt
+import jwt
+from flask import jsonify, request
+
 from .cache_manager import cache_manager
 
 logger = logging.getLogger(__name__)

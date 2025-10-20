@@ -18,7 +18,8 @@ from src.utils import (
     validate_product_data,
     validate_dish_data,
     validate_log_data,
-    get_database_stats
+    get_database_stats,
+    database_connection
 )
 
 
@@ -689,3 +690,149 @@ class TestValidationFunctionsExtended:
         
         assert is_valid is False
         assert any("Valid product ID is required" in error for error in errors)
+
+
+class TestDatabaseConnection:
+    """Test database_connection context manager"""
+
+    def test_database_connection_basic_usage(self):
+        """Test database_connection creates connection with proper settings"""
+        import tempfile
+        import os
+        from src.utils import database_connection
+
+        # Create a temporary database file
+        fd, db_path = tempfile.mkstemp(suffix='.db')
+        os.close(fd)
+
+        try:
+            with database_connection(db_path) as conn:
+                # Check connection was created
+                assert conn is not None
+                assert isinstance(conn, sqlite3.Connection)
+                
+                # Check row_factory is set
+                assert conn.row_factory == sqlite3.Row
+                
+                # Test we can execute a query
+                cursor = conn.execute("SELECT 1")
+                result = cursor.fetchone()
+                assert result[0] == 1
+        finally:
+            # Clean up
+            if os.path.exists(db_path):
+                os.unlink(db_path)
+
+    def test_database_connection_memory_database(self):
+        """Test database_connection with in-memory database"""
+        from src.utils import database_connection
+
+        with database_connection(":memory:") as conn:
+            # Check connection was created
+            assert conn is not None
+            
+            # Create a table and insert data
+            conn.execute("CREATE TABLE test (id INTEGER, value TEXT)")
+            conn.execute("INSERT INTO test VALUES (1, 'test')")
+            
+            # Query the data
+            cursor = conn.execute("SELECT * FROM test")
+            result = cursor.fetchone()
+            assert result["id"] == 1
+            assert result["value"] == "test"
+
+    def test_database_connection_auto_commit_on_success(self):
+        """Test database_connection automatically commits on success"""
+        import tempfile
+        import os
+        from src.utils import database_connection
+
+        fd, db_path = tempfile.mkstemp(suffix='.db')
+        os.close(fd)
+
+        try:
+            # First connection - create table and insert data
+            with database_connection(db_path) as conn:
+                conn.execute("CREATE TABLE test (id INTEGER, value TEXT)")
+                conn.execute("INSERT INTO test VALUES (1, 'test')")
+            
+            # Second connection - verify data was committed
+            with database_connection(db_path) as conn:
+                cursor = conn.execute("SELECT * FROM test")
+                result = cursor.fetchone()
+                assert result["id"] == 1
+                assert result["value"] == "test"
+        finally:
+            if os.path.exists(db_path):
+                os.unlink(db_path)
+
+    def test_database_connection_auto_rollback_on_error(self):
+        """Test database_connection automatically rolls back on error"""
+        import tempfile
+        import os
+        from src.utils import database_connection
+
+        fd, db_path = tempfile.mkstemp(suffix='.db')
+        os.close(fd)
+
+        try:
+            # First connection - create table
+            with database_connection(db_path) as conn:
+                conn.execute("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)")
+            
+            # Second connection - try to insert data but raise error
+            try:
+                with database_connection(db_path) as conn:
+                    conn.execute("INSERT INTO test VALUES (1, 'test')")
+                    raise ValueError("Test error")
+            except ValueError:
+                pass
+            
+            # Third connection - verify data was rolled back
+            with database_connection(db_path) as conn:
+                cursor = conn.execute("SELECT COUNT(*) FROM test")
+                count = cursor.fetchone()[0]
+                assert count == 0  # No data should be committed
+        finally:
+            if os.path.exists(db_path):
+                os.unlink(db_path)
+
+    def test_database_connection_wal_mode_for_file_db(self):
+        """Test database_connection enables WAL mode for file databases"""
+        import tempfile
+        import os
+        from src.utils import database_connection
+
+        fd, db_path = tempfile.mkstemp(suffix='.db')
+        os.close(fd)
+
+        try:
+            with database_connection(db_path) as conn:
+                # Check WAL mode is enabled for file database
+                cursor = conn.execute("PRAGMA journal_mode")
+                mode = cursor.fetchone()[0]
+                assert mode.upper() == "WAL"
+        finally:
+            if os.path.exists(db_path):
+                os.unlink(db_path)
+
+    def test_database_connection_foreign_keys_enabled(self):
+        """Test database_connection enables foreign keys"""
+        from src.utils import database_connection
+
+        with database_connection(":memory:") as conn:
+            # Check foreign keys are enabled
+            cursor = conn.execute("PRAGMA foreign_keys")
+            result = cursor.fetchone()[0]
+            assert result == 1  # Foreign keys enabled
+
+    def test_database_connection_no_wal_for_memory_db(self):
+        """Test database_connection does not enable WAL mode for in-memory database"""
+        from src.utils import database_connection
+
+        with database_connection(":memory:") as conn:
+            # Check that WAL mode is NOT enabled for in-memory database
+            cursor = conn.execute("PRAGMA journal_mode")
+            mode = cursor.fetchone()[0]
+            # In-memory databases should use default mode (memory), not WAL
+            assert mode.upper() != "WAL"

@@ -4,10 +4,10 @@ Handles intermittent fasting functionality
 """
 
 import sqlite3
-from datetime import datetime, date
-from typing import Dict, List, Optional
 from dataclasses import dataclass
+from datetime import date, datetime
 from enum import Enum
+from typing import Dict, List, Optional
 
 
 class FastingType(Enum):

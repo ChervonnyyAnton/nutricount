@@ -100,11 +100,7 @@ class TaskManager:
 
                 # Check if task exists (PENDING status with no result usually means task doesn't exist)
                 if status == "PENDING" and not result.info:
-                    return {
-                        "id": task_id,
-                        "status": "NOT_FOUND",
-                        "error": "Task not found"
-                    }
+                    return {"id": task_id, "status": "NOT_FOUND", "error": "Task not found"}
 
                 return {
                     "id": task_id,

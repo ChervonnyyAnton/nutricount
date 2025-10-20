@@ -552,9 +552,7 @@ def calculate_bmr_mifflin_st_jeor(weight: float, height: float, age: int, gender
     if gender == "male":
         bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
     else:
-        bmr = (
-            (10 * weight) + (6.25 * height) - (5 * age) - 161
-        )
+        bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
 
     logger.info(
         f"BMR calculation (Mifflin-St Jeor): weight={weight}, "
@@ -715,9 +713,7 @@ def calculate_keto_macros_advanced(
         "fats": round(fats_grams, 1),
         "calories": round(target_calories, 0),
         "carbs_percentage": round((carbs_calories / target_calories) * 100, 1),
-        "protein_percentage": round(
-            (protein_calories / target_calories) * 100, 1
-        ),
+        "protein_percentage": round((protein_calories / target_calories) * 100, 1),
         "fats_percentage": round((fats_calories / target_calories) * 100, 1),
         "keto_type": keto_type,
         "lbm_used": lbm is not None,
@@ -938,9 +934,7 @@ def validate_recipe_integrity(recipe_data: Dict) -> ValidationResult:
     issues = []
 
     ingredients = recipe_data.get("ingredients_breakdown", [])
-    calculated_raw_weight = sum(
-        ing["raw_weight"] for ing in ingredients
-    )
+    calculated_raw_weight = sum(ing["raw_weight"] for ing in ingredients)
     stated_raw_weight = recipe_data["weights"]["total_raw"]
 
     # Проверка соответствия веса сырых ингредиентов

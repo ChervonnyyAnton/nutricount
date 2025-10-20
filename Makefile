@@ -1,17 +1,21 @@
 # Nutrition Tracker Makefile
 # Simple commands for development and testing
 
-.PHONY: help test lint format clean install
+.PHONY: help test lint format clean install mutation-test mutation-results mutation-html mutation-clean
 
 help:
 	@echo "Available commands:"
-	@echo "  install         - Install dependencies"
-	@echo "  test            - Run all tests"
-	@echo "  test-integration - Run integration tests only"
-	@echo "  test-docker     - Run tests in Docker"
-	@echo "  lint            - Run linting"
-	@echo "  format          - Format code"
-	@echo "  clean           - Clean up temporary files"
+	@echo "  install           - Install dependencies"
+	@echo "  test              - Run all tests"
+	@echo "  test-integration  - Run integration tests only"
+	@echo "  test-docker       - Run tests in Docker"
+	@echo "  lint              - Run linting"
+	@echo "  format            - Format code with black and isort"
+	@echo "  mutation-test     - Run mutation testing with mutmut"
+	@echo "  mutation-results  - Show mutation testing results"
+	@echo "  mutation-html     - Generate mutation testing HTML report"
+	@echo "  mutation-clean    - Clean mutation testing cache"
+	@echo "  clean             - Clean up temporary files"
 
 install:
 	pip install -r requirements.txt
@@ -27,11 +31,26 @@ test-docker:
 	docker run --rm nutrition-tracker-test pytest tests/ -v
 
 lint:
-	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-	flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+	flake8 app.py src/ --max-line-length=100 --ignore=E501,W503,E226 --statistics
+	black --check app.py src/
+	isort --check-only app.py src/
 
 format:
-	@echo "Code formatting not configured (using flake8 only)"
+	black app.py src/
+	isort app.py src/
+
+mutation-test:
+	@chmod +x scripts/mutation_test.sh
+	@./scripts/mutation_test.sh src/ run
+
+mutation-results:
+	@./scripts/mutation_test.sh src/ results
+
+mutation-html:
+	@./scripts/mutation_test.sh src/ html
+
+mutation-clean:
+	@./scripts/mutation_test.sh src/ clean
 
 clean:
 	find . -type f -name "*.pyc" -delete
@@ -39,3 +58,4 @@ clean:
 	find . -type f -name "*.coverage" -delete
 	find . -type d -name ".pytest_cache" -delete
 	find . -type d -name "htmlcov" -delete
+	rm -rf .mutmut-cache html/ logs/mutation-test.log
