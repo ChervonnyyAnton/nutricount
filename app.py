@@ -3338,6 +3338,87 @@ def create_fasting_goal():
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
 
+@app.route("/api/fasting/settings", methods=["GET", "POST", "PUT"])
+@monitor_http_request
+@rate_limit("api")
+def fasting_settings_api():
+    """Get, create, or update fasting settings"""
+    try:
+        user_id = 1  # Default user for now
+
+        if request.method == "GET":
+            # Get fasting settings
+            fasting_manager = FastingManager(Config.DATABASE)
+            settings = fasting_manager.get_fasting_settings(user_id)
+
+            return jsonify(json_response(settings, "Fasting settings retrieved", HTTP_OK)), HTTP_OK
+
+        elif request.method in ["POST", "PUT"]:
+            # Create or update fasting settings
+            data = safe_get_json()
+            if data is None:
+                return (
+                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
+                    HTTP_BAD_REQUEST,
+                )
+
+            # Validate required fields
+            required_fields = ["fasting_goal", "preferred_start_time"]
+            errors = []
+
+            for field in required_fields:
+                if not data.get(field):
+                    errors.append(f"{field} is required")
+
+            if errors:
+                return (
+                    jsonify(
+                        json_response(None, "Validation failed", HTTP_BAD_REQUEST, errors=errors)
+                    ),
+                    HTTP_BAD_REQUEST,
+                )
+
+            # Validate fasting goal
+            valid_goals = ["16:8", "18:6", "20:4", "OMAD"]
+            if data.get("fasting_goal") not in valid_goals:
+                errors.append(f"fasting_goal must be one of: {', '.join(valid_goals)}")
+
+            if errors:
+                return (
+                    jsonify(
+                        json_response(None, "Validation failed", HTTP_BAD_REQUEST, errors=errors)
+                    ),
+                    HTTP_BAD_REQUEST,
+                )
+
+            # Prepare settings data
+            settings_data = {
+                "user_id": user_id,
+                "fasting_goal": data.get("fasting_goal"),
+                "preferred_start_time": data.get("preferred_start_time"),
+                "enable_reminders": data.get("enable_reminders", False),
+                "enable_notifications": data.get("enable_notifications", False),
+                "default_notes": data.get("default_notes", ""),
+            }
+
+            fasting_manager = FastingManager(Config.DATABASE)
+
+            if request.method == "POST":
+                # Create new settings
+                settings = fasting_manager.create_fasting_settings(settings_data)
+                message = "Fasting settings created successfully"
+            else:
+                # Update existing settings
+                settings = fasting_manager.update_fasting_settings(user_id, settings_data)
+                message = "Fasting settings updated successfully"
+
+            return jsonify(json_response(settings, message, HTTP_OK)), HTTP_OK
+
+    except Exception as e:
+        app.logger.error(f"Fasting settings error: {e}")
+        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+
+
 # ============================================
 # Monitoring and Metrics Endpoints
 # ============================================
@@ -3658,312 +3739,6 @@ def logout_api():
     except Exception as e:
         app.logger.error(f"Logout error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
-
-
-# ============================================
-# Fasting API Endpoints
-# ============================================
-
-
-@app.route("/api/fasting/start", methods=["POST"])
-@monitor_http_request
-@rate_limit("api")
-def start_fasting_api():
-    """Start a new fasting session"""
-    try:
-        data = safe_get_json()
-        if data is None:
-            return (
-                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
-                HTTP_BAD_REQUEST,
-            )
-        fasting_type = data.get("fasting_type", "16:8")
-        notes = data.get("notes", "")
-
-        # Note: User authentication to be implemented
-        # For now, using default user ID
-        _ = 1  # Placeholder for future user_id implementation
-
-        # Start fasting session
-        fasting_manager = FastingManager(Config.DATABASE)
-        session = fasting_manager.start_fasting_session(fasting_type, notes)
-
-        return (
-            jsonify(
-                json_response(
-                    {
-                        "id": session.id,
-                        "fasting_type": session.fasting_type,
-                        "start_time": (
-                            session.start_time.isoformat() if session.start_time else None
-                        ),
-                        "status": session.status,
-                        "notes": session.notes,
-                    },
-                    "Fasting session started successfully",
-                    HTTP_CREATED,
-                )
-            ),
-            HTTP_CREATED,
-        )
-
-    except ValueError as e:
-        return jsonify(json_response(None, str(e), HTTP_BAD_REQUEST)), HTTP_BAD_REQUEST
-    except Exception as e:
-        app.logger.error(f"Start fasting error: {e}")
-        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
-
-
-@app.route("/api/fasting/end", methods=["POST"])
-@monitor_http_request
-@rate_limit("api")
-def end_fasting_api():
-    """End current fasting session"""
-    try:
-        data = safe_get_json()
-        if data is None:
-            return (
-                jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
-                HTTP_BAD_REQUEST,
-            )
-        session_id = data.get("session_id")
-
-        if not session_id:
-            return (
-                jsonify(json_response(None, "Session ID required", HTTP_BAD_REQUEST)),
-                HTTP_BAD_REQUEST,
-            )
-
-        # End fasting session
-        fasting_manager = FastingManager(Config.DATABASE)
-        session = fasting_manager.end_fasting_session(session_id)
-
-        if not session:
-            return (
-                jsonify(json_response(None, "No active session found", HTTP_NOT_FOUND)),
-                HTTP_NOT_FOUND,
-            )
-
-        return (
-            jsonify(
-                json_response(
-                    {
-                        "id": session.id,
-                        "fasting_type": session.fasting_type,
-                        "start_time": (
-                            session.start_time.isoformat() if session.start_time else None
-                        ),
-                        "end_time": session.end_time.isoformat() if session.end_time else None,
-                        "duration_hours": session.duration_hours,
-                        "status": session.status,
-                        "notes": session.notes,
-                    },
-                    "Fasting session ended successfully",
-                    HTTP_OK,
-                )
-            ),
-            HTTP_OK,
-        )
-
-    except ValueError as e:
-        return jsonify(json_response(None, str(e), HTTP_BAD_REQUEST)), HTTP_BAD_REQUEST
-    except Exception as e:
-        app.logger.error(f"End fasting error: {e}")
-        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
-
-
-@app.route("/api/fasting/status", methods=["GET"])
-@monitor_http_request
-@rate_limit("api")
-def fasting_status_api():
-    """Get current fasting status"""
-    try:
-        user_id = 1  # Default user for now
-
-        # Get active session
-        fasting_manager = FastingManager(Config.DATABASE)
-        active_session = fasting_manager.get_active_session(user_id)
-
-        if not active_session:
-            return (
-                jsonify(
-                    json_response(
-                        {"status": "none", "message": "No active fasting session"},
-                        "No active session",
-                        HTTP_OK,
-                    )
-                ),
-                HTTP_OK,
-            )
-
-        # Calculate progress
-        if active_session.start_time:
-            elapsed_hours = (datetime.now() - active_session.start_time).total_seconds() / 3600
-        else:
-            elapsed_hours = 0
-
-        return (
-            jsonify(
-                json_response(
-                    {
-                        "id": active_session.id,
-                        "fasting_type": active_session.fasting_type,
-                        "start_time": (
-                            active_session.start_time.isoformat()
-                            if active_session.start_time
-                            else None
-                        ),
-                        "elapsed_hours": round(elapsed_hours, 2),
-                        "status": active_session.status,
-                        "notes": active_session.notes,
-                    },
-                    "Active session found",
-                    HTTP_OK,
-                )
-            ),
-            HTTP_OK,
-        )
-
-    except Exception as e:
-        app.logger.error(f"Fasting status error: {e}")
-        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
-
-
-@app.route("/api/fasting/sessions", methods=["GET"])
-@monitor_http_request
-@rate_limit("api")
-def fasting_sessions_api():
-    """Get fasting sessions history"""
-    try:
-        user_id = 1  # Default user for now
-
-        # Get sessions
-        fasting_manager = FastingManager(Config.DATABASE)
-        sessions = fasting_manager.get_fasting_sessions(user_id)
-
-        sessions_data = []
-        for session in sessions:
-            sessions_data.append(
-                {
-                    "id": session.id,
-                    "fasting_type": session.fasting_type,
-                    "start_time": session.start_time.isoformat() if session.start_time else None,
-                    "end_time": session.end_time.isoformat() if session.end_time else None,
-                    "duration_hours": session.duration_hours,
-                    "status": session.status,
-                    "notes": session.notes,
-                }
-            )
-
-        return (
-            jsonify(json_response(sessions_data, f"Found {len(sessions_data)} sessions", HTTP_OK)),
-            HTTP_OK,
-        )
-
-    except Exception as e:
-        app.logger.error(f"Fasting sessions error: {e}")
-        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
-
-
-@app.route("/api/fasting/stats", methods=["GET"])
-@monitor_http_request
-@rate_limit("api")
-def fasting_stats_api():
-    """Get fasting statistics"""
-    try:
-        user_id = 1  # Default user for now
-
-        # Get stats
-        fasting_manager = FastingManager(Config.DATABASE)
-        stats = fasting_manager.get_fasting_stats(user_id)
-
-        return jsonify(json_response(stats, "Fasting statistics retrieved", HTTP_OK)), HTTP_OK
-
-    except Exception as e:
-        app.logger.error(f"Fasting stats error: {e}")
-        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
-
-
-@app.route("/api/fasting/settings", methods=["GET", "POST", "PUT"])
-@monitor_http_request
-@rate_limit("api")
-def fasting_settings_api():
-    """Get, create, or update fasting settings"""
-    try:
-        user_id = 1  # Default user for now
-
-        if request.method == "GET":
-            # Get fasting settings
-            fasting_manager = FastingManager(Config.DATABASE)
-            settings = fasting_manager.get_fasting_settings(user_id)
-
-            return jsonify(json_response(settings, "Fasting settings retrieved", HTTP_OK)), HTTP_OK
-
-        elif request.method in ["POST", "PUT"]:
-            # Create or update fasting settings
-            data = safe_get_json()
-            if data is None:
-                return (
-                    jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
-                    HTTP_BAD_REQUEST,
-                )
-
-            # Validate required fields
-            required_fields = ["fasting_goal", "preferred_start_time"]
-            errors = []
-
-            for field in required_fields:
-                if not data.get(field):
-                    errors.append(f"{field} is required")
-
-            if errors:
-                return (
-                    jsonify(
-                        json_response(None, "Validation failed", HTTP_BAD_REQUEST, errors=errors)
-                    ),
-                    HTTP_BAD_REQUEST,
-                )
-
-            # Validate fasting goal
-            valid_goals = ["16:8", "18:6", "20:4", "OMAD"]
-            if data.get("fasting_goal") not in valid_goals:
-                errors.append(f"fasting_goal must be one of: {', '.join(valid_goals)}")
-
-            if errors:
-                return (
-                    jsonify(
-                        json_response(None, "Validation failed", HTTP_BAD_REQUEST, errors=errors)
-                    ),
-                    HTTP_BAD_REQUEST,
-                )
-
-            # Prepare settings data
-            settings_data = {
-                "user_id": user_id,
-                "fasting_goal": data.get("fasting_goal"),
-                "preferred_start_time": data.get("preferred_start_time"),
-                "enable_reminders": data.get("enable_reminders", False),
-                "enable_notifications": data.get("enable_notifications", False),
-                "default_notes": data.get("default_notes", ""),
-            }
-
-            fasting_manager = FastingManager(Config.DATABASE)
-
-            if request.method == "POST":
-                # Create new settings
-                settings = fasting_manager.create_fasting_settings(settings_data)
-                message = "Fasting settings created successfully"
-            else:
-                # Update existing settings
-                settings = fasting_manager.update_fasting_settings(user_id, settings_data)
-                message = "Fasting settings updated successfully"
-
-            return jsonify(json_response(settings, message, HTTP_OK)), HTTP_OK
-
-    except Exception as e:
-        app.logger.error(f"Fasting settings error: {e}")
-        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
-
 
 # ============================================
 # Main Entry Point
