@@ -55,11 +55,8 @@ COPY . .
 RUN mkdir -p data logs backups \
     && chown -R appuser:appuser /usr/src/app
 
-# Switch to non-root user before initializing database
+# Switch to non-root user
 USER appuser
-
-# Initialize database as appuser
-RUN python init_db.py
 
 # Expose port
 EXPOSE 5000
@@ -69,4 +66,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
 # Run application with Pi 4 Model B 2018 ARM64 optimized settings
+# Database initialization will happen on first run via app.py
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:app"]
