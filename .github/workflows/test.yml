@@ -30,7 +30,7 @@ jobs:
     
     - name: Lint with flake8
       run: |
-        flake8 src/ --max-line-length=100 --ignore=E501,W503,E226
+        flake8 src/ app.py --max-line-length=100 --ignore=E501,W503,E226
       env:
         PYTHONPATH: ${{ github.workspace }}
     
@@ -59,7 +59,7 @@ jobs:
     
     - name: Build Docker image
       run: |
-        docker build -t nutrition-tracker:latest .
+        docker build -f dockerfile -t nutrition-tracker:latest .
     
     - name: Test Docker image
       run: |

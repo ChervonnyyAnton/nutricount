@@ -62,6 +62,27 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
   - Expected baseline results
   - Weekly execution plan
 
+- **🎯 [PHASE2_SUMMARY.md](PHASE2_SUMMARY.md)** - Phase 2 setup summary (NEW!)
+  - What was accomplished
+  - Complete resource list
+  - Quick start guide
+  - Quality verification
+  - Next steps
+
+- **🚀 [PHASE2_EXECUTION_GUIDE.md](PHASE2_EXECUTION_GUIDE.md)** - Phase 2 execution guide (NEW!)
+  - Step-by-step baseline execution
+  - Module-by-module instructions
+  - Analysis and troubleshooting
+  - Documentation templates
+  - Quick start commands
+
+- **✅ [PHASE2_CHECKLIST.md](PHASE2_CHECKLIST.md)** - Phase 2 execution checklist (NEW!)
+  - Day-by-day execution plan
+  - Results tracking table
+  - Issue log and notes
+  - Success criteria
+  - Sign-off template
+
 - **🧪 [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md)** - Coverage report
   - Code coverage metrics
   - Test execution stats
@@ -98,6 +119,9 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 - [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) - Coverage details
 - [MUTATION_TESTING.md](MUTATION_TESTING.md) - Mutation testing guide and results
 - [MUTATION_TESTING_PLAN.md](MUTATION_TESTING_PLAN.md) - Implementation plan
+- [PHASE2_SUMMARY.md](PHASE2_SUMMARY.md) - Phase 2 setup summary (NEW!)
+- [PHASE2_EXECUTION_GUIDE.md](PHASE2_EXECUTION_GUIDE.md) - Phase 2 baseline execution guide (NEW!)
+- [PHASE2_CHECKLIST.md](PHASE2_CHECKLIST.md) - Phase 2 execution checklist (NEW!)
 - [CODE_QUALITY.md](CODE_QUALITY.md) - Quality metrics
 
 ### 🔧 Development & Setup
