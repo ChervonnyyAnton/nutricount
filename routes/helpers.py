@@ -5,7 +5,7 @@ Provides common utilities for database access and request handling.
 
 import sqlite3
 from flask import current_app, request
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 
 
 def safe_get_json():
@@ -13,11 +13,11 @@ def safe_get_json():
 
     Returns:
         dict: Parsed JSON data or empty dict if invalid/missing
-        None: If JSON parsing completely fails
+        None: If JSON parsing completely fails or content-type is not JSON
     """
     try:
         return request.get_json() or {}
-    except BadRequest:
+    except (BadRequest, UnsupportedMediaType):
         return None
 
 
