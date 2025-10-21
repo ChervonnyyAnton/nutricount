@@ -4,20 +4,12 @@ Handles login, logout, token refresh, and token verification.
 """
 
 from flask import Blueprint, jsonify, request
-from werkzeug.exceptions import BadRequest
 
+from routes.helpers import safe_get_json
 from src.constants import ERROR_MESSAGES, HTTP_BAD_REQUEST, HTTP_OK
 from src.monitoring import monitor_http_request
 from src.security import audit_logger, rate_limit, require_auth, security_manager
 from src.utils import json_response
-
-
-def safe_get_json():
-    """Safely get JSON data from request, handling invalid JSON gracefully"""
-    try:
-        return request.get_json() or {}
-    except BadRequest:
-        return None
 
 
 # Create authentication blueprint

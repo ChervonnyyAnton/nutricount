@@ -6,8 +6,8 @@ Handles CRUD operations for food log entries.
 import sqlite3
 
 from flask import Blueprint, current_app, jsonify, request
-from werkzeug.exceptions import BadRequest
 
+from routes.helpers import get_db, safe_get_json
 from src.config import Config
 from src.constants import (
     ERROR_MESSAGES,
@@ -19,30 +19,6 @@ from src.constants import (
 from src.monitoring import monitor_http_request
 from src.security import rate_limit
 from src.utils import json_response, safe_float, validate_log_data
-
-
-def safe_get_json():
-    """Safely get JSON data from request, handling invalid JSON gracefully"""
-    try:
-        return request.get_json() or {}
-    except BadRequest:
-        return None
-
-
-def get_db():
-    """Get database connection with proper configuration"""
-    db = sqlite3.connect(current_app.config["DATABASE"])
-    db.row_factory = sqlite3.Row
-
-    # Enable WAL mode for better concurrency (only for file databases)
-    if current_app.config["DATABASE"] != ":memory:":
-        db.execute("PRAGMA journal_mode = WAL")
-        db.execute("PRAGMA synchronous = NORMAL")
-
-    # Enable foreign key constraints
-    db.execute("PRAGMA foreign_keys = ON")
-
-    return db
 
 
 # Create blueprint

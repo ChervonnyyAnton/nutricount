@@ -6,8 +6,8 @@ Handles CRUD operations for products (food items).
 import sqlite3
 
 from flask import Blueprint, current_app, jsonify, request
-from werkzeug.exceptions import BadRequest
 
+from routes.helpers import get_db, safe_get_json
 from src.cache_manager import cache_invalidate, cache_manager
 from src.config import Config
 from src.constants import (
@@ -32,29 +32,6 @@ from src.utils import (
     validate_nutrition_values,
     validate_product_data,
 )
-
-
-def safe_get_json():
-    """Safely get JSON data from request, handling invalid JSON gracefully"""
-    try:
-        return request.get_json() or {}
-    except BadRequest:
-        return None
-
-
-def get_db():
-    """Get database connection with proper configuration"""
-    db = sqlite3.connect(current_app.config["DATABASE"])
-    db.row_factory = sqlite3.Row
-
-    # Enable WAL mode for better concurrency (only for file databases)
-    if current_app.config["DATABASE"] != ":memory:":
-        db.execute("PRAGMA journal_mode = WAL")
-        db.execute("PRAGMA synchronous = NORMAL")
-
-    db.execute("PRAGMA foreign_keys = ON")
-
-    return db
 
 
 # Create products blueprint

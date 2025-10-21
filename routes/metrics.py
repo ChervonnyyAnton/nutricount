@@ -4,23 +4,14 @@ Handles Prometheus metrics, metrics summary, and background task management.
 """
 
 from flask import Blueprint, current_app, jsonify
-from werkzeug.exceptions import BadRequest
 
+from routes.helpers import safe_get_json
 from src.cache_manager import cache_manager
 from src.constants import ERROR_MESSAGES, HTTP_BAD_REQUEST, HTTP_CREATED, HTTP_NOT_FOUND, HTTP_OK
 from src.monitoring import metrics_collector, monitor_http_request, system_monitor
 from src.security import rate_limit
 from src.task_manager import task_manager
 from src.utils import json_response
-
-
-def safe_get_json():
-    """Safely get JSON data from request, handling invalid JSON gracefully"""
-    try:
-        from flask import request
-        return request.get_json() or {}
-    except BadRequest:
-        return None
 
 
 # Create metrics blueprint

@@ -3,12 +3,11 @@ Profile routes for Nutricount application.
 Handles user profile management, GKI calculations, and macro recommendations.
 """
 
-import sqlite3
 from datetime import date, datetime
 
 from flask import Blueprint, current_app, jsonify, request
-from werkzeug.exceptions import BadRequest
 
+from routes.helpers import get_db, safe_get_json
 from src.constants import (
     ERROR_MESSAGES,
     HTTP_BAD_REQUEST,
@@ -26,30 +25,6 @@ from src.nutrition_calculator import (
     calculate_tdee,
 )
 from src.utils import json_response, safe_float
-
-
-def safe_get_json():
-    """Safely get JSON data from request, handling invalid JSON gracefully"""
-    try:
-        return request.get_json() or {}
-    except BadRequest:
-        return None
-
-
-def get_db():
-    """Get database connection with proper configuration"""
-    db = sqlite3.connect(current_app.config["DATABASE"])
-    db.row_factory = sqlite3.Row
-
-    # Enable WAL mode for better concurrency (only for file databases)
-    if current_app.config["DATABASE"] != ":memory:":
-        db.execute("PRAGMA journal_mode = WAL")
-        db.execute("PRAGMA synchronous = NORMAL")
-
-    # Enable foreign key constraints
-    db.execute("PRAGMA foreign_keys = ON")
-
-    return db
 
 
 # Create blueprint
