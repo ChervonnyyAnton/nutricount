@@ -116,12 +116,20 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
 - [ ] Create user quick start guide
 - [ ] Set up contribution guidelines
 
+**Design Patterns & Best Practices:** 🆕
+- [ ] Implement Repository Pattern for data access
+- [ ] Create Service Layer (ProductService, DishService)
+- [ ] Refactor routes to use services (thin controllers)
+- [ ] Document SOLID principles with examples
+- [ ] Add DI (Dependency Injection) examples
+
 **Deliverables:**
 - Frontend tests at 90%+ coverage
 - Integration tests passing
 - Both versions functional
 - Documentation structure in place
 - QA & DevOps guides complete
+- Repository + Service patterns implemented
 
 ---
 
@@ -144,11 +152,19 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
 - [ ] Write Product Manager metrics guide
 - [ ] Create roadmap planning template
 
+**Design Patterns & Best Practices:** 🆕
+- [ ] Implement Strategy Pattern for BMR calculations
+- [ ] Implement Builder Pattern for dish creation
+- [ ] Implement Chain of Responsibility for validation
+- [ ] Add Interface Segregation examples
+- [ ] Document Open/Closed Principle applications
+
 **Deliverables:**
 - E2E tests running locally
 - Basic CI/CD pipeline
 - Both versions deployable
 - PO & PM materials complete
+- Strategy, Builder, Chain of Responsibility patterns implemented
 
 ---
 
@@ -171,11 +187,19 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
 - [ ] Create component library documentation
 - [ ] Write user research guide
 
+**Design Patterns & Best Practices:** 🆕
+- [ ] Implement Facade Pattern for nutrition API
+- [ ] Implement Proxy Pattern (caching, access control)
+- [ ] Add Decorator Pattern for rate limiting
+- [ ] Document Clean Architecture principles
+- [ ] Create MVC structure documentation
+
 **Deliverables:**
 - Full CI/CD pipeline working
 - Automatic rollback on failures
 - GitHub Pages auto-deployment
 - Design system documentation complete
+- Facade, Proxy, advanced Decorator patterns implemented
 
 ---
 
@@ -199,6 +223,13 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
 - [ ] Launch contribution guidelines & code of conduct
 - [ ] Create marketing materials for FOSS community
 
+**Design Patterns & Best Practices:** 🆕
+- [ ] Implement Command Pattern (undo/redo)
+- [ ] Implement Test Data Builders
+- [ ] Add Page Object Pattern for E2E tests
+- [ ] Complete pattern documentation with examples
+- [ ] Create interactive pattern learning modules
+
 **Deliverables:**
 - Complete documentation
 - Educational materials for all IT roles
@@ -206,6 +237,7 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
 - Clean, maintainable codebase
 - Community infrastructure ready
 - FOSS health tracker launched
+- All design patterns documented with real examples
 
 ---
 

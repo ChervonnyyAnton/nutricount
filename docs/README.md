@@ -12,11 +12,13 @@ Welcome to the comprehensive documentation for Nutricount - an educational platf
 
 ## 📖 Documentation by Role
 
-### 👨‍💻 Developers (✅ Week 1-2)
+### 👨‍💻 Developers (✅ Week 1-2, 📝 Week 3-6)
 - [PROJECT_SETUP.md](../PROJECT_SETUP.md) - Setup & configuration
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - System architecture
 - [frontend/README.md](../frontend/README.md) - Frontend guide
 - [frontend/tests/README.md](../frontend/tests/README.md) - Testing guide
+- [DESIGN_PATTERNS_GUIDE.md](../DESIGN_PATTERNS_GUIDE.md) - Patterns & SOLID **NEW**
+- [patterns/](patterns/) - Pattern-by-pattern documentation **NEW**
 
 ### 🔍 QA Engineers (📝 Week 3)
 - [qa/testing-strategy.md](qa/) - Testing strategy & pyramid

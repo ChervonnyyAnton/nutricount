@@ -45,11 +45,37 @@ Nutricount теперь служит учебным проектом для:
 - Build automation
 
 #### New Materials 📝
-- [ ] **Advanced Patterns Module**
-  - Repository pattern examples
-  - Dependency injection
-  - State management patterns
-  - Error boundary implementation
+- [ ] **Design Patterns Module** (Week 3-6)
+  - Repository Pattern (data access abstraction)
+  - Strategy Pattern (BMR calculation algorithms)
+  - Builder Pattern (complex dish creation)
+  - Factory Pattern (token generation)
+  - Facade Pattern (nutrition API simplification)
+  - Proxy Pattern (caching, access control)
+  - Chain of Responsibility (validation pipeline)
+  - Command Pattern (undo/redo functionality)
+  - See [DESIGN_PATTERNS_GUIDE.md](../DESIGN_PATTERNS_GUIDE.md)
+
+- [ ] **SOLID Principles Workshop**
+  - Single Responsibility Principle
+  - Open/Closed Principle
+  - Liskov Substitution Principle
+  - Interface Segregation Principle
+  - Dependency Inversion Principle
+  - Real examples from Nutricount codebase
+
+- [ ] **Best Practices**
+  - YAGNI (You Aren't Gonna Need It)
+  - KISS (Keep It Simple, Stupid)
+  - DRY (Don't Repeat Yourself)
+  - Code review examples
+
+- [ ] **Architectural Patterns**
+  - Layered Architecture
+  - MVC (Model-View-Controller)
+  - Clean Architecture
+  - Repository Pattern
+  - Service Layer Pattern
 
 - [ ] **Code Review Workshop**
   - Review checklist
