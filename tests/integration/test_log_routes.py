@@ -370,3 +370,40 @@ class TestLogRoutes:
         assert response.status_code == 404
         data = response.json
         assert data["status"] == "error"
+
+    def test_put_log_item_not_exists(self, client, app):
+        """Test PUT /api/log/<id> when updating to a non-existent item"""
+        # Create a product and log entry first
+        product_data = {
+            "name": "Test Product for Log",
+            "category": "leafy_vegetables",
+            "calories_per_100g": 100,
+            "protein_per_100g": 10,
+            "fat_per_100g": 5,
+            "carbs_per_100g": 15,
+        }
+        product_response = client.post("/api/products", json=product_data)
+        product_id = product_response.json["data"]["id"]
+
+        log_data = {
+            "date": date.today().isoformat(),
+            "item_type": "product",
+            "item_id": product_id,
+            "quantity_grams": 100,
+            "meal_time": "breakfast",
+        }
+        create_response = client.post("/api/log", json=log_data)
+        log_id = create_response.json["data"]["id"]
+
+        # Try to update with non-existent product
+        update_data = {
+            "date": date.today().isoformat(),
+            "item_type": "product",
+            "item_id": 99999,  # Non-existent product
+            "quantity_grams": 150,
+            "meal_time": "lunch",
+        }
+        response = client.put(f"/api/log/{log_id}", json=update_data)
+        assert response.status_code == 400
+        data = response.json
+        assert data["status"] == "error"
