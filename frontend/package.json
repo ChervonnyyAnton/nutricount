@@ -1,0 +1,38 @@
+{
+  "name": "nutricount-frontend",
+  "version": "1.0.0",
+  "description": "Nutricount frontend with unified architecture",
+  "main": "src/adapters/backend-adapter.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "build:local": "../scripts/build-local.sh",
+    "build:public": "../scripts/build-public.sh",
+    "dev:local": "../scripts/dev-local.sh",
+    "dev:public": "../scripts/dev-public.sh"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/**/*.test.js"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  },
+  "keywords": [
+    "nutrition",
+    "tracker",
+    "keto",
+    "calories",
+    "adapter-pattern"
+  ],
+  "author": "ChervonnyyAnton",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
