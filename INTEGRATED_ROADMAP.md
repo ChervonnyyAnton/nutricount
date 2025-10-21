@@ -2,11 +2,19 @@
 
 ## Overview
 
-This roadmap integrates two parallel workstreams:
+This roadmap integrates three parallel workstreams:
 1. **Refactoring Track**: Continue existing refactoring work (testing, mutation testing, architecture improvements)
 2. **Unified Architecture Track**: Build Local + Public versions with shared codebase
+3. **Educational & FOSS Track**: Expand educational value for all IT roles and build FOSS health solution
 
-Both tracks work in parallel without blocking each other.
+All tracks work in parallel without blocking each other.
+
+### Mission Expansion 🎯
+
+**Educational Platform:** From developers only → QA, PO, PM, DevOps, UX/UI Designers  
+**FOSS Health Tracker:** Complete, privacy-focused nutrition tracker for keto followers
+
+See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed plan.
 
 ---
 
@@ -19,17 +27,19 @@ Both tracks work in parallel without blocking each other.
 - Phase 4.5-4.9: Route Testing (Complete)
 - **Demo Version**: Standalone SPA created (to be integrated)
 - **Week 1 Foundation**: Frontend structure and adapter pattern ✅
+- **Week 2 Core Implementation**: Business logic, ApiAdapter, build system, tests ✅
 
 ### In Progress ⏳
 - Phase 2: Mutation Testing (Infrastructure ready, 18-50 hours compute needed)
-- **Week 2**: ApiAdapter implementation and business logic extraction (Next)
+- **Week 3**: Integration tests and E2E framework (Next)
 
 ### Metrics
-- **Tests**: 679 passing
-- **Coverage**: 90% overall, 93% src/
+- **Tests**: 745 total (689 backend + 56 frontend)
+- **Coverage**: 91% average (90% backend, 92% frontend)
 - **Quality Score**: 96/100 (Grade A)
 - **Linting**: 0 errors
 - **Week 1 Progress**: ✅ Frontend structure + StorageAdapter complete
+- **Week 2 Progress**: ✅ Business logic + ApiAdapter + build system + tests complete
 
 ---
 
@@ -56,26 +66,38 @@ Both tracks work in parallel without blocking each other.
 
 ---
 
-### Week 2: Core Implementation
+### Week 2: Core Implementation ✅ COMPLETE
 **Refactoring Track:**
-- [ ] Improve route coverage to 85%+
-- [ ] Optional: Start mutation testing (background)
-- [ ] Code quality improvements
+- [x] Route coverage maintained at 90%
+- [ ] Optional: Start mutation testing (background) - Deferred
+- [x] Code quality maintained (0 linting errors)
 
 **Unified Architecture Track:**
-- [ ] Complete API adapter (Local version)
-- [ ] Complete Storage adapter (Public version)
-- [ ] Implement build system
-- [ ] Create development scripts
+- [x] Complete API adapter (Local version) - 309 lines, full CRUD
+- [x] Storage adapter (Public version) - Already complete from Week 1
+- [x] Extract business logic to JavaScript
+  - [x] nutrition-calculator.js (336 lines)
+  - [x] validators.js (372 lines)
+- [x] Implement build system
+  - [x] build-local.sh
+  - [x] build-public.sh
+- [x] Create development scripts
+  - [x] dev-local.sh (hot reload)
+  - [x] dev-public.sh (hot reload + server)
+- [x] Add comprehensive unit tests
+  - [x] 56 frontend tests (92% coverage)
+  - [x] Test infrastructure with Jest
 
 **Deliverables:**
-- 85%+ route coverage
-- Both adapters working
-- Build system functional
+- ✅ 90% route coverage (maintained)
+- ✅ Both adapters working and tested
+- ✅ Build system functional for both versions
+- ✅ 56 unit tests with 92% coverage
+- ✅ Comprehensive documentation
 
 ---
 
-### Week 3: Testing & Integration
+### Week 3: Testing & Integration + Documentation Structure
 **Refactoring Track:**
 - [ ] Review mutation testing results (if started)
 - [ ] Architecture improvements planning
@@ -87,14 +109,31 @@ Both tracks work in parallel without blocking each other.
 - [ ] Integration tests (Local version)
 - [ ] Integration tests (Public version)
 
+**Educational & FOSS Track:** 🆕
+- [ ] Create `docs/` directory structure for all roles
+- [ ] Write QA testing strategy guide
+- [ ] Document DevOps CI/CD pipeline
+- [ ] Create user quick start guide
+- [ ] Set up contribution guidelines
+
+**Design Patterns & Best Practices:** 🆕
+- [ ] Implement Repository Pattern for data access
+- [ ] Create Service Layer (ProductService, DishService)
+- [ ] Refactor routes to use services (thin controllers)
+- [ ] Document SOLID principles with examples
+- [ ] Add DI (Dependency Injection) examples
+
 **Deliverables:**
 - Frontend tests at 90%+ coverage
 - Integration tests passing
 - Both versions functional
+- Documentation structure in place
+- QA & DevOps guides complete
+- Repository + Service patterns implemented
 
 ---
 
-### Week 4: E2E Testing & CI/CD Foundation
+### Week 4: E2E Testing & CI/CD Foundation + Product Materials
 **Refactoring Track:**
 - [ ] Mutation score improvements (if Phase 2 complete)
 - [ ] Continue architecture improvements
@@ -106,14 +145,30 @@ Both tracks work in parallel without blocking each other.
 - [ ] E2E tests for Public version
 - [ ] CI/CD pipeline - Phase 1 (basic)
 
+**Educational & FOSS Track:** 🆕
+- [ ] Write Product Owner user stories guide
+- [ ] Create product backlog examples
+- [ ] Document user personas (keto followers)
+- [ ] Write Product Manager metrics guide
+- [ ] Create roadmap planning template
+
+**Design Patterns & Best Practices:** 🆕
+- [ ] Implement Strategy Pattern for BMR calculations
+- [ ] Implement Builder Pattern for dish creation
+- [ ] Implement Chain of Responsibility for validation
+- [ ] Add Interface Segregation examples
+- [ ] Document Open/Closed Principle applications
+
 **Deliverables:**
 - E2E tests running locally
 - Basic CI/CD pipeline
 - Both versions deployable
+- PO & PM materials complete
+- Strategy, Builder, Chain of Responsibility patterns implemented
 
 ---
 
-### Week 5: Advanced CI/CD & Rollback
+### Week 5: Advanced CI/CD & Rollback + Design Materials
 **Refactoring Track:**
 - [ ] Service layer extraction (Phase 6 start)
 - [ ] Repository pattern exploration
@@ -125,14 +180,30 @@ Both tracks work in parallel without blocking each other.
 - [ ] E2E tests in pipeline
 - [ ] Rollback mechanism implementation
 
+**Educational & FOSS Track:** 🆕
+- [ ] Create UX/UI design system documentation
+- [ ] Write accessibility guidelines (WCAG 2.2)
+- [ ] Document mobile-first design patterns
+- [ ] Create component library documentation
+- [ ] Write user research guide
+
+**Design Patterns & Best Practices:** 🆕
+- [ ] Implement Facade Pattern for nutrition API
+- [ ] Implement Proxy Pattern (caching, access control)
+- [ ] Add Decorator Pattern for rate limiting
+- [ ] Document Clean Architecture principles
+- [ ] Create MVC structure documentation
+
 **Deliverables:**
 - Full CI/CD pipeline working
 - Automatic rollback on failures
 - GitHub Pages auto-deployment
+- Design system documentation complete
+- Facade, Proxy, advanced Decorator patterns implemented
 
 ---
 
-### Week 6: Documentation & Polish
+### Week 6: Documentation & Polish + Community Launch
 **Refactoring Track:**
 - [ ] Continue Phase 6 work
 - [ ] Performance benchmarking
@@ -144,11 +215,29 @@ Both tracks work in parallel without blocking each other.
 - [ ] Video tutorials (optional)
 - [ ] Final testing and polish
 
+**Educational & FOSS Track:** 🆕
+- [ ] Complete end-user documentation (quick start, tutorials)
+- [ ] Write keto diet & fasting guides
+- [ ] Create learning paths for all roles
+- [ ] Set up community forums/discussions
+- [ ] Launch contribution guidelines & code of conduct
+- [ ] Create marketing materials for FOSS community
+
+**Design Patterns & Best Practices:** 🆕
+- [ ] Implement Command Pattern (undo/redo)
+- [ ] Implement Test Data Builders
+- [ ] Add Page Object Pattern for E2E tests
+- [ ] Complete pattern documentation with examples
+- [ ] Create interactive pattern learning modules
+
 **Deliverables:**
 - Complete documentation
-- Educational materials
+- Educational materials for all IT roles
 - Production-ready dual versions
 - Clean, maintainable codebase
+- Community infrastructure ready
+- FOSS health tracker launched
+- All design patterns documented with real examples
 
 ---
 
@@ -544,7 +633,56 @@ Unified Architecture Track Dependencies:
 
 ---
 
-**Version**: 1.0  
+---
+
+## 🌍 Educational Expansion & FOSS Mission
+
+### Target Audience Growth
+
+**Original:** Developers only  
+**Expanded:** All IT professionals + end users
+
+| Role | Educational Materials | Status |
+|------|----------------------|--------|
+| 👨‍💻 **Developers** | Architecture, testing, patterns | ✅ Week 1-2 |
+| 🔍 **QA Engineers** | Testing strategy, automation | 📝 Week 3 |
+| 📋 **Product Owners** | User stories, backlog management | 📝 Week 4 |
+| 📊 **Product Managers** | Metrics, roadmap, analytics | 📝 Week 4 |
+| 🚀 **DevOps Engineers** | CI/CD, Docker, monitoring | 📝 Week 3 |
+| 🎨 **UX/UI Designers** | Design system, accessibility | 📝 Week 5 |
+| 👤 **End Users** | Nutrition tracking, keto guides | 📝 Week 6 |
+
+### FOSS Health Tracker Goals
+
+**Mission:** Provide privacy-focused, open-source nutrition tracking for health-conscious individuals
+
+**Key Features:**
+- ✅ Self-hosting (Docker on Raspberry Pi)
+- ✅ Browser-only mode (no server needed)
+- ✅ Complete keto diet support (keto index, net carbs)
+- ✅ Intermittent fasting tracking (16:8, 18:6, OMAD)
+- ✅ Data ownership (no external services)
+- ✅ Open source (MIT license)
+
+**Target Communities:**
+- r/keto - Ketogenic diet followers
+- r/intermittentfasting - IF practitioners  
+- r/selfhosted - Privacy advocates
+- Health-conscious individuals
+- Open source enthusiasts
+
+**Enhanced Features (Planned):**
+- [ ] GKI (Glucose-Ketone Index) tracking
+- [ ] Community recipe sharing
+- [ ] Multi-language support (i18n)
+- [ ] Barcode scanning (optional)
+- [ ] Progress tracking (weight, measurements)
+
+See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for complete details.
+
+---
+
+**Version**: 1.1  
 **Date**: October 21, 2025  
-**Status**: Planning Complete, Ready to Execute  
-**Next**: Start Week 1 Tasks
+**Status**: Planning Complete + Educational Expansion Integrated  
+**Next**: Week 3 - Testing + QA/DevOps Documentation
