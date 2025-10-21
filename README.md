@@ -17,6 +17,7 @@
 - **High Performance**: Redis caching, async tasks, and optimized database queries
 - **Advanced Monitoring**: Prometheus metrics, system monitoring, and performance analytics
 - **Enterprise Security**: JWT authentication, rate limiting, HTTPS, audit logging
+- **🎯 Demo Version**: Standalone browser-only SPA for public demonstrations ([see demo/](demo/))
 
 ## 🏗️ Architecture
 
@@ -39,10 +40,17 @@ Security:  JWT auth, rate limiting, HTTPS, audit logging
 ```
 .
 ├── src/                 # config.py, constants.py, utils.py
+├── routes/              # Blueprint modules (auth, products, dishes, etc.)
 ├── templates/           # index.html, admin-modal.html
 ├── static/
 │   ├── css/final-polish.css
 │   └── js/ (app.js, shortcuts.js, notifications.js, admin.js, offline.js)
+├── demo/                # 🆕 Standalone SPA demo version (browser-only)
+│   ├── index.html       # Single-file demo app
+│   ├── manifest.json    # PWA manifest
+│   ├── README.md        # Demo documentation
+│   └── DEPLOYMENT.md    # Deployment guide
+├── tests/               # Comprehensive test suite (679 tests)
 ├── dockerfile
 ├── docker-compose.yml
 ├── scripts/
@@ -154,6 +162,45 @@ docker-compose up -d
 - **Prometheus Metrics**: `http://<pi-ip>/metrics`
 - **Fasting API**: `http://<pi-ip>/api/fasting/`
 - **Background Tasks**: `http://<pi-ip>/api/tasks/`
+
+## 🎯 Demo Version (NEW!)
+
+A standalone browser-only version for public demonstrations:
+
+### Features
+- ✅ **No Server Required**: All data in browser LocalStorage
+- ✅ **Mobile Optimized**: Perfect for smartphones and tablets
+- ✅ **Offline Capable**: Works without internet (after first load)
+- ✅ **Easy Deployment**: Single HTML file, deploy anywhere
+- ✅ **Full Functionality**: Products, logging, and statistics
+- ✅ **PWA Support**: Install as app on mobile devices
+
+### Quick Start
+```bash
+# Option 1: Open directly
+cd demo/
+open index.html  # or double-click the file
+
+# Option 2: Deploy to web
+# See demo/DEPLOYMENT.md for GitHub Pages, Netlify, Vercel, etc.
+
+# Option 3: Local server
+cd demo/
+python3 -m http.server 8000
+# Visit http://localhost:8000/
+```
+
+### Documentation
+- [Demo README](demo/README.md) - Complete usage guide
+- [Deployment Guide](demo/DEPLOYMENT.md) - Deployment instructions
+- [Implementation Plan](SPA_DEMO_PLAN.md) - Technical details
+
+### Use Cases
+- 📱 Mobile demonstrations
+- 🎓 Educational purposes  
+- 🚀 Quick prototyping
+- 🔒 Privacy-focused usage (no server)
+- 🌍 Public sharing without backend
 
 ## ⏰ Intermittent Fasting
 
