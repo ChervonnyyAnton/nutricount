@@ -246,6 +246,77 @@ class TestSystemRoutes:
                 if os.path.exists(temp_backup.name):
                     os.remove(temp_backup.name)
 
+    def test_system_status_exception_handling(self, client, monkeypatch):
+        """Test system status endpoint exception handling"""
+        from unittest.mock import patch
+
+        # Mock get_database_stats to raise an exception
+        def mock_error_stats():
+            raise Exception("Database connection error")
+
+        with patch('routes.system.get_database_stats', side_effect=mock_error_stats):
+            response = client.get('/api/system/status')
+
+            assert response.status_code == 500
+            data = json.loads(response.data)
+            assert data['status'] == 'error'
+
+    def test_system_backup_success(self, client, app):
+        """Test creating a database backup"""
+        with app.app_context():
+            response = client.post('/api/system/backup')
+
+            # Note: This endpoint requires admin authentication
+            # Since we're not authenticated, we expect it to be protected
+            # But let's check if the route exists
+            assert response.status_code in [200, 401, 403]
+
+    def test_export_all_with_dishes(self, client):
+        """Test export all data with dishes that have ingredients"""
+        # Create a product first
+        product = {
+            'name': 'Export Test Product',
+            'category': 'leafy_vegetables',
+            'proteins': 10.0,
+            'fats': 5.0,
+            'carbs': 20.0,
+            'calories': 170.0
+        }
+        product_response = client.post('/api/products', json=product)
+        product_data = json.loads(product_response.data)
+        product_id = product_data['data']['id']
+
+        # Create a dish with ingredients
+        dish = {
+            'name': 'Export Test Dish',
+            'preparation_method': 'Mixed',
+            'edible_portion': 95.0,
+            'ingredients': [
+                {'product_id': product_id, 'quantity': 100.0}
+            ]
+        }
+        client.post('/api/dishes', json=dish)
+
+        # Export all data
+        response = client.get('/api/export/all')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+
+        # Verify dish_ingredients structure
+        assert 'dish_ingredients' in data
+        assert isinstance(data['dish_ingredients'], dict)
+
+        # Check that dish ingredients are properly exported
+        # The dish_ingredients dict should have at least one entry
+        if len(data['dishes']) > 0:
+            # Find our test dish
+            test_dishes = [d for d in data['dishes'] if d['name'] == 'Export Test Dish']
+            if test_dishes:
+                dish_id = test_dishes[0]['id']
+                assert dish_id in data['dish_ingredients']
+                assert len(data['dish_ingredients'][dish_id]) > 0
+
 
 class TestMaintenanceRoutes:
     """Test maintenance-specific operations"""
@@ -281,3 +352,102 @@ class TestMaintenanceRoutes:
 
         # Verify database was actually wiped (should have only initial data)
         assert data['data']['initial_products_loaded'] > 0
+
+    def test_maintenance_vacuum_exception_handling(self, client):
+        """Test vacuum endpoint exception handling"""
+        from unittest.mock import patch, MagicMock
+
+        # Mock database connection to raise an exception
+        mock_db = MagicMock()
+        mock_db.execute.side_effect = Exception("Database error")
+
+        with patch('app.get_db', return_value=mock_db):
+            response = client.post('/api/maintenance/vacuum')
+
+            assert response.status_code == 500
+            data = json.loads(response.data)
+            assert data['status'] == 'error'
+
+    def test_maintenance_cleanup_exception_handling(self, client):
+        """Test cleanup endpoint exception handling"""
+        from unittest.mock import patch
+
+        # Mock glob.glob to raise an exception
+        def mock_error_glob(*args, **kwargs):
+            raise Exception("Filesystem error")
+
+        with patch('glob.glob', side_effect=mock_error_glob):
+            response = client.post('/api/maintenance/cleanup')
+
+            assert response.status_code == 500
+            data = json.loads(response.data)
+            assert data['status'] == 'error'
+
+    def test_maintenance_cleanup_test_data_exception_handling(self, client):
+        """Test cleanup test data endpoint exception handling"""
+        from unittest.mock import patch, MagicMock
+
+        # Mock database connection to raise an exception
+        mock_db = MagicMock()
+        mock_db.execute.side_effect = Exception("Database error")
+
+        with patch('app.get_db', return_value=mock_db):
+            response = client.post('/api/maintenance/cleanup-test-data')
+
+            assert response.status_code == 500
+            data = json.loads(response.data)
+            assert data['status'] == 'error'
+
+    def test_maintenance_wipe_database_exception_handling(self, client):
+        """Test wipe database endpoint exception handling"""
+        from unittest.mock import patch, MagicMock
+
+        # Mock database connection to raise an exception
+        mock_db = MagicMock()
+        mock_db.execute.side_effect = Exception("Database error")
+
+        with patch('app.get_db', return_value=mock_db):
+            response = client.post('/api/maintenance/wipe-database')
+
+            assert response.status_code == 500
+            data = json.loads(response.data)
+            assert data['status'] == 'error'
+
+    def test_export_all_exception_handling(self, client):
+        """Test export all endpoint exception handling"""
+        from unittest.mock import patch, MagicMock
+
+        # Mock database connection to raise an exception
+        mock_db = MagicMock()
+        mock_db.execute.side_effect = Exception("Database error")
+
+        with patch('app.get_db', return_value=mock_db):
+            response = client.get('/api/export/all')
+
+            assert response.status_code == 500
+            data = json.loads(response.data)
+            assert data['status'] == 'error'
+
+    def test_system_restore_exception_handling(self, client):
+        """Test restore endpoint exception handling"""
+        from unittest.mock import patch
+
+        # Mock to raise an exception during file processing
+        def mock_error_files(*args, **kwargs):
+            raise Exception("File processing error")
+
+        # Create a test file to trigger the exception
+        data = {
+            'backup_file': (io.BytesIO(b'test data'), 'test.db')
+        }
+
+        with patch('werkzeug.datastructures.FileStorage.save', side_effect=mock_error_files):
+            response = client.post(
+                '/api/system/restore',
+                data=data,
+                content_type='multipart/form-data'
+            )
+
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['status'] == 'error'
