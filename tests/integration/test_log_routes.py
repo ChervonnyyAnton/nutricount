@@ -407,3 +407,131 @@ class TestLogRoutes:
         assert response.status_code == 400
         data = response.json
         assert data["status"] == "error"
+
+
+class TestLogRoutesAdvanced:
+    """Advanced tests for log routes covering edge cases"""
+
+    def test_log_create_integrity_error(self, client):
+        """Test IntegrityError handling in log creation"""
+        import sqlite3
+        from unittest.mock import patch, MagicMock
+
+        # First create a valid product
+        product_data = {
+            "name": "Test Product for Log Integrity",
+            "category": "leafy_vegetables",
+            "proteins": 5.0,
+            "fats": 2.0,
+            "carbs": 10.0,
+            "calories": 80.0
+        }
+        product_response = client.post("/api/products", json=product_data)
+        assert product_response.status_code == 201
+        product_id = product_response.json["data"]["id"]
+
+        log_data = {
+            "date": "2025-10-21",
+            "item_type": "product",
+            "item_id": product_id,
+            "quantity_grams": 100,
+            "meal_time": "lunch"
+        }
+
+        # Mock database to raise IntegrityError
+        with patch("routes.log.get_db") as mock_get_db:
+            mock_db = MagicMock()
+            mock_get_db.return_value = mock_db
+
+            # Mock to return valid product data first
+            mock_db.execute.return_value.fetchone.return_value = {
+                "id": product_id,
+                "name": "Test Product",
+                "proteins_per_100g": 5.0,
+                "fats_per_100g": 2.0,
+                "carbs_per_100g": 10.0,
+                "calories_per_100g": 80.0
+            }
+            # Then raise IntegrityError on insert
+            mock_db.execute.side_effect = [
+                MagicMock(fetchone=lambda: {"id": product_id}),  # Product validation
+                sqlite3.IntegrityError("UNIQUE constraint failed")  # Insert
+            ]
+
+            response = client.post("/api/log", json=log_data)
+            assert response.status_code == 400
+            data = response.json
+            assert data["status"] == "error"
+            assert "database" in data["message"].lower() or "constraint" in data["message"].lower()
+
+    def test_log_main_exception_handler(self, client):
+        """Test main exception handler in log creation"""
+        from unittest.mock import patch, MagicMock
+
+        # Mock get_db to raise exception
+        with patch("routes.log.get_db") as mock_get_db:
+            mock_db = MagicMock()
+            mock_get_db.return_value = mock_db
+            mock_db.execute.side_effect = Exception("Database error")
+
+            log_data = {
+                "date": "2025-10-21",
+                "item_type": "product",
+                "item_id": 1,
+                "quantity_grams": 100,
+                "meal_time": "lunch"
+            }
+
+            response = client.post("/api/log", json=log_data)
+            assert response.status_code == 500
+            data = response.json
+            assert data["status"] == "error"
+
+    def test_log_detail_exception_handler(self, client):
+        """Test exception handler in log detail endpoint"""
+        from unittest.mock import patch, MagicMock
+
+        # Mock get_db to raise exception
+        with patch("routes.log.get_db") as mock_get_db:
+            mock_db = MagicMock()
+            mock_get_db.return_value = mock_db
+            mock_db.execute.side_effect = Exception("Database error")
+
+            response = client.get("/api/log/1")
+            assert response.status_code == 500
+            data = response.json
+            assert data["status"] == "error"
+
+    def test_log_bulk_operations(self, client):
+        """Test log bulk operations work correctly"""
+        # Create a product
+        product_data = {
+            "name": "Bulk Test Product",
+            "category": "leafy_vegetables",
+            "proteins": 5.0,
+            "fats": 2.0,
+            "carbs": 10.0,
+            "calories": 80.0
+        }
+        product_response = client.post("/api/products", json=product_data)
+        product_id = product_response.json["data"]["id"]
+
+        # Create multiple log entries
+        log_entries = []
+        for i in range(3):
+            log_data = {
+                "date": "2025-10-21",
+                "item_type": "product",
+                "item_id": product_id,
+                "quantity_grams": 100 + (i * 50),
+                "meal_time": "lunch"
+            }
+            response = client.post("/api/log", json=log_data)
+            assert response.status_code == 201
+            log_entries.append(response.json["data"]["id"])
+
+        # Verify all entries were created
+        for log_id in log_entries:
+            response = client.get(f"/api/log/{log_id}")
+            assert response.status_code == 200
+            assert response.json["status"] == "success"

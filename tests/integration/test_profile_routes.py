@@ -278,3 +278,36 @@ class TestProfileRoutes:
             assert response.status_code == 500
             data = json.loads(response.data)
             assert data['status'] == 'error'
+
+    def test_profile_update_with_all_optional_fields(self, client):
+        """Test profile update with all optional fields"""
+        # First create a profile
+        profile_data = {
+            'gender': 'male',
+            'birth_date': '1990-01-01',
+            'height_cm': 180,
+            'weight_kg': 80,
+            'activity_level': 'moderate',
+            'goal': 'maintenance'
+        }
+        create_response = client.post('/api/profile', json=profile_data)
+        assert create_response.status_code in [200, 201, 409]
+
+        # Update with all optional fields
+        update_data = {
+            'gender': 'male',
+            'birth_date': '1990-01-01',
+            'height_cm': 182,
+            'weight_kg': 82,
+            'activity_level': 'active',
+            'goal': 'muscle_gain',
+            'body_fat_percentage': 15.5,
+            'lean_body_mass_kg': 69.3
+        }
+        response = client.post('/api/profile', json=update_data)
+        assert response.status_code in [200, 201]
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        # Profile might or might not return full data in response
+        # Just verify it was successful
+        assert 'message' in data
