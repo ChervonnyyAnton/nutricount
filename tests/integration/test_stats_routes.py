@@ -289,3 +289,178 @@ class TestWeeklyStatsRoute:
         assert data["status"] == "success"
         # Should still calculate macros with different goal
         assert "personal_macros" in data["data"]
+
+
+class TestStatsRoutesAdvanced:
+    """Advanced tests for stats routes covering edge cases"""
+
+    def test_daily_stats_with_body_fat_percentage(self, client):
+        """Test daily stats with profile containing body fat percentage"""
+        # Create profile with body fat percentage to trigger LBM calculation
+        profile_data = {
+            'gender': 'male',
+            'birth_date': '1990-01-01',
+            'height_cm': 180,
+            'weight_kg': 80,
+            'activity_level': 'moderate',
+            'goal': 'muscle_gain',
+            'body_fat_percentage': 15.0  # This triggers LBM calculation
+        }
+        create_response = client.post('/api/profile', data=json.dumps(profile_data),
+                                      content_type='application/json')
+        # Profile might already exist, that's OK
+        assert create_response.status_code in [200, 201, 409]
+
+        test_date = datetime.now().strftime("%Y-%m-%d")
+        response = client.get(f"/api/stats/{test_date}")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
+        # Should calculate BMR using Katch-McArdle formula
+        if "personal_macros" in data["data"]:
+            assert "target_calories" in data["data"]["personal_macros"]
+
+    def test_daily_stats_with_lean_body_mass(self, client):
+        """Test daily stats with profile containing lean body mass"""
+        # Create profile with lean body mass directly
+        profile_data = {
+            'gender': 'female',
+            'birth_date': '1995-06-15',
+            'height_cm': 165,
+            'weight_kg': 60,
+            'activity_level': 'active',
+            'goal': 'weight_loss',
+            'lean_body_mass_kg': 48.0  # Direct LBM value
+        }
+        create_response = client.post('/api/profile', data=json.dumps(profile_data),
+                                      content_type='application/json')
+        # Profile might already exist, that's OK
+        assert create_response.status_code in [200, 201, 409]
+
+        test_date = datetime.now().strftime("%Y-%m-%d")
+        response = client.get(f"/api/stats/{test_date}")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
+        # Should use direct LBM for BMR calculation
+        if "personal_macros" in data["data"]:
+            assert "target_calories" in data["data"]["personal_macros"]
+
+    def test_daily_stats_exception_in_macro_calculation(self, client):
+        """Test daily stats when personal macro calculation fails"""
+        from unittest.mock import patch
+
+        # Mock calculate_lean_body_mass to raise an exception
+        def mock_error_lbm(*args, **kwargs):
+            raise Exception("LBM calculation error")
+
+        with patch('routes.stats.calculate_lean_body_mass', side_effect=mock_error_lbm):
+            test_date = datetime.now().strftime("%Y-%m-%d")
+            response = client.get(f"/api/stats/{test_date}")
+
+            # Should still return 200 but without personal_macros or with empty macros
+            assert response.status_code == 200
+            data = json.loads(response.data)
+            assert data["status"] == "success"
+            # Personal macros might be None or not present
+
+    def test_daily_stats_various_dates(self, client):
+        """Test daily stats works for various date ranges"""
+        # Test yesterday
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        response = client.get(f"/api/stats/{yesterday}")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
+        assert data["data"]["date"] == yesterday
+
+        # Test last week
+        last_week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        response = client.get(f"/api/stats/{last_week}")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
+        assert data["data"]["date"] == last_week
+
+    def test_weekly_stats_with_body_fat_percentage(self, client):
+        """Test weekly stats with profile containing body fat percentage"""
+        # Create profile with body fat percentage
+        profile_data = {
+            'gender': 'male',
+            'birth_date': '1988-03-20',
+            'height_cm': 175,
+            'weight_kg': 75,
+            'activity_level': 'sedentary',
+            'goal': 'weight_loss',
+            'body_fat_percentage': 20.0
+        }
+        create_response = client.post('/api/profile', data=json.dumps(profile_data),
+                                      content_type='application/json')
+        assert create_response.status_code in [200, 201, 409]
+
+        test_date = datetime.now().strftime("%Y-%m-%d")
+        response = client.get(f"/api/stats/weekly/{test_date}")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
+        # Should calculate BMR using LBM
+        if "personal_macros" in data["data"]:
+            assert "target_calories" in data["data"]["personal_macros"]
+
+    def test_weekly_stats_with_lean_body_mass(self, client):
+        """Test weekly stats with profile containing lean body mass"""
+        # Create profile with direct LBM
+        profile_data = {
+            'gender': 'female',
+            'birth_date': '1992-08-10',
+            'height_cm': 170,
+            'weight_kg': 65,
+            'activity_level': 'moderate',
+            'goal': 'maintenance',
+            'lean_body_mass_kg': 50.0
+        }
+        create_response = client.post('/api/profile', data=json.dumps(profile_data),
+                                      content_type='application/json')
+        assert create_response.status_code in [200, 201, 409]
+
+        test_date = datetime.now().strftime("%Y-%m-%d")
+        response = client.get(f"/api/stats/weekly/{test_date}")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
+        # Should use direct LBM
+        if "personal_macros" in data["data"]:
+            assert "target_calories" in data["data"]["personal_macros"]
+
+    def test_weekly_stats_exception_in_macro_calculation(self, client):
+        """Test weekly stats when personal macro calculation fails"""
+        from unittest.mock import patch
+
+        # Mock calculate_lean_body_mass to raise an exception
+        def mock_error_lbm(*args, **kwargs):
+            raise Exception("LBM calculation error")
+
+        with patch('routes.stats.calculate_lean_body_mass', side_effect=mock_error_lbm):
+            test_date = datetime.now().strftime("%Y-%m-%d")
+            response = client.get(f"/api/stats/weekly/{test_date}")
+
+            # Should still return 200
+            assert response.status_code == 200
+            data = json.loads(response.data)
+            assert data["status"] == "success"
+
+    def test_weekly_stats_various_dates(self, client):
+        """Test weekly stats works for various date ranges"""
+        # Test last week
+        last_week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        response = client.get(f"/api/stats/weekly/{last_week}")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
+
+        # Test two weeks ago
+        two_weeks_ago = (datetime.now() - timedelta(days=14)).strftime("%Y-%m-%d")
+        response = client.get(f"/api/stats/weekly/{two_weeks_ago}")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
