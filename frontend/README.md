@@ -109,15 +109,21 @@ npm run test:integration
 - [x] BackendAdapter interface defined
 - [x] StorageAdapter fully implemented and production-ready
 - [x] Documentation complete
-- [ ] Extract business logic from Python to JavaScript (Week 2)
-- [ ] Create ApiAdapter (Week 2)
-- [ ] Add unit tests for adapters (Week 2)
 
-### Week 2: Core Implementation (Planned)
-- [ ] Complete ApiAdapter implementation
-- [ ] Build system scripts
-- [ ] Development workflow scripts
-- [ ] Integration with existing frontend
+### Week 2: Core Implementation ✅ COMPLETE
+- [x] Extract business logic from Python to JavaScript
+  - [x] nutrition-calculator.js (calorie calculations, keto index, BMR/TDEE)
+  - [x] validators.js (product, dish, log entry validation)
+- [x] Complete ApiAdapter implementation
+  - [x] RESTful API communication
+  - [x] JWT token management
+  - [x] Error handling and retry logic
+- [x] Build system scripts
+  - [x] build-local.sh (bundles with ApiAdapter)
+  - [x] build-public.sh (bundles with StorageAdapter)
+- [x] Development workflow scripts
+  - [x] dev-local.sh (development with hot reload)
+  - [x] dev-public.sh (development for public version)
 
 ### Week 3-4: Testing (Planned)
 - [ ] Unit tests for business logic
