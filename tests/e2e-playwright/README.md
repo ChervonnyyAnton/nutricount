@@ -299,30 +299,37 @@ Target: 80%+ coverage of critical user paths
 
 ## 🚦 CI/CD Integration
 
-E2E tests run automatically on:
+E2E tests run automatically in multiple environments:
 - Pull requests to main branch
 - Commits to main branch
 - Manual workflow dispatch
 - Daily schedule (2 AM UTC)
 
-### Two Test Jobs
+### Three Test Environments
 
-**1. Local Version (Flask Backend)**
+**1. Local Version (Flask Backend)** - `e2e-tests.yml`
 - Tests full application with Flask backend
 - All API endpoints tested
 - Database operations validated
+- Runs on PR and push
 
-**2. Public Version (Demo SPA)**
+**2. Public Version (Demo SPA)** - `e2e-tests.yml`
 - Tests browser-only demo version
 - LocalStorage-based data management
 - No backend required
+- Runs on PR and push
+
+**3. GitHub Pages (Live Deployment)** - `deploy-demo.yml`
+- Tests live production demo on GitHub Pages
+- Validates deployment succeeded
+- Real-world environment testing
+- Runs after successful deployment to Pages
+- URL: https://chervonnyyanton.github.io/nutricount/
 
 ### GitHub Actions Workflow
 
 ```yaml
-- name: Install Playwright
-  run: npx playwright install chromium --with-deps
-
+# Local and Public versions (e2e-tests.yml)
 - name: Run E2E Tests (Local Version)
   run: npm run test:e2e
   env:
@@ -333,11 +340,17 @@ E2E tests run automatically on:
   env:
     BASE_URL: http://localhost:8080
 
+# GitHub Pages live testing (deploy-demo.yml)
+- name: Run E2E tests (GitHub Pages)
+  run: npm run test:e2e
+  env:
+    BASE_URL: https://chervonnyyanton.github.io/nutricount
+
 - name: Upload Test Report on Failure
   if: failure()
   uses: actions/upload-artifact@v3
   with:
-    name: playwright-report-local
+    name: playwright-report-pages
     path: playwright-report/
 ```
 
