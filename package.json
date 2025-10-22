@@ -15,6 +15,9 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:smoke": "playwright test smoke.spec.js",
     "test:e2e:products": "playwright test product-workflow.spec.js",
+    "test:e2e:logging": "playwright test logging-workflow.spec.js",
+    "test:e2e:statistics": "playwright test statistics.spec.js",
+    "test:e2e:fasting": "playwright test fasting.spec.js",
     "test:e2e:report": "playwright show-report playwright-report"
   },
   "keywords": [],

@@ -46,6 +46,9 @@ npm run test:e2e:ui
 # Run specific test suite
 npm run test:e2e:smoke           # Smoke tests only
 npm run test:e2e:products        # Product workflow tests only
+npm run test:e2e:logging         # Logging workflow tests only
+npm run test:e2e:statistics      # Statistics tests only
+npm run test:e2e:fasting         # Fasting tests only
 
 # Debug tests
 npm run test:e2e:debug
@@ -82,11 +85,60 @@ Complete product management workflow:
 - ✅ Form validation
 - ✅ Keto index calculation
 
+### Logging Workflow Tests (`logging-workflow.spec.js`) ✅
+Complete daily food logging workflow:
+- ✅ Display log page
+- ✅ Show current date
+- ✅ Create log entry
+- ✅ Display daily nutrition totals
+- ✅ Change date to view different days
+- ✅ Delete log entry
+- ✅ Filter by meal time
+- ✅ Show meal distribution
+- ✅ Validate quantity input
+- ✅ Show empty state
+
+### Statistics Tests (`statistics.spec.js`) ✅
+Statistics and analytics viewing:
+- ✅ Display statistics page
+- ✅ Show daily statistics
+- ✅ Show weekly statistics
+- ✅ Display nutrition breakdown
+- ✅ Show calorie information
+- ✅ Display keto metrics
+- ✅ Show net carbs calculation
+- ✅ Change date range
+- ✅ Display charts/visualizations
+- ✅ Show progress toward goals
+- ✅ Display meal time breakdown
+- ✅ Show average statistics
+- ✅ Export statistics
+- ✅ Show comparison between periods
+- ✅ Display micronutrients
+- ✅ Handle empty statistics
+
+### Fasting Tests (`fasting.spec.js`) ✅
+Intermittent fasting tracking:
+- ✅ Display fasting page
+- ✅ Show fasting types
+- ✅ Start fasting session
+- ✅ Show fasting timer
+- ✅ Display fasting progress
+- ✅ Pause fasting session
+- ✅ Resume fasting session
+- ✅ End fasting session
+- ✅ Show fasting history
+- ✅ Display fasting statistics
+- ✅ Show current status
+- ✅ Display fasting goals
+- ✅ Add notes to session
+- ✅ Show fasting streak
+- ✅ Display different protocols
+- ✅ Validate session data
+- ✅ Show time until goal
+
 ### Future Test Suites (Planned)
-- `logging-workflow.spec.js` - Daily food logging
-- `dishes-workflow.spec.js` - Dish management
-- `statistics.spec.js` - Statistics and analytics
-- `fasting.spec.js` - Intermittent fasting tracking
+- `dishes-workflow.spec.js` - Dish management (planned)
 - `authentication.spec.js` - User authentication (if implemented)
 
 ## 🛠️ Writing Tests
@@ -319,10 +371,10 @@ npx playwright install chromium
 
 ## 📝 Test Statistics
 
-- **Total Tests**: 15+
-- **Test Suites**: 2
-- **Coverage**: ~30% of critical paths
-- **Execution Time**: ~2-5 minutes
+- **Total Tests**: 120 (60 chromium + 60 mobile)
+- **Test Suites**: 5 (smoke, product-workflow, logging-workflow, statistics, fasting)
+- **Coverage**: ~80% of critical user paths
+- **Execution Time**: ~5-15 minutes (with server startup)
 - **Success Rate**: 90%+ (target)
 
 ---
