@@ -27,8 +27,8 @@ Welcome to the comprehensive documentation for Nutricount - an educational platf
 ### 📋 Product Owners ✅
 - [product/user-stories.md](product/user-stories.md) - User stories guide
 - [product/product-backlog.md](product/product-backlog.md) - Backlog management
+- [product/user-personas.md](product/user-personas.md) - User personas (Sarah, Mike, Emma, Alex)
 - [product/README.md](product/README.md) - Product Owner documentation hub
-- 📝 [product/user-personas.md](product/) - User personas (Coming Week 4)
 
 ### 📊 Product Managers ✅
 - [product-management/kpis-metrics.md](product-management/kpis-metrics.md) - KPIs & metrics
