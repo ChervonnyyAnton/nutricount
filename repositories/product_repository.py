@@ -5,6 +5,7 @@ Handles all database operations for products,
 abstracting data access from business logic.
 """
 
+import logging
 from typing import Any, Dict, List, Optional
 
 from repositories.base_repository import BaseRepository
@@ -14,6 +15,8 @@ from src.nutrition_calculator import (
     calculate_net_carbs_advanced,
 )
 from src.utils import clean_string, safe_float
+
+logger = logging.getLogger(__name__)
 
 
 class ProductRepository(BaseRepository):
@@ -304,6 +307,11 @@ class ProductRepository(BaseRepository):
             product["gi_score"] = keto_result["gi_score"]
 
         except Exception:
+            # Log the error and add default values if calculation fails
+            logger.exception(
+                "Failed to calculate nutrition fields for product %s",
+                product.get("id", "unknown")
+            )
             # Add default values if calculation fails
             product["net_carbs"] = product["carbs_per_100g"]
             product["fiber_estimated"] = True

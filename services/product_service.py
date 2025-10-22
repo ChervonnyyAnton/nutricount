@@ -6,12 +6,16 @@ coordinating between repositories and providing a clean API
 for controllers/routes.
 """
 
+import logging
+import sqlite3
 from typing import Any, Dict, List, Optional
 
 from repositories.product_repository import ProductRepository
 from src.cache_manager import cache_invalidate, cache_manager
 from src.config import Config
 from src.utils import validate_product_data
+
+logger = logging.getLogger(__name__)
 
 
 class ProductService:
@@ -118,8 +122,15 @@ class ProductService:
             cache_invalidate("products:*")
 
             return True, product, []
-        except Exception as e:
-            return False, None, [f"Failed to create product: {str(e)}"]
+        except sqlite3.IntegrityError as e:
+            logger.error("Database integrity error creating product: %s", e)
+            return False, None, ["Database constraint violation"]
+        except sqlite3.Error as e:
+            logger.error("Database error creating product: %s", e)
+            return False, None, ["Database error occurred"]
+        except Exception:
+            logger.exception("Unexpected error creating product")
+            return False, None, ["Failed to create product"]
 
     def update_product(
         self,
@@ -158,8 +169,15 @@ class ProductService:
             cache_invalidate("products:*")
 
             return True, product, []
-        except Exception as e:
-            return False, None, [f"Failed to update product: {str(e)}"]
+        except sqlite3.IntegrityError as e:
+            logger.error("Database integrity error updating product %s: %s", product_id, e)
+            return False, None, ["Database constraint violation"]
+        except sqlite3.Error as e:
+            logger.error("Database error updating product %s: %s", product_id, e)
+            return False, None, ["Database error occurred"]
+        except Exception:
+            logger.exception("Unexpected error updating product %s", product_id)
+            return False, None, ["Failed to update product"]
 
     def delete_product(self, product_id: int) -> tuple[bool, List[str]]:
         """
@@ -192,8 +210,15 @@ class ProductService:
                 return True, []
             else:
                 return False, ["Failed to delete product"]
-        except Exception as e:
-            return False, [f"Failed to delete product: {str(e)}"]
+        except sqlite3.IntegrityError as e:
+            logger.error("Database integrity error deleting product %s: %s", product_id, e)
+            return False, ["Cannot delete product due to foreign key constraint"]
+        except sqlite3.Error as e:
+            logger.error("Database error deleting product %s: %s", product_id, e)
+            return False, ["Database error occurred"]
+        except Exception:
+            logger.exception("Unexpected error deleting product %s", product_id)
+            return False, ["Failed to delete product"]
 
     def search_products(
         self,
