@@ -1,5 +1,9 @@
 # 🥗 Nutrition Tracker
 
+[![CI/CD Pipeline](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/test.yml/badge.svg)](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/test.yml)
+[![Deploy Demo](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/deploy-demo.yml)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://chervonnyyanton.github.io/nutricount/demo/)
+
 **Production-ready nutrition tracking application optimized for Raspberry Pi 4 Model B 2018 with Raspberry Pi OS Lite 64-bit.**
 
 ## 🚀 Features
@@ -165,6 +169,8 @@ docker-compose up -d
 
 ## 🎯 Demo Version (NEW!)
 
+**🌐 [Try Live Demo](https://chervonnyyanton.github.io/nutricount/demo/)** - No installation required!
+
 A standalone browser-only version for public demonstrations:
 
 ### Features
@@ -177,14 +183,17 @@ A standalone browser-only version for public demonstrations:
 
 ### Quick Start
 ```bash
-# Option 1: Open directly
+# Option 1: Try live demo (Recommended)
+🌐 Visit https://chervonnyyanton.github.io/nutricount/demo/
+
+# Option 2: Open directly
 cd demo/
 open index.html  # or double-click the file
 
-# Option 2: Deploy to web
+# Option 3: Deploy to web
 # See demo/DEPLOYMENT.md for GitHub Pages, Netlify, Vercel, etc.
 
-# Option 3: Local server
+# Option 4: Local server
 cd demo/
 python3 -m http.server 8000
 # Visit http://localhost:8000/

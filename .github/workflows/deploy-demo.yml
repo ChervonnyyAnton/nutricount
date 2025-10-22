@@ -1,0 +1,61 @@
+name: Deploy Demo to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'demo/**'
+      - '.github/workflows/deploy-demo.yml'
+  workflow_dispatch:
+
+# Sets permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy Demo to GitHub Pages
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+    
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'demo'
+    
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+    
+    - name: Deployment Summary
+      run: |
+        echo "## 🚀 Demo Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Demo deployed to GitHub Pages" >> $GITHUB_STEP_SUMMARY
+        echo "📱 Access at: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Demo Features:" >> $GITHUB_STEP_SUMMARY
+        echo "- Product management" >> $GITHUB_STEP_SUMMARY
+        echo "- Daily food logging" >> $GITHUB_STEP_SUMMARY
+        echo "- Statistics dashboard" >> $GITHUB_STEP_SUMMARY
+        echo "- Keto index calculation" >> $GITHUB_STEP_SUMMARY
+        echo "- Dark/Light theme" >> $GITHUB_STEP_SUMMARY
+        echo "- Mobile-optimized" >> $GITHUB_STEP_SUMMARY
+        echo "- Offline support" >> $GITHUB_STEP_SUMMARY

@@ -1,36 +1,46 @@
 # 🚀 Demo Deployment Guide
 
+## 🌐 Current Live Demo
+
+**Live at**: [https://chervonnyyanton.github.io/nutricount/](https://chervonnyyanton.github.io/nutricount/)
+
+This demo is automatically deployed via GitHub Actions. See [GitHub Pages Setup Guide](../docs/GITHUB_PAGES_SETUP.md) for details.
+
+---
+
 ## Quick Deployment Options
 
-### Option 1: GitHub Pages (Recommended)
+### Option 1: GitHub Pages (Recommended) ⭐
 
 **Best for**: Free hosting, automatic HTTPS, easy updates
 
+**This repository is already configured!** The demo automatically deploys on every push to `main` branch.
+
+#### Manual Setup (if forking)
 ```bash
-# 1. Push demo to repository
-git add demo/
-git commit -m "Add SPA demo version"
-git push
+# 1. Fork this repository
 
 # 2. Enable GitHub Pages
 # - Go to repository Settings → Pages
-# - Source: main branch
-# - Folder: /demo
+# - Source: Select "GitHub Actions"
 # - Save
 
-# 3. Access your demo at:
-# https://[username].github.io/[repo]/demo/
+# 3. Workflow will auto-deploy to:
+# https://[username].github.io/[repo]/
 ```
+
+**Detailed Instructions**: See [docs/GITHUB_PAGES_SETUP.md](../docs/GITHUB_PAGES_SETUP.md)
 
 **Pros**: 
 - ✅ Free hosting
 - ✅ Automatic HTTPS
 - ✅ CDN distribution
-- ✅ Easy updates
+- ✅ Easy updates (auto-deploy on push)
+- ✅ No manual deployment needed
 
 **Cons**:
 - ❌ Must be public repository
-- ❌ Build time ~1 minute
+- ❌ Build time ~1-2 minutes
 
 ---
 
