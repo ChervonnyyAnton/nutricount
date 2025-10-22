@@ -4,7 +4,7 @@
 
 ## 🌐 Live Demo
 
-**[Try it now: https://chervonnyyanton.github.io/nutricount/demo/](https://chervonnyyanton.github.io/nutricount/demo/)**
+**[Try it now: https://chervonnyyanton.github.io/nutricount/](https://chervonnyyanton.github.io/nutricount/)**
 
 No installation required! Works on all devices (desktop, tablet, phone).
 

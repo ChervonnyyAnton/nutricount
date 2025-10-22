@@ -2,7 +2,7 @@
 
 [![CI/CD Pipeline](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/test.yml/badge.svg)](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/test.yml)
 [![Deploy Demo](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/deploy-demo.yml)
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://chervonnyyanton.github.io/nutricount/demo/)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://chervonnyyanton.github.io/nutricount/)
 
 **Production-ready nutrition tracking application optimized for Raspberry Pi 4 Model B 2018 with Raspberry Pi OS Lite 64-bit.**
 
@@ -169,7 +169,7 @@ docker-compose up -d
 
 ## 🎯 Demo Version (NEW!)
 
-**🌐 [Try Live Demo](https://chervonnyyanton.github.io/nutricount/demo/)** - No installation required!
+**🌐 [Try Live Demo](https://chervonnyyanton.github.io/nutricount/)** - No installation required!
 
 A standalone browser-only version for public demonstrations:
 
@@ -184,7 +184,7 @@ A standalone browser-only version for public demonstrations:
 ### Quick Start
 ```bash
 # Option 1: Try live demo (Recommended)
-🌐 Visit https://chervonnyyanton.github.io/nutricount/demo/
+🌐 Visit https://chervonnyyanton.github.io/nutricount/
 
 # Option 2: Open directly
 cd demo/
