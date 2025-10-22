@@ -113,7 +113,7 @@ jobs:
     
     - name: Upload test results on failure
       if: failure()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: playwright-report-pages
         path: playwright-report/
@@ -121,7 +121,7 @@ jobs:
     
     - name: Upload test videos on failure
       if: failure()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: playwright-videos-pages
         path: test-results/
