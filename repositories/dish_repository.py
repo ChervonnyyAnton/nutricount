@@ -237,9 +237,11 @@ class DishRepository(BaseRepository):
             self.db.execute("DELETE FROM dish_ingredients WHERE dish_id = ?", (dish_id,))
 
         # Update dish basic info
+        name = data.get("name", existing["name"])
+        description = data.get("description") or existing.get("description") or ""
         self.db.execute(
             "UPDATE dishes SET name = ?, description = ? WHERE id = ?",
-            (data.get("name", existing["name"]), data.get("description", existing.get("description", "")), dish_id),
+            (name, description, dish_id),
         )
 
         # If ingredients provided, recalculate nutrition
