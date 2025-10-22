@@ -11,6 +11,11 @@
  * - Request/response transformation
  */
 
+// Import BackendAdapter for Node.js (tests) environment
+if (typeof require !== 'undefined' && typeof module !== 'undefined') {
+    var BackendAdapter = require('./backend-adapter.js');
+}
+
 class ApiAdapter extends BackendAdapter {
     constructor(baseUrl = '/api', options = {}) {
         super();
