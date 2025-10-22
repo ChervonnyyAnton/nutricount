@@ -303,6 +303,19 @@ E2E tests run automatically on:
 - Pull requests to main branch
 - Commits to main branch
 - Manual workflow dispatch
+- Daily schedule (2 AM UTC)
+
+### Two Test Jobs
+
+**1. Local Version (Flask Backend)**
+- Tests full application with Flask backend
+- All API endpoints tested
+- Database operations validated
+
+**2. Public Version (Demo SPA)**
+- Tests browser-only demo version
+- LocalStorage-based data management
+- No backend required
 
 ### GitHub Actions Workflow
 
@@ -310,16 +323,21 @@ E2E tests run automatically on:
 - name: Install Playwright
   run: npx playwright install chromium --with-deps
 
-- name: Run E2E Tests
+- name: Run E2E Tests (Local Version)
   run: npm run test:e2e
   env:
     BASE_URL: http://localhost:5000
 
-- name: Upload Test Report
-  if: always()
+- name: Run E2E Tests (Public Version)
+  run: npm run test:e2e
+  env:
+    BASE_URL: http://localhost:8080
+
+- name: Upload Test Report on Failure
+  if: failure()
   uses: actions/upload-artifact@v3
   with:
-    name: playwright-report
+    name: playwright-report-local
     path: playwright-report/
 ```
 

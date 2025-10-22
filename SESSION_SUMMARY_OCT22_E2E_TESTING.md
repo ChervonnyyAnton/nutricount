@@ -203,25 +203,37 @@ tests/e2e-playwright/
 #### GitHub Actions Workflow (`.github/workflows/e2e-tests.yml`)
 **Configuration:**
 - Triggers: PR, push to main, manual dispatch, daily schedule (2 AM UTC)
-- Timeout: 30 minutes
-- Environment: Ubuntu latest, Python 3.11, Node.js 20
+- Timeout: 30 minutes per job
+- Environment: Ubuntu latest, Python 3.11 (local), Node.js 20 (both)
 
-**Steps:**
+**Two Parallel Test Jobs:**
+
+**Job 1: Local Version (Flask Backend)**
 1. Checkout code
 2. Setup Python and Node.js
 3. Install Python dependencies
 4. Install Node dependencies
 5. Install Playwright browsers
 6. Start Flask server with health check
-7. Run E2E tests
-8. Upload test results (always)
-9. Upload test videos (on failure)
-10. Stop Flask server (always)
-11. Generate test summary
+7. Run E2E tests against http://localhost:5000
+8. Upload artifacts only on failure
+9. Stop Flask server (always)
+10. Generate test summary
 
-**Artifacts:**
+**Job 2: Public Version (Demo SPA)**
+1. Checkout code
+2. Setup Node.js
+3. Install Node dependencies
+4. Install Playwright browsers
+5. Start HTTP server for demo
+6. Run E2E tests against http://localhost:8080
+7. Upload artifacts only on failure
+8. Stop demo server (always)
+9. Generate test summary
+
+**Artifacts (uploaded only on failure):**
 - Playwright HTML report (7 days retention)
-- Test videos on failure (7 days retention)
+- Test videos (7 days retention)
 
 ### 5. Documentation (1 hour)
 
