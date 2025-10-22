@@ -107,7 +107,7 @@ test.describe('Product Management Workflow', () => {
       
       // Verify success (product removed or success message)
       const hasSuccess = await helpers.hasSuccessMessage(page);
-      expect(hasSuccess || true).toBeTruthy(); // Pass if deletion succeeds or no error occurs
+      expect(hasSuccess).toBeTruthy();
     }
   });
 

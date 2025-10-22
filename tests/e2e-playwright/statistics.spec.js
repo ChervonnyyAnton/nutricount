@@ -292,7 +292,7 @@ test.describe('Statistics Workflow', () => {
       const zeroValues = page.locator('text=/0\\s*(cal|g)/').first();
       const hasZeros = await zeroValues.isVisible({ timeout: 2000 }).catch(() => false);
       
-      expect(hasEmptyState || hasZeros || true).toBeTruthy();
+      expect(hasEmptyState || hasZeros).toBeTruthy();
     }
   });
 });

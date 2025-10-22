@@ -103,7 +103,7 @@ test.describe('Daily Logging Workflow', () => {
       // Verify log entry appears
       const logEntry = page.locator('.log-entry, .log-item, [data-log-entry]').first();
       const hasEntry = await logEntry.isVisible({ timeout: 3000 }).catch(() => false);
-      expect(hasEntry || true).toBeTruthy(); // Pass if entry added or no error
+      expect(hasEntry).toBeTruthy();
     }
   });
 
@@ -167,7 +167,7 @@ test.describe('Daily Logging Workflow', () => {
       
       // Verify deletion (success message or entry removed)
       const hasSuccess = await helpers.hasSuccessMessage(page);
-      expect(hasSuccess || true).toBeTruthy();
+      expect(hasSuccess).toBeTruthy();
     }
   });
 
@@ -234,7 +234,7 @@ test.describe('Daily Logging Workflow', () => {
         const validationMessage = page.locator('.invalid-feedback, .error-message, [role="alert"]').first();
         const hasValidation = await validationMessage.isVisible({ timeout: 1000 }).catch(() => false);
         
-        expect(hasError || hasValidation || true).toBeTruthy();
+        expect(hasError || hasValidation).toBeTruthy();
       }
     }
   });

@@ -127,7 +127,7 @@ test.describe('Fasting Tracking Workflow', () => {
       const activeStatus = page.locator('text=/active|in progress/i').first();
       const isActive = await activeStatus.isVisible({ timeout: 3000 }).catch(() => false);
       
-      expect(isActive || true).toBeTruthy();
+      expect(isActive).toBeTruthy();
     }
   });
 
@@ -296,7 +296,7 @@ test.describe('Fasting Tracking Workflow', () => {
       const hasSession = page.locator('.timer, [data-timer]').isVisible({ timeout: 2000 }).catch(() => false);
       
       // Should either validate or start successfully
-      expect(hasError || hasSession || true).toBeTruthy();
+      expect(hasError || hasSession).toBeTruthy();
     }
   });
 
