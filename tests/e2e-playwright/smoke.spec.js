@@ -24,11 +24,11 @@ test.describe('Smoke Tests', () => {
       await page.goto('/');
       
       // Click on Products tab
-      await helpers.clickElement(page, 'text=Products');
+      await helpers.clickElement(page, '#products-tab');
       
       // Verify products section is visible
-      await helpers.waitForElement(page, '#products-section');
-      const productsSection = page.locator('#products-section');
+      await helpers.waitForElement(page, '#products');
+      const productsSection = page.locator('#products');
       await expect(productsSection).toBeVisible();
     });
 

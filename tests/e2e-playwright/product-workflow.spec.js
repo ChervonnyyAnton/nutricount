@@ -46,7 +46,7 @@ test.describe('Product Management Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Check if products section exists
-    const productsSection = page.locator('#products-section, .products-container, [data-products]').first();
+    const productsSection = page.locator('#products').first();
     await expect(productsSection).toBeVisible();
   });
 

@@ -12,7 +12,7 @@ test.describe('Statistics Workflow', () => {
 
   test('should display statistics page', async ({ page }) => {
     // Verify statistics section is visible
-    const statsSection = page.locator('#statistics-section, .statistics-container, [data-statistics]').first();
+    const statsSection = page.locator('#stats').first();
     await expect(statsSection).toBeVisible();
   });
 

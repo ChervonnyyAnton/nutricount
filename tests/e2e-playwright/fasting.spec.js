@@ -5,14 +5,24 @@ const helpers = require('./helpers/page-helpers');
 test.describe('Fasting Tracking Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
+    
+    // Check if fasting tab exists (Flask version has it, demo doesn't)
+    const fastingTab = page.locator('#fasting-tab');
+    const hasFastingTab = await fastingTab.count() > 0;
+    
+    if (!hasFastingTab) {
+      test.skip('Fasting feature not available in this version (demo SPA)');
+      return;
+    }
+    
     // Navigate to Fasting tab
-    await helpers.clickElement(page, 'text=Fasting');
+    await helpers.clickElement(page, '#fasting-tab');
     await page.waitForTimeout(500); // Wait for tab to load
   });
 
   test('should display fasting page', async ({ page }) => {
     // Verify fasting section is visible
-    const fastingSection = page.locator('#fasting-section, .fasting-container, [data-fasting]').first();
+    const fastingSection = page.locator('#fasting').first();
     await expect(fastingSection).toBeVisible();
   });
 

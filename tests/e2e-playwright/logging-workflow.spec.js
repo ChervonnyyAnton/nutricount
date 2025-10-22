@@ -15,7 +15,7 @@ test.describe('Daily Logging Workflow', () => {
 
   test('should display log page', async ({ page }) => {
     // Verify log section is visible
-    const logSection = page.locator('#log-section, .log-container, [data-log]').first();
+    const logSection = page.locator('#log').first();
     await expect(logSection).toBeVisible();
   });
 
