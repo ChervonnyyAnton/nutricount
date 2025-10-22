@@ -66,6 +66,94 @@
             transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
 
+        .form-control option, .form-select option {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .form-label {
+            color: var(--text-primary);
+        }
+
+        /* Card header styling */
+        .card-header {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        /* Table styling */
+        .table {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .table thead th {
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .table tbody tr {
+            border-color: var(--border-color);
+        }
+
+        .table tbody td {
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Nav tabs styling */
+        .nav-tabs {
+            border-color: var(--border-color);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-secondary);
+            border-color: transparent;
+            transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+            background-color: var(--bg-secondary);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--text-primary);
+            background-color: var(--bg-card);
+            border-color: var(--border-color) var(--border-color) var(--bg-card);
+        }
+
+        /* Text utilities */
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Button styling for outline variants */
+        .btn-outline-secondary {
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+
+        .btn-outline-secondary:hover {
+            color: var(--text-primary);
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+        }
+
+        /* Alert styling */
+        .alert-info {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
         /* Enhanced focus indicators for accessibility */
         .form-control:focus, .btn:focus, .nav-link:focus {
             outline: 3px solid rgba(13, 110, 253, 0.5);
