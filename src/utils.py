@@ -85,12 +85,29 @@ def safe_int(value: Any, default: int = 0) -> int:
 
 
 def clean_string(text: str, max_length: int = 100) -> str:
-    """Clean and truncate string"""
+    """Clean and truncate string, removing potentially dangerous characters"""
     if not text:
         return ""
 
-    # Remove extra whitespace and truncate
-    cleaned = re.sub(r"\s+", " ", str(text).strip())
+    # Convert to string and strip
+    text = str(text).strip()
+
+    # Remove SQL injection patterns and dangerous characters
+    # Remove single quotes, semicolons, double dashes, and other SQL metacharacters
+    dangerous_patterns = [
+        (r"['\";]", ""),  # Remove quotes and semicolons
+        (r"--", ""),       # Remove SQL comments
+        (r"/\*", ""),      # Remove multi-line comment start
+        (r"\*/", ""),      # Remove multi-line comment end
+    ]
+
+    cleaned = text
+    for pattern, replacement in dangerous_patterns:
+        cleaned = re.sub(pattern, replacement, cleaned)
+
+    # Remove extra whitespace
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
     return cleaned[:max_length]
 
 

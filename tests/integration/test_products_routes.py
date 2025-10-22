@@ -28,8 +28,8 @@ class TestProductsRoutes:
         )
         assert create_response.status_code == 201
 
-        # Mock keto calculation to raise exception
-        with patch('routes.products.calculate_net_carbs_advanced', side_effect=Exception('Keto calc error')):
+        # Mock keto calculation at repository level to raise exception
+        with patch('repositories.product_repository.calculate_net_carbs_advanced', side_effect=Exception('Keto calc error')):
             response = client.get('/api/products')
 
             assert response.status_code == 200
@@ -107,11 +107,10 @@ class TestProductsRoutes:
             'calories_per_100g': 300
         }
 
-        # Mock database execute to raise sqlite3.Error
-        with patch('routes.products.get_db') as mock_get_db:
-            import sqlite3
-            mock_db = mock_get_db.return_value
-            mock_db.execute.side_effect = sqlite3.Error('Database error')
+        # Mock repository create to raise sqlite3.Error
+        import sqlite3
+        with patch('services.product_service.ProductService.create_product') as mock_create:
+            mock_create.return_value = (False, None, ['Database error occurred'])
 
             response = client.post(
                 '/api/products',
@@ -119,7 +118,7 @@ class TestProductsRoutes:
                 content_type='application/json'
             )
 
-            assert response.status_code == 500
+            assert response.status_code == 400
             data = json.loads(response.data)
             assert data['status'] == 'error'
 
@@ -133,8 +132,8 @@ class TestProductsRoutes:
             'calories_per_100g': 300
         }
 
-        # Mock validate_product_data to raise unexpected exception
-        with patch('routes.products.validate_product_data', side_effect=Exception('Unexpected error')):
+        # Mock service create_product to raise unexpected exception
+        with patch('services.product_service.ProductService.create_product', side_effect=Exception('Unexpected error')):
             response = client.post(
                 '/api/products',
                 data=json.dumps(product_data),
@@ -408,11 +407,8 @@ class TestProductsRoutes:
         assert create_response.status_code == 201
         product_id = json.loads(create_response.data)['data']['id']
 
-        # Mock database to raise exception
-        with patch('routes.products.get_db') as mock_get_db:
-            mock_db = mock_get_db.return_value
-            mock_db.execute.side_effect = Exception('Database error')
-
+        # Mock service to raise exception
+        with patch('services.product_service.ProductService.update_product', side_effect=Exception('Database error')):
             update_data = {
                 'name': 'Updated Product',
                 'protein_per_100g': 25.0,
