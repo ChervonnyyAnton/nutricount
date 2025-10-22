@@ -1310,6 +1310,13 @@ class NutritionTracker {
             case 'log':
                 this.loadLogEntries();
                 break;
+            case 'dishes':
+                // Ensure there's at least one ingredient row when switching to dishes tab
+                const ingredientsList = document.getElementById('ingredientsList');
+                if (ingredientsList && ingredientsList.children.length === 0) {
+                    this.addIngredientRow();
+                }
+                break;
         }
     }
 
