@@ -210,3 +210,58 @@ def test_dish_detail_exception_handling(client, app):
         response = client.get("/api/dishes/1")
         assert response.status_code == 500
         assert "error" in response.json["message"].lower()
+
+
+def test_dish_create_integrity_error(client, app):
+    """Test IntegrityError handling in dish creation"""
+    import sqlite3
+    from unittest.mock import MagicMock
+
+    # First create a valid product
+    product_data = {
+        "name": "Test Product for Dish Integrity",
+        "category": "leafy_vegetables",
+        "proteins": 5.0,
+        "fats": 2.0,
+        "carbs": 10.0,
+        "calories": 80.0
+    }
+    product_response = client.post("/api/products", json=product_data)
+    assert product_response.status_code == 201
+    product_id = product_response.json["data"]["id"]
+
+    dish_data = {
+        "name": "Test Dish with Integrity Error",
+        "preparation_method": "Raw",
+        "edible_portion": 95.0,
+        "ingredients": [
+            {"product_id": product_id, "quantity": 100.0}
+        ]
+    }
+
+    # Mock database to raise IntegrityError after validation passes
+    with patch("routes.dishes.get_db") as mock_get_db:
+        mock_db = MagicMock()
+        mock_get_db.return_value = mock_db
+
+        # Mock fetchone to return valid product data for ingredient validation
+        mock_db.execute.return_value.fetchone.return_value = {
+            "id": product_id,
+            "name": "Test Product",
+            "proteins_per_100g": 5.0,
+            "fats_per_100g": 2.0,
+            "carbs_per_100g": 10.0,
+            "calories_per_100g": 80.0
+        }
+        # But when execute is called for insertion, raise IntegrityError
+        mock_db.execute.side_effect = [
+            MagicMock(fetchone=lambda: {"id": product_id}),  # First call for product check
+            sqlite3.IntegrityError("UNIQUE constraint failed")  # Second call for insertion
+        ]
+
+        response = client.post("/api/dishes", json=dish_data)
+        assert response.status_code == 400
+        data = response.json
+        assert data["status"] == "error"
+        # Check for database or constraint error
+        assert "database" in data["message"].lower() or "failed" in data["message"].lower()
