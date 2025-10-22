@@ -78,8 +78,18 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Deploy notification
+    - name: Deploy authorization
       run: |
-        echo "🚀 Deployment ready"
+        echo "🚀 Deployment Authorization"
         echo "✅ All tests and builds passed"
-        echo "📡 Webhook will trigger deployment to Raspberry Pi"
+        echo "🔐 Authorizing deployment to production and GitHub Pages"
+        echo ""
+        echo "## 🚀 Deployment Authorization" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Tests passed**: Unit tests, linting, coverage" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Build passed**: Docker image built and health-checked" >> $GITHUB_STEP_SUMMARY
+        echo "🔐 **Authorization granted** for:" >> $GITHUB_STEP_SUMMARY
+        echo "  - Production deployment to Raspberry Pi" >> $GITHUB_STEP_SUMMARY
+        echo "  - GitHub Pages demo deployment" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📡 GitHub Pages workflow will be triggered automatically" >> $GITHUB_STEP_SUMMARY

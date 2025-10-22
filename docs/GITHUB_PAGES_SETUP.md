@@ -23,9 +23,9 @@ That's it! The workflow will automatically deploy on the next push to `main` bra
 ### 2. Trigger Deployment
 
 The demo will automatically deploy when:
-- You push changes to `main` branch that affect `demo/**` files
-- You push changes to the workflow file
-- You manually trigger the workflow
+- You push changes to `main` branch **AND** the CI/CD Pipeline (tests + build) passes successfully
+- The deployment is authorized by the successful completion of all CI/CD checks
+- You manually trigger the workflow (bypasses CI/CD requirement)
 
 #### Manual Trigger (Optional)
 1. Go to **Actions** tab
@@ -43,6 +43,18 @@ After successful deployment (takes ~1-2 minutes):
 The demo will be accessible at the root because we upload only the `demo` directory content.
 
 ## Deployment Status
+
+### CI/CD Pipeline Integration
+
+**Important**: GitHub Pages deployment now requires successful CI/CD Pipeline completion.
+
+The deployment workflow:
+1. **Test job** runs (linting + pytest)
+2. **Build job** runs (Docker build + health check)
+3. **Deploy job** runs (authorization gate)
+4. **Pages deployment** triggers automatically if all above succeed
+
+This ensures that only validated code is deployed to GitHub Pages.
 
 ### Check Deployment Status
 
@@ -74,6 +86,14 @@ Add this badge to your README to show deployment status:
 1. Check that Pages is enabled in Settings
 2. Verify repository has Pages permissions
 3. Ensure branch is `main` (not `master` or other)
+
+### Pages deployment doesn't trigger
+
+**Solution**:
+1. Check that the CI/CD Pipeline completed successfully
+2. Go to Actions tab and verify "CI/CD Pipeline" workflow passed
+3. Pages deployment only triggers after CI/CD success
+4. For manual deployment without CI/CD, use "Run workflow" button
 
 ### Demo shows 404
 
