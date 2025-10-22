@@ -1,0 +1,26 @@
+{
+  "name": "nutricount",
+  "version": "1.0.0",
+  "description": "[![CI/CD Pipeline](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/test.yml/badge.svg)](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/test.yml) [![Deploy Demo](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/ChervonnyyAnton/nutricount/actions/workflows/deploy-demo.yml) [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://chervonnyyanton.github.io/nutricount/)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:smoke": "playwright test smoke.spec.js",
+    "test:e2e:products": "playwright test product-workflow.spec.js",
+    "test:e2e:report": "playwright show-report playwright-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
+  }
+}
