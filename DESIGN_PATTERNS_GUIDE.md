@@ -4,6 +4,43 @@
 
 **Область применения:** Код приложения + тесты (полный спектр лучших практик)
 
+**Статус обновления:** October 22, 2025 - Week 3 Implementation Complete
+
+---
+
+## 📊 Implementation Status (Week 3, October 2025)
+
+### ✅ Fully Implemented Patterns
+
+| Pattern | Status | Location | Tests | Description |
+|---------|--------|----------|-------|-------------|
+| **Adapter Pattern** | ✅ Complete | `frontend/src/adapters/` | 30 tests | Унифицированный доступ к API/LocalStorage |
+| **Repository Pattern** | ✅ Complete | `repositories/` | 21 tests | Абстракция доступа к данным |
+| **Service Layer** | ✅ Complete | `services/` | 17 tests | Централизация бизнес-логики |
+| **Singleton** | ✅ Complete | `src/cache_manager.py` | 41 tests | Единственный экземпляр кэша |
+| **Factory** | ✅ Complete | `src/security.py` | - | Создание JWT токенов |
+| **Decorator** | ✅ Complete | `src/security.py` | - | `@require_auth`, `@rate_limit` |
+| **Observer** | ✅ Complete | `static/js/notifications.js` | - | Event Bus для уведомлений |
+| **Template Method** | ✅ Complete | `tests/` | - | Базовые классы для тестов |
+
+### 📝 Documented Patterns (Ready to Implement)
+
+| Pattern | Priority | Location (Planned) | Description |
+|---------|----------|-------------------|-------------|
+| **Strategy** | High | `src/nutrition_calculator.py` | Разные формулы BMR |
+| **Builder** | Medium | `services/dish_service.py` | Создание сложных блюд |
+| **Chain of Responsibility** | Medium | `src/validators/` | Цепочка валидаторов |
+| **Facade** | Low | `src/nutrition_api.py` | Упрощение nutrition API |
+| **Proxy** | Low | `src/cache_proxy.py` | Прокси с кэшированием |
+
+### 📈 Progress Metrics
+
+- **Total Patterns Documented:** 13+
+- **Patterns Implemented:** 8 ✅
+- **Unit Tests:** 68 tests for patterns (21 Repository + 17 Service + 30 Adapter)
+- **Code Coverage:** 94%+
+- **SOLID Compliance:** ✅ All 5 principles applied
+
 ---
 
 ## 📚 Содержание
@@ -231,42 +268,380 @@ class ProductTestCase(BaseTestCase):
 
 ### Паттерны для реализации 📝
 
-#### 8. Repository Pattern (Репозиторий)
+#### 8. Repository Pattern (Репозиторий) ✅ РЕАЛИЗОВАН
 **Зачем:** Абстракция доступа к данным
 
-**Планируемая реализация (Week 3-4):**
+**Статус:** ✅ Полностью реализован (Week 3, October 2025)
+
+**Реальная реализация:**
 ```python
-# repositories/product_repository.py
-class ProductRepository:
+# repositories/base_repository.py
+class BaseRepository(ABC):
+    """Базовый абстрактный репозиторий"""
+    
     def __init__(self, db):
         self.db = db
     
-    def find_all(self):
-        return self.db.execute("SELECT * FROM products")
+    @abstractmethod
+    def find_all(self, **kwargs) -> List[Dict[str, Any]]:
+        """Найти все сущности"""
+        pass
     
-    def find_by_id(self, id):
-        return self.db.execute("SELECT * FROM products WHERE id = ?", (id,))
+    @abstractmethod
+    def find_by_id(self, entity_id: int) -> Optional[Dict[str, Any]]:
+        """Найти по ID"""
+        pass
     
-    def save(self, product):
-        if product.id:
-            return self._update(product)
-        return self._insert(product)
+    @abstractmethod
+    def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Создать новую сущность"""
+        pass
     
-    def delete(self, id):
-        self.db.execute("DELETE FROM products WHERE id = ?", (id,))
+    @abstractmethod
+    def update(self, entity_id: int, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Обновить существующую"""
+        pass
+    
+    @abstractmethod
+    def delete(self, entity_id: int) -> bool:
+        """Удалить по ID"""
+        pass
 
-# routes/products.py
-@app.route('/api/products')
-def get_products():
-    repo = ProductRepository(db)
-    products = repo.find_all()
-    return jsonify(products)
+# repositories/product_repository.py
+class ProductRepository(BaseRepository):
+    """Репозиторий для работы с продуктами"""
+    
+    def find_all(self, search="", limit=50, offset=0, include_calculated_fields=True):
+        """Найти все продукты с поиском и пагинацией"""
+        query = """
+            SELECT * FROM products
+            WHERE name LIKE ?
+            ORDER BY name COLLATE NOCASE
+            LIMIT ? OFFSET ?
+        """
+        products = []
+        for row in self.db.execute(query, (f"%{search}%", limit, offset)).fetchall():
+            product = dict(row)
+            if include_calculated_fields:
+                product = self._add_calculated_fields(product)
+            products.append(product)
+        return products
+    
+    def find_by_id(self, product_id: int):
+        """Найти продукт по ID"""
+        row = self.db.execute(
+            "SELECT * FROM products WHERE id = ?",
+            (product_id,)
+        ).fetchone()
+        return dict(row) if row else None
+    
+    def create(self, data: Dict[str, Any]):
+        """Создать продукт с автоматическим расчетом калорий и кето-индекса"""
+        # Извлекаем данные
+        name = data["name"]
+        protein = data["protein_per_100g"]
+        fat = data["fat_per_100g"]
+        carbs = data["carbs_per_100g"]
+        
+        # Рассчитываем калории по формуле Atwater
+        calculated_calories = calculate_calories_from_macros(protein, fat, carbs)
+        
+        # Рассчитываем net carbs и keto index
+        net_carbs_result = calculate_net_carbs_advanced(carbs, ...)
+        keto_result = calculate_keto_index_advanced(protein, fat, carbs, ...)
+        
+        # Сохраняем в БД
+        cursor = self.db.execute(
+            """INSERT INTO products (...) VALUES (?, ?, ...)""",
+            (name, calculated_calories, protein, fat, carbs, ...)
+        )
+        self.db.commit()
+        
+        return self.find_by_id(cursor.lastrowid)
+    
+    def update(self, product_id: int, data: Dict[str, Any]):
+        """Обновить продукт"""
+        if not self.exists(product_id):
+            return None
+        
+        self.db.execute(
+            """UPDATE products SET name = ?, ... WHERE id = ?""",
+            (data["name"], ..., product_id)
+        )
+        self.db.commit()
+        return self.find_by_id(product_id)
+    
+    def delete(self, product_id: int) -> bool:
+        """Удалить продукт"""
+        cursor = self.db.execute(
+            "DELETE FROM products WHERE id = ?",
+            (product_id,)
+        )
+        self.db.commit()
+        return cursor.rowcount > 0
+    
+    def is_used_in_logs(self, product_id: int) -> tuple[bool, int]:
+        """Проверить использование в логах (бизнес-правило)"""
+        usage_count = self.db.execute(
+            """SELECT COUNT(*) as count FROM log_entries
+               WHERE item_type = 'product' AND item_id = ?""",
+            (product_id,)
+        ).fetchone()["count"]
+        return usage_count > 0, usage_count
+```
+
+**Использование:**
+```python
+# В маршруте или сервисе
+db = get_db()
+repo = ProductRepository(db)
+
+# Получить все продукты
+products = repo.find_all(search="chicken", limit=10)
+
+# Получить по ID
+product = repo.find_by_id(1)
+
+# Создать новый
+new_product = repo.create({
+    "name": "Salmon",
+    "protein_per_100g": 20.0,
+    "fat_per_100g": 13.0,
+    "carbs_per_100g": 0.0
+})
+
+# Обновить
+updated = repo.update(1, {"name": "Wild Salmon", ...})
+
+# Удалить (с проверкой бизнес-правил)
+is_used, count = repo.is_used_in_logs(1)
+if not is_used:
+    repo.delete(1)
 ```
 
 **Преимущества:**
-- Отделение бизнес-логики от работы с БД
-- Легко тестировать (mock repository)
-- Легко менять БД (SQLite → PostgreSQL)
+- ✅ Отделение бизнес-логики от работы с БД
+- ✅ Легко тестировать (21 unit test с мокированием БД)
+- ✅ Легко менять БД (SQLite → PostgreSQL)
+- ✅ Консистентный интерфейс для всех сущностей
+- ✅ Единственная точка изменения SQL-запросов
+- ✅ Возможность добавить кэширование на уровне репозитория
+
+**Тестирование:**
+```python
+# tests/unit/test_product_repository.py (21 тест)
+def test_create_product_minimal(product_repo):
+    data = {
+        "name": "Chicken Breast",
+        "protein_per_100g": 31.0,
+        "fat_per_100g": 3.6,
+        "carbs_per_100g": 0.0,
+    }
+    product = product_repo.create(data)
+    
+    assert product is not None
+    assert product["id"] > 0
+    assert product["name"] == "Chicken Breast"
+    # Calories automatically calculated
+    assert 150 < product["calories_per_100g"] < 160
+```
+
+**Файлы:**
+- `repositories/base_repository.py` - Базовый класс (109 строк)
+- `repositories/product_repository.py` - Реализация для продуктов (347 строк)
+- `tests/unit/test_product_repository.py` - 21 unit test (526 строк)
+
+---
+
+#### 8.1 Service Layer Pattern (Слой сервисов) ✅ РЕАЛИЗОВАН
+**Зачем:** Централизация бизнес-логики
+
+**Статус:** ✅ Полностью реализован (Week 3, October 2025)
+
+**Проблема:** Бизнес-логика размазана по маршрутам, сложно тестировать
+
+**Решение:** Слой сервисов между маршрутами и репозиториями
+
+**Реальная реализация:**
+```python
+# services/product_service.py
+class ProductService:
+    """Сервис для бизнес-логики работы с продуктами"""
+    
+    def __init__(self, repository: ProductRepository):
+        self.repository = repository
+    
+    def get_products(self, search="", limit=50, offset=0, use_cache=True):
+        """Получить продукты с кэшированием и бизнес-правилами"""
+        # Применяем бизнес-правила
+        limit = min(limit, Config.API_MAX_PER_PAGE)  # Не больше лимита
+        offset = max(0, offset)  # Не меньше 0
+        
+        # Проверяем кэш
+        if use_cache:
+            cache_key = f"products:{search}:{limit}:{offset}"
+            cached_result = cache_manager.get(cache_key)
+            if cached_result is not None:
+                return cached_result
+        
+        # Получаем из репозитория
+        products = self.repository.find_all(
+            search=search,
+            limit=limit,
+            offset=offset,
+            include_calculated_fields=True
+        )
+        
+        # Кэшируем
+        if use_cache:
+            cache_manager.set(cache_key, products, 300)
+        
+        return products
+    
+    def create_product(self, data: Dict[str, Any]) -> tuple[bool, Optional[Dict], List[str]]:
+        """Создать продукт с валидацией и бизнес-правилами"""
+        # Валидация
+        is_valid, errors, cleaned_data = validate_product_data(data)
+        if not is_valid:
+            return False, None, errors
+        
+        # Бизнес-правило: проверка дубликатов
+        existing = self.repository.find_by_name(cleaned_data["name"])
+        if existing:
+            return False, None, [f"Product '{cleaned_data['name']}' already exists"]
+        
+        # Создание
+        try:
+            product = self.repository.create(cleaned_data)
+            cache_invalidate("products:*")  # Инвалидируем кэш
+            return True, product, []
+        except Exception as e:
+            return False, None, [f"Failed to create: {str(e)}"]
+    
+    def delete_product(self, product_id: int) -> tuple[bool, List[str]]:
+        """Удалить продукт с проверкой бизнес-правил"""
+        # Проверка существования
+        if not self.repository.exists(product_id):
+            return False, ["Product not found"]
+        
+        # Бизнес-правило: нельзя удалить используемый продукт
+        is_used, usage_count = self.repository.is_used_in_logs(product_id)
+        if is_used:
+            return False, [f"Cannot delete: used in {usage_count} log entries"]
+        
+        # Удаление
+        try:
+            success = self.repository.delete(product_id)
+            if success:
+                cache_invalidate("products:*")
+                return True, []
+            return False, ["Failed to delete"]
+        except Exception as e:
+            return False, [f"Failed to delete: {str(e)}"]
+```
+
+**Использование в маршрутах (Thin Controllers):**
+```python
+# routes/products.py
+from services.product_service import ProductService
+from repositories.product_repository import ProductRepository
+
+@products_bp.route("", methods=["GET", "POST"])
+@monitor_http_request
+@rate_limit("api")
+def products_api():
+    """Тонкий контроллер - делегирует все сервису"""
+    db = get_db()
+    try:
+        # Создаем сервис
+        repo = ProductRepository(db)
+        service = ProductService(repo)
+        
+        if request.method == "GET":
+            # Просто вызываем сервис
+            products = service.get_products(
+                search=request.args.get("search", ""),
+                limit=int(request.args.get("limit", 50)),
+                offset=int(request.args.get("offset", 0))
+            )
+            return jsonify(json_response(products))
+        
+        else:  # POST
+            data = safe_get_json()
+            success, product, errors = service.create_product(data)
+            
+            if success:
+                return jsonify(json_response(
+                    product,
+                    SUCCESS_MESSAGES["product_created"],
+                    HTTP_CREATED
+                )), HTTP_CREATED
+            else:
+                return jsonify(json_response(
+                    None,
+                    "Validation failed",
+                    HTTP_BAD_REQUEST,
+                    errors=errors
+                )), HTTP_BAD_REQUEST
+    
+    finally:
+        db.close()
+```
+
+**Преимущества:**
+- ✅ Бизнес-логика централизована в одном месте
+- ✅ Легко тестировать (17 unit tests с мокированием)
+- ✅ Маршруты становятся тонкими (thin controllers)
+- ✅ Переиспользование логики между API и CLI
+- ✅ Легко добавить новые правила валидации
+- ✅ Кэширование и другие кросс-функциональности
+
+**Архитектура (Layers):**
+```
+┌─────────────────────┐
+│   Routes (API)      │  ← Thin controllers, HTTP-специфичное
+├─────────────────────┤
+│   Services          │  ← Бизнес-логика, валидация, правила
+├─────────────────────┤
+│   Repositories      │  ← Доступ к данным, SQL
+├─────────────────────┤
+│   Database          │  ← SQLite
+└─────────────────────┘
+```
+
+**Тестирование:**
+```python
+# tests/unit/test_product_service.py (17 тестов)
+def test_create_product_duplicate_name(product_service, mock_repository):
+    """Тест бизнес-правила: запрет дубликатов"""
+    # Setup
+    cleaned_data = {"name": "Existing Product"}
+    mock_repository.find_by_name.return_value = {"id": 1, "name": "Existing Product"}
+    
+    # Act
+    with patch('services.product_service.validate_product_data') as mock_validate:
+        mock_validate.return_value = (True, [], cleaned_data)
+        success, product, errors = product_service.create_product(cleaned_data)
+    
+    # Assert
+    assert success is False
+    assert "already exists" in errors[0]
+    mock_repository.create.assert_not_called()  # Не должны были создавать
+```
+
+**Файлы:**
+- `services/product_service.py` - Сервис для продуктов (228 строк)
+- `tests/unit/test_product_service.py` - 17 unit tests (375 строк)
+
+**SOLID принципы в реализации:**
+- **S** (Single Responsibility): Каждый класс отвечает за одно
+  - Repository → доступ к данным
+  - Service → бизнес-логика
+  - Routes → HTTP-обработка
+- **O** (Open/Closed): Легко добавить новый репозиторий/сервис
+- **L** (Liskov Substitution): Можно подставить любой репозиторий
+- **I** (Interface Segregation): Интерфейсы минимальны
+- **D** (Dependency Inversion): Зависим от абстракций (BaseRepository)
 
 ---
 
