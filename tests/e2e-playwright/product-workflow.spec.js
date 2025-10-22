@@ -157,7 +157,7 @@ test.describe('Product Management Workflow', () => {
     await page.waitForTimeout(500);
     
     // Look for keto index display
-    const ketoIndex = page.locator('.keto-index, [data-keto-index], text=/keto/i').first();
+    const ketoIndex = page.locator('.keto-index, [data-keto-index]').or(page.locator('text=/keto/i')).first();
     const hasKetoIndex = await ketoIndex.isVisible({ timeout: 2000 }).catch(() => false);
     
     // Keto index should be calculated and displayed

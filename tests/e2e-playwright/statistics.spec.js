@@ -73,7 +73,7 @@ test.describe('Statistics Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for calorie display
-    const calories = page.locator('text=/calor/i, .calories, [data-calories]').first();
+    const calories = page.locator('.calories, [data-calories]').or(page.locator('text=/calor/i')).first();
     
     if (await calories.isVisible({ timeout: 2000 })) {
       const text = await calories.textContent();
@@ -88,7 +88,7 @@ test.describe('Statistics Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for keto-related information
-    const ketoSection = page.locator('.keto, [data-keto], text=/keto index/i').first();
+    const ketoSection = page.locator('.keto, [data-keto]').or(page.locator('text=/keto index/i')).first();
     
     if (await ketoSection.isVisible({ timeout: 2000 })) {
       const content = await ketoSection.textContent();
@@ -105,7 +105,7 @@ test.describe('Statistics Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for net carbs display
-    const netCarbs = page.locator('text=/net carb/i, [data-net-carbs]').first();
+    const netCarbs = page.locator('[data-net-carbs]').or(page.locator('text=/net carb/i')).first();
     
     if (await netCarbs.isVisible({ timeout: 2000 })) {
       const text = await netCarbs.textContent();
@@ -158,7 +158,7 @@ test.describe('Statistics Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for goal progress indicators
-    const progress = page.locator('.progress, [data-progress], text=/goal/i').first();
+    const progress = page.locator('.progress, [data-progress]').or(page.locator('text=/goal/i')).first();
     
     if (await progress.isVisible({ timeout: 2000 })) {
       const content = await progress.textContent();
@@ -201,7 +201,7 @@ test.describe('Statistics Workflow', () => {
       await page.waitForTimeout(500);
       
       // Look for average statistics
-      const averages = page.locator('text=/average/i, [data-average]').first();
+      const averages = page.locator('[data-average]').or(page.locator('text=/average/i')).first();
       
       if (await averages.isVisible({ timeout: 2000 })) {
         const text = await averages.textContent();
