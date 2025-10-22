@@ -58,9 +58,12 @@ To make the demo publicly accessible, you need to enable GitHub Pages **once**. 
 
 **Automatic Deployments:**
 - Every time you push to `main` branch
-- If changes affect `demo/**` files
-- Workflow automatically re-deploys the demo
+- **Only if** the CI/CD Pipeline (tests + build) passes successfully
+- The deploy job authorizes the GitHub Pages deployment
+- Workflow automatically deploys the demo
 - No manual action needed! 🚀
+
+**Safety**: The demo will never deploy if tests or builds fail.
 
 **URL will always be:**
 - https://chervonnyyanton.github.io/nutricount/

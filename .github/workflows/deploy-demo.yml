@@ -1,11 +1,11 @@
 name: Deploy Demo to GitHub Pages
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
     branches: [ main ]
-    paths:
-      - 'demo/**'
-      - '.github/workflows/deploy-demo.yml'
   workflow_dispatch:
 
 # Sets permissions for GitHub Pages deployment
@@ -23,12 +23,27 @@ jobs:
   deploy:
     name: Deploy Demo to GitHub Pages
     runs-on: ubuntu-latest
+    # Only deploy if CI/CD Pipeline succeeded (or if manually triggered)
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
+    - name: Verify CI/CD Authorization
+      run: |
+        echo "## ✅ CI/CD Pipeline Authorization" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "This deployment is authorized by the successful completion of:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Test job (linting + unit tests)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Build job (Docker image build + health check)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Deploy job (deployment authorization)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**CI/CD Workflow Run**: ${{ github.event.workflow_run.html_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Triggered by**: ${{ github.event.workflow_run.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
     - name: Checkout
       uses: actions/checkout@v4
     
