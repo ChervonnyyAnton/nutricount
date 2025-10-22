@@ -73,7 +73,7 @@ module.exports = defineConfig({
     : {
         command: 'python3 app.py',
         url: 'http://localhost:5000',
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: true, // Always reuse existing server (CI starts it manually)
         timeout: 120 * 1000,
         env: {
           FLASK_ENV: 'test',
