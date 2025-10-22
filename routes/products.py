@@ -73,9 +73,11 @@ def products_api():
                     HTTP_BAD_REQUEST,
                 )
 
-    except Exception:
-        # Let Flask's error handler handle unexpected errors
-        raise
+    except Exception as e:
+        # Handle unexpected errors
+        from flask import current_app
+        current_app.logger.error(f"Unexpected error in products API: {e}")
+        return jsonify(json_response(None, "Internal server error", status=500)), 500
     finally:
         db.close()
 
@@ -142,8 +144,10 @@ def product_detail_api(product_id):
                     status,
                 )
 
-    except Exception:
-        # Let Flask's error handler handle unexpected errors
-        raise
+    except Exception as e:
+        # Handle unexpected errors
+        from flask import current_app
+        current_app.logger.error(f"Unexpected error in products API: {e}")
+        return jsonify(json_response(None, "Internal server error", status=500)), 500
     finally:
         db.close()
