@@ -131,11 +131,12 @@ class DishRepository(BaseRepository):
 
         for ingredient in data["ingredients"]:
             # Get product data
-            product = self.db.execute(
+            product_row = self.db.execute(
                 "SELECT * FROM products WHERE id = ?", (ingredient["product_id"],)
             ).fetchone()
 
-            if product:
+            if product_row:
+                product = dict(product_row)
                 # Create RecipeIngredient for calculation
                 recipe_ingredient = RecipeIngredient(
                     name=product["name"],
@@ -195,15 +196,15 @@ class DishRepository(BaseRepository):
                 keto_category = ?
             WHERE id = ?""",
             (
-                recipe_result["total_raw_weight"],
-                recipe_result["total_cooked_weight"],
-                recipe_result["per_100g"]["calories"],
-                recipe_result["per_100g"]["protein"],
-                recipe_result["per_100g"]["fats"],
-                recipe_result["per_100g"]["carbs"],
-                recipe_result["per_100g"]["net_carbs"],
-                recipe_result["per_100g"].get("fiber", 0),
-                recipe_result["per_100g"].get("sugars", 0),
+                recipe_result["weights"]["total_raw"],
+                recipe_result["weights"]["total_cooked"],
+                recipe_result["nutrition_per_100g"]["calories"],
+                recipe_result["nutrition_per_100g"]["protein"],
+                recipe_result["nutrition_per_100g"]["fats"],
+                recipe_result["nutrition_per_100g"]["carbs"],
+                recipe_result["nutrition_per_100g"]["net_carbs"],
+                recipe_result["nutrition_per_100g"].get("fiber", 0),
+                recipe_result["nutrition_per_100g"].get("sugars", 0),
                 keto_index,
                 keto_category,
                 dish_id,
@@ -246,11 +247,12 @@ class DishRepository(BaseRepository):
             recipe_ingredients = []
 
             for ingredient in data["ingredients"]:
-                product = self.db.execute(
+                product_row = self.db.execute(
                     "SELECT * FROM products WHERE id = ?", (ingredient["product_id"],)
                 ).fetchone()
 
-                if product:
+                if product_row:
+                    product = dict(product_row)
                     recipe_ingredient = RecipeIngredient(
                         name=product["name"],
                         raw_weight=ingredient["quantity_grams"],
@@ -308,15 +310,15 @@ class DishRepository(BaseRepository):
                     keto_category = ?
                 WHERE id = ?""",
                 (
-                    recipe_result["total_raw_weight"],
-                    recipe_result["total_cooked_weight"],
-                    recipe_result["per_100g"]["calories"],
-                    recipe_result["per_100g"]["protein"],
-                    recipe_result["per_100g"]["fats"],
-                    recipe_result["per_100g"]["carbs"],
-                    recipe_result["per_100g"]["net_carbs"],
-                    recipe_result["per_100g"].get("fiber", 0),
-                    recipe_result["per_100g"].get("sugars", 0),
+                    recipe_result["weights"]["total_raw"],
+                    recipe_result["weights"]["total_cooked"],
+                    recipe_result["nutrition_per_100g"]["calories"],
+                    recipe_result["nutrition_per_100g"]["protein"],
+                    recipe_result["nutrition_per_100g"]["fats"],
+                    recipe_result["nutrition_per_100g"]["carbs"],
+                    recipe_result["nutrition_per_100g"]["net_carbs"],
+                    recipe_result["nutrition_per_100g"].get("fiber", 0),
+                    recipe_result["nutrition_per_100g"].get("sugars", 0),
                     keto_index,
                     keto_category,
                     dish_id,
