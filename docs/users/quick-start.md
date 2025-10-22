@@ -18,7 +18,7 @@ Nutricount is a **privacy-focused nutrition tracking application** designed for:
 Perfect for trying out Nutricount without installation:
 
 1. **Open the Demo**
-   - Visit: [Demo Version](https://chervonnyyanton.github.io/nutricount/demo/)
+   - Visit: [Demo Version](https://chervonnyyanton.github.io/nutricount/)
    - Or open `demo/index.html` in your browser
    
 2. **Start Tracking**
@@ -442,7 +442,7 @@ Nutricount works great on mobile:
 
 **Ready to start tracking?** 🎉
 
-**Browser Demo**: [Open Demo](https://chervonnyyanton.github.io/nutricount/demo/)  
+**Browser Demo**: [Open Demo](https://chervonnyyanton.github.io/nutricount/)  
 **Self-Hosted**: See [Setup Guide](../../PROJECT_SETUP.md)
 
 **Stay healthy, stay consistent!** 💪

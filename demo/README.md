@@ -2,6 +2,12 @@
 
 **Standalone Single Page Application for public demonstration**
 
+## 🌐 Live Demo
+
+**[Try it now: https://chervonnyyanton.github.io/nutricount/](https://chervonnyyanton.github.io/nutricount/)**
+
+No installation required! Works on all devices (desktop, tablet, phone).
+
 ## 🎯 Overview
 
 This is a browser-only demo version of the Nutrition Tracker application. It provides the same functionality as the main application but stores all data locally in your browser using LocalStorage. Perfect for public demonstrations and mobile devices.
