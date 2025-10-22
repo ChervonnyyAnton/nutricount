@@ -84,40 +84,94 @@ Added a verification step in Pages deployment to show which CI/CD run authorized
 
 ## Workflow Execution Flow
 
-### Normal Push to Main Branch
+### Visual Diagram
 
 ```
-1. Push to main branch
-   ↓
-2. CI/CD Pipeline triggers
-   ↓
-   ├─→ Test job (lint + pytest)
-   ↓   ├─→ If fails: STOP (no deployment)
-   ↓   └─→ If passes: continue
-   ↓
-   ├─→ Build job (Docker build + health check)
-   ↓   ├─→ If fails: STOP (no deployment)
-   ↓   └─→ If passes: continue
-   ↓
-   └─→ Deploy job (authorization)
-       ├─→ If fails: STOP (no deployment)
-       └─→ If passes: authorize
-           ↓
-3. CI/CD Pipeline completes successfully
-   ↓
-4. GitHub Pages workflow triggers automatically
-   ↓
-5. Pages deployment happens
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     GitHub Actions Workflow Flow                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                            PUSH TO MAIN BRANCH
+                                     │
+                                     ▼
+                    ┌────────────────────────────────┐
+                    │   CI/CD Pipeline Workflow      │
+                    │   (.github/workflows/test.yml) │
+                    └────────────────────────────────┘
+                                     │
+                                     ▼
+                    ┌────────────────────────────────┐
+                    │        1. TEST JOB             │
+                    │   - Python setup               │
+                    │   - Install dependencies       │
+                    │   - Flake8 linting             │
+                    │   - Pytest + coverage          │
+                    └────────────────────────────────┘
+                                     │
+                          ┌──────────┴──────────┐
+                          │                     │
+                      PASS ✅                FAIL ❌
+                          │                     │
+                          ▼                     ▼
+        ┌────────────────────────────┐    STOP - No deployment
+        │     2. BUILD JOB           │    Pages NOT triggered
+        │   - Docker Buildx          │
+        │   - Build image            │
+        │   - Health check test      │
+        └────────────────────────────┘
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+      PASS ✅                FAIL ❌
+          │                     │
+          ▼                     ▼
+┌──────────────────────┐   STOP - No deployment
+│   3. DEPLOY JOB      │   Pages NOT triggered
+│   (AUTHORIZATION)    │
+│   - Checks passed    │
+│   - Authorize        │
+│   - Signal Pages     │
+└──────────────────────┘
+          │
+      SUCCESS ✅
+          │
+          ▼
+┌──────────────────────────────────────────┐
+│  CI/CD Pipeline Completed Successfully   │
+└──────────────────────────────────────────┘
+          │
+          │ (workflow_run trigger)
+          │
+          ▼
+┌────────────────────────────────────────────────┐
+│   GitHub Pages Workflow TRIGGERED              │
+│   (.github/workflows/deploy-demo.yml)          │
+└────────────────────────────────────────────────┘
+          │
+          ▼
+┌────────────────────────────────────────────────┐
+│   Verify CI/CD Authorization                   │
+│   - Check workflow_run.conclusion == 'success' │
+│   - Display CI/CD run link                     │
+└────────────────────────────────────────────────┘
+          │
+          ▼
+┌────────────────────────────────────────────────┐
+│   Deploy to GitHub Pages                       │
+│   - Setup Pages                                │
+│   - Upload demo/ artifact                      │
+│   - Deploy                                     │
+└────────────────────────────────────────────────┘
+          │
+          ▼
+     ✅ DEPLOYED
+     https://chervonnyyanton.github.io/nutricount/
 ```
 
-### Manual Trigger
+### Manual Trigger (Emergency/Testing)
 
 ```
-1. User clicks "Run workflow" on deploy-demo workflow
-   ↓
-2. Workflow runs immediately (bypasses CI/CD check)
-   ↓
-3. Pages deployment happens
+User clicks "Run workflow" → Bypasses CI/CD check → Deploys immediately
 ```
 
 ## Benefits
