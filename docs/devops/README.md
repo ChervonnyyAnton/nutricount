@@ -1,8 +1,8 @@
 # DevOps Documentation
 
 **Target Audience:** DevOps Engineers, Site Reliability Engineers, Platform Engineers  
-**Status:** ✅ Complete (Week 3)  
-**Last Updated:** October 22, 2025
+**Status:** ✅ Complete (Week 5 Update)  
+**Last Updated:** October 23, 2025
 
 ## Overview
 
@@ -11,7 +11,18 @@ This section provides comprehensive guides for DevOps engineers working on the N
 ## Documentation
 
 ### CI/CD Pipeline
-📄 **[CI/CD Pipeline Guide](ci-cd-pipeline.md)** - Complete CI/CD methodology
+
+📄 **[CI/CD Architecture (Week 5)](ci-cd-architecture.md)** - ⭐ UPDATED Week 5
+- Complete pipeline architecture overview
+- Workflow orchestration with dependencies
+- 3-stage pipeline (Test → Build → Deploy Authorization)
+- GitHub Pages deployment with CI/CD gates
+- E2E testing post-deployment
+- Quality gates and security integration
+- Testing pyramid (Unit, Integration, E2E)
+- Future enhancements (rollback, monitoring)
+
+📄 **[CI/CD Pipeline Guide](ci-cd-pipeline.md)** - Detailed CI/CD methodology
 - GitHub Actions workflows
 - Deployment automation
 - Docker configuration
