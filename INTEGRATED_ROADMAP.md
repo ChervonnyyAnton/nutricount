@@ -30,25 +30,66 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
 - **Week 2 Core Implementation**: Business logic, ApiAdapter, build system, tests ✅
 - **Week 3 Documentation**: QA, DevOps, User, PO/PM guides ✅
 - **Week 4 E2E Testing**: Playwright framework, 120 E2E tests, CI/CD ✅
-- **Week 5 Design & CI/CD**: Design system, architecture documentation ✅ NEW
+- **Week 5 Design & CI/CD**: Design system, architecture documentation ✅
+- **Week 6 Documentation** (Phases 1-2): User research + end-user docs (3,853 lines) ✅ NEW
 
-### In Progress ⏳
-- Phase 2: Mutation Testing (Infrastructure ready, awaiting strategy decision)
-- **Week 5**: Advanced CI/CD, design documentation (95% complete) ✅ UPDATED
-  - ✅ Design system documentation complete (3,800+ lines)
-  - ✅ Clean Architecture & MVC documented
-  - ✅ CI/CD Architecture documented (600+ lines) - NEW
-  - ⏳ User research guide (Week 6)
+### Priority 1: Technical Tasks 🔧 (NEXT FOCUS)
+- **Phase 6: Service Layer Extraction** (Architecture Improvements)
+  - Extract business logic from routes to service classes
+  - Implement ProductService, DishService, LogService, FastingService
+  - Improve testability and maintainability
+  - Update unit tests for service layer
+  - **Estimated**: 18-24 hours (Week 7-8)
+- **Rollback Mechanism Implementation**
+  - Implement failure detection
+  - Automated rollback workflow
+  - Testing and validation
+  - **Estimated**: 8-10 hours (Week 7)
+- **Production Deployment Automation**
+  - Webhook-based deployment implementation
+  - Health check automation
+  - Zero-downtime deployment
+  - Monitoring integration
+  - **Estimated**: 6-8 hours (Week 7)
+
+### Priority 2: Known Issues 🐛 (HIGH PRIORITY)
+- **E2E Test Fixes**: Re-enable disabled E2E tests (see E2E_TEST_ANALYSIS.md)
+  - Fix Playwright installation issues in CI
+  - Resolve server startup race conditions
+  - Re-enable e2e-tests.yml workflow
+  - Ensure 120+ E2E tests pass consistently
+  - **Estimated**: 9-13 hours (Week 7)
+- **Mutation Testing Strategy**
+  - Define mutation testing approach
+  - Set target mutation scores
+  - Implement critical module testing
+  - **Estimated**: 8-12 hours (Week 8)
+
+### Priority 3: Documentation & Polish 📚 (LOWER PRIORITY)
+- **Week 6 Remaining**: Documentation & Community Launch (60% complete)
+  - ✅ Phase 1: User research guide (1,660 lines) - COMPLETED
+  - ✅ Phase 2: End-user documentation (2,193 lines) - COMPLETED
+  - ⏳ Phase 3: Community infrastructure setup
+  - ⏳ Phase 4: Rollback mechanism design documentation
+  - ⏳ Phase 5: Production deployment planning documentation
+- **UX Documentation Enhancements**
+  - Command Pattern documentation
+  - Test Data Builders guide
+  - Page Object Pattern guide
+  - Mobile UX best practices
+  - Accessibility enhancement guide
 
 ### Metrics
 - **Tests**: 844 total (passed), 1 skipped
 - **Coverage**: 87-94% (excellent across modules)
 - **Quality Score**: 96/100 (Grade A)
 - **Linting**: 0 errors
-- **Documentation**: 70+ markdown files, 4,400+ new lines this week ✅ UPDATED
-- **Week 5 Progress**: 95% complete ✅ UPDATED
-- **Design Documentation**: 100% (7 comprehensive documents)
-- **CI/CD Documentation**: 100% (Architecture fully documented) ✅ NEW
+- **Documentation**: 70+ markdown files, 8,253+ new lines (Week 5+6) ✅ UPDATED
+- **Week 5 Progress**: 100% complete ✅
+- **Week 6 Progress**: 60% complete (Phases 1-2 done, 3,853 lines) ✅ NEW
+- **Design Documentation**: 100% (8 comprehensive documents) ✅
+- **User Documentation**: 100% (5 comprehensive documents) ✅ NEW
+- **CI/CD Documentation**: 100% (Architecture fully documented) ✅
 
 ---
 

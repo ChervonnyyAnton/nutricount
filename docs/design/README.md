@@ -41,7 +41,22 @@ Welcome to the Nutricount Design Documentation! This directory contains comprehe
 
 **Use for:** Mobile development, responsive design, PWA implementation
 
-### 4. [Component Library](component-library.md)
+### 4. [User Research Guide](user-research-guide.md) 🆕
+**Comprehensive user research methodology including:**
+- User research fundamentals (exploratory, generative, evaluative)
+- Research methodologies (interviews, usability testing, surveys, card sorting)
+- Persona development process
+- User interview techniques (planning, conducting, analyzing)
+- Usability testing (task-based, think-aloud, remote unmoderated)
+- A/B testing (hypothesis, metrics, analysis, decision-making)
+- Analytics & metrics (event tracking, dashboards, funnels)
+- Tools & resources (research, design, analytics tools)
+- Research process (6-week flow)
+- Best practices (ethics, quality, common pitfalls)
+
+**Use for:** Planning user research, conducting interviews/tests, analyzing data, making data-driven decisions
+
+### 5. [Component Library](component-library.md)
 **Complete UI component catalog including:**
 - Buttons (primary, secondary, outline, danger)
 - Cards (standard, target, macro)
@@ -221,8 +236,14 @@ Info: #0dcaf0 (Cyan)
 - **WCAG Compliance:** Level AA ✅
 - **Mobile Performance:** 92/100 (Lighthouse Mobile)
 - **Design System Coverage:** 100%
+- **User Research Guide:** Complete ✅ (Week 6)
 
 ### Recent Updates
+- **October 23, 2025:** Week 6 user research guide complete ✅
+  - Comprehensive user research methodologies documented
+  - Interview and usability testing guides added
+  - A/B testing framework established
+  - Analytics and metrics best practices documented
 - **October 23, 2025:** Week 5 design documentation complete
   - Created comprehensive design system documentation
   - Added WCAG 2.2 accessibility checklist
@@ -230,10 +251,10 @@ Info: #0dcaf0 (Cyan)
   - Established component library standards
 
 ### Next Steps
-- [ ] Create Figma component library (Week 6)
-- [ ] Add user research documentation (Week 6)
-- [ ] Document animation patterns (Week 6)
-- [ ] Create design handoff guide (Week 6)
+- [ ] Create Figma component library (Future)
+- [x] Add user research documentation (Week 6) ✅
+- [ ] Document animation patterns (Future)
+- [ ] Create design handoff guide (Future)
 
 ---
 
