@@ -9,10 +9,15 @@
 ## 🎯 Week 6 Objectives
 
 Based on INTEGRATED_ROADMAP.md, Week 6 focuses on:
-1. **Documentation & Polish** (Refactoring Track)
-2. **Community Launch** (Educational & FOSS Track)
-3. **Rollback Mechanism** (Unified Architecture Track)
-4. **Advanced Patterns** (Design Patterns Track)
+1. **Documentation & Polish** (Refactoring Track) ✅ COMPLETED
+2. **Community Launch** (Educational & FOSS Track) ⏳ IN PROGRESS
+3. **Rollback Mechanism** (Unified Architecture Track) ⏳ PLANNED
+4. **Advanced Patterns** (Design Patterns Track) 📋 PLANNED
+
+**Post-Week 6 Priority Items:**
+5. **E2E Test Re-enablement** 🚨 HIGH PRIORITY
+6. **Phase 6: Service Layer Extraction** 🏗️ ARCHITECTURE
+7. **UX/UI Enhancements** 🎨 USER EXPERIENCE
 
 ---
 
@@ -228,6 +233,215 @@ Based on INTEGRATED_ROADMAP.md, Week 6 focuses on:
 
 ---
 
+## 🚨 Critical Post-Week 6 Items
+
+### E2E Test Re-enablement (HIGH PRIORITY)
+
+**Current Status:** E2E tests are disabled in `.github/workflows/e2e-tests.yml`
+
+**Issue Summary:**
+- 120+ Playwright E2E tests exist but workflow is commented out
+- See [E2E_TEST_ANALYSIS.md](../E2E_TEST_ANALYSIS.md) for detailed analysis
+- Tests were disabled due to CI infrastructure issues, NOT code problems
+
+**Root Causes Identified:**
+1. **Playwright Installation Issues**: Browser binaries failing to install in CI
+2. **Server Startup Race Conditions**: Timing conflicts between manual and webServer startup
+3. **Environment Configuration**: BASE_URL and server startup conflicts
+
+**Action Plan (Week 7):**
+1. **Fix Playwright CI Issues** (4-6 hours)
+   - Update Playwright installation in workflow
+   - Add proper browser dependency installation
+   - Fix BASE_URL configuration conflicts
+   
+2. **Resolve Server Startup** (2-3 hours)
+   - Remove duplicate server startup logic
+   - Use either workflow manual start OR Playwright webServer (not both)
+   - Add proper health check before running tests
+   
+3. **Re-enable Workflow** (1 hour)
+   - Uncomment workflow triggers
+   - Test on a feature branch first
+   - Merge when stable
+   
+4. **Validation** (2-3 hours)
+   - Run full E2E suite locally
+   - Verify all 120+ tests pass
+   - Test in CI environment
+   - Monitor for flakiness
+
+**Expected Outcome:** 
+- E2E tests running automatically on PR and push
+- 120+ tests passing consistently
+- Improved confidence in deployments
+
+---
+
+## 🏗️ Architecture Improvements (Phase 6)
+
+### Service Layer Extraction
+
+**Current State:**
+- Business logic mixed with route handlers in `routes/*.py`
+- Direct database access from routes
+- Difficult to test business logic in isolation
+
+**Target Architecture:**
+```
+routes/
+  └─> services/          (NEW)
+       └─> repositories/  (exists)
+            └─> database
+```
+
+**Implementation Plan (Week 7-8):**
+
+1. **Create Service Layer** (8-10 hours)
+   ```python
+   services/
+   ├── product_service.py    # Product business logic
+   ├── dish_service.py       # Dish business logic
+   ├── log_service.py        # Daily log business logic
+   ├── fasting_service.py    # Fasting business logic
+   └── statistics_service.py # Statistics calculations
+   ```
+
+2. **Refactor Routes** (4-6 hours)
+   - Move business logic from routes to services
+   - Routes become thin controllers
+   - Validate input → Call service → Return response
+   
+3. **Update Tests** (6-8 hours)
+   - Add service unit tests
+   - Mock services in route tests
+   - Improve test isolation
+
+4. **Benefits:**
+   - ✅ Improved testability
+   - ✅ Better separation of concerns
+   - ✅ Easier to maintain and extend
+   - ✅ Follows SOLID principles
+
+**Example Refactoring:**
+
+**Before (route with business logic):**
+```python
+@products_bp.route('/api/products', methods=['POST'])
+def create_product():
+    data = request.json
+    # Business logic here
+    conn = sqlite3.connect(DB_PATH)
+    # Database operations
+    # Calculations
+    return jsonify(result)
+```
+
+**After (thin controller):**
+```python
+@products_bp.route('/api/products', methods=['POST'])
+def create_product():
+    data = request.json
+    result = product_service.create_product(data)
+    return jsonify(result)
+```
+
+---
+
+## 🎨 UX/UI Enhancement Plans
+
+### Current UX State
+- ✅ Responsive design implemented
+- ✅ Dark theme available
+- ✅ PWA support
+- ✅ Accessibility guidelines documented
+- ⏳ Limited error feedback
+- ⏳ No undo/redo functionality
+- ⏳ Basic loading states
+
+### Planned Enhancements (Week 7-9)
+
+#### 1. Command Pattern (Undo/Redo) - Week 7
+**Estimated Time:** 8-10 hours
+
+**Use Cases:**
+- Undo food entry deletion
+- Undo product/dish edits
+- Redo operations
+- Command history
+
+**Implementation:**
+```javascript
+// Command pattern for undo/redo
+class AddFoodCommand {
+  execute() { /* add food */ }
+  undo() { /* remove food */ }
+}
+
+commandManager.execute(new AddFoodCommand(data));
+commandManager.undo(); // Undo last action
+commandManager.redo(); // Redo undone action
+```
+
+**Benefits:**
+- Improved user confidence (can undo mistakes)
+- Better user experience
+- Reduced support requests
+
+#### 2. Enhanced Error Messaging - Week 7
+**Estimated Time:** 4-6 hours
+
+**Improvements:**
+- Specific error messages (not generic "Error occurred")
+- Suggested actions for each error type
+- Error recovery guidance
+- Inline validation feedback
+
+**Example:**
+```
+Before: "Error: Failed to save"
+After: "Unable to save product. The product name 'Eggs' already exists. 
+       Try a different name or edit the existing product."
+```
+
+#### 3. Improved Loading States - Week 8
+**Estimated Time:** 4-6 hours
+
+**Additions:**
+- Skeleton screens for loading content
+- Progress indicators for long operations
+- Optimistic UI updates
+- Background sync indicators
+
+#### 4. Mobile UX Improvements - Week 8
+**Estimated Time:** 6-8 hours
+
+**Focus Areas:**
+- Larger touch targets (44x44px minimum)
+- Swipe gestures (delete, edit)
+- Bottom sheet modals
+- Native-like transitions
+- Improved keyboard handling
+
+#### 5. Accessibility Enhancements - Week 9
+**Estimated Time:** 6-8 hours
+
+**Improvements:**
+- Screen reader optimization
+- Keyboard navigation improvements
+- High contrast mode
+- Focus management
+- ARIA labels enhancement
+
+### UX Metrics to Track
+- Task completion rate
+- Time to complete key tasks
+- Error recovery success rate
+- User satisfaction scores
+- Support ticket reduction
+
+---
+
 ## 📊 Week 6 Metrics Goals
 
 ### Documentation
@@ -259,11 +473,35 @@ Based on INTEGRATED_ROADMAP.md, Week 6 focuses on:
 - ✅ FOSS health tracker launched
 
 ### Next Phase (Beyond Week 6)
-1. **Rollback Implementation** (Week 7-8)
-2. **Service Layer Extraction** (Week 7-8)
-3. **Advanced Patterns** (Week 9-10)
-4. **Performance Optimization** (Week 11-12)
-5. **Multi-language Support** (Future)
+
+**Immediate Priorities (Week 7):**
+1. **🚨 E2E Test Re-enablement** (Critical)
+   - Fix Playwright CI issues (see E2E_TEST_ANALYSIS.md)
+   - Resolve server startup race conditions
+   - Re-enable .github/workflows/e2e-tests.yml
+   - Ensure all 120+ tests pass consistently
+   - Estimated: 8-12 hours
+
+2. **🏗️ Service Layer Extraction** (Phase 6 - Architecture)
+   - Extract business logic to service classes
+   - ProductService, DishService, LogService, FastingService
+   - Improve separation of concerns
+   - Update tests for new architecture
+   - Estimated: 12-16 hours
+
+3. **🎨 UX/UI Enhancements** (User Experience)
+   - Command Pattern (undo/redo functionality)
+   - Enhanced error messaging
+   - Improved mobile responsiveness
+   - Loading states and user feedback
+   - Estimated: 10-14 hours
+
+**Secondary Priorities (Week 7-8):**
+4. **Rollback Implementation** (Week 7-8)
+5. **DTO Implementation** (Week 8)
+6. **Advanced Patterns** (Week 9-10)
+7. **Performance Optimization** (Week 11-12)
+8. **Multi-language Support** (Future)
 
 ---
 

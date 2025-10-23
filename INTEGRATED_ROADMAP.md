@@ -42,6 +42,24 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
   - ⏳ Phase 4: Rollback mechanism design
   - ⏳ Phase 5: Production deployment planning
 
+### Planned (Next Priority) 📋
+- **E2E Test Fixes**: Re-enable disabled E2E tests (see E2E_TEST_ANALYSIS.md)
+  - Fix Playwright installation issues in CI
+  - Resolve server startup race conditions
+  - Re-enable e2e-tests.yml workflow
+  - Ensure 120+ E2E tests pass consistently
+- **Phase 6: Service Layer Extraction** (Architecture Improvements)
+  - Extract business logic from routes to service classes
+  - Implement ProductService, DishService, LogService, FastingService
+  - Improve testability and maintainability
+  - Update unit tests for service layer
+- **UX Enhancements** (User Experience Improvements)
+  - Implement advanced UI patterns (Command pattern for undo/redo)
+  - Add Test Data Builders pattern
+  - Implement Page Object pattern for E2E tests
+  - Improve mobile responsiveness and accessibility
+  - Enhanced error messaging and user feedback
+
 ### Metrics
 - **Tests**: 844 total (passed), 1 skipped
 - **Coverage**: 87-94% (excellent across modules)
