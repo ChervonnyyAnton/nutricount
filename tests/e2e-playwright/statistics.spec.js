@@ -5,9 +5,11 @@ const helpers = require('./helpers/page-helpers');
 test.describe('Statistics Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    // Navigate to Statistics tab
-    await helpers.clickElement(page, 'text=Statistics');
+    // Navigate to Statistics tab using ID
+    await helpers.clickElement(page, '#stats-tab');
     await page.waitForTimeout(500); // Wait for tab to load
+    // Ensure stats section is visible
+    await page.locator('#stats').waitFor({ state: 'visible', timeout: 3000 });
   });
 
   test('should display statistics page', async ({ page }) => {

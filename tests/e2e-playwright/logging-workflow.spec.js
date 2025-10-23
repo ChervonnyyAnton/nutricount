@@ -8,9 +8,11 @@ test.describe('Daily Logging Workflow', () => {
   
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    // Navigate to Log tab
-    await helpers.clickElement(page, 'text=Log');
+    // Navigate to Log tab using ID
+    await helpers.clickElement(page, '#log-tab');
     await page.waitForTimeout(500); // Wait for tab to load
+    // Ensure log section is visible
+    await page.locator('#log').waitFor({ state: 'visible', timeout: 3000 });
   });
 
   test('should display log page', async ({ page }) => {

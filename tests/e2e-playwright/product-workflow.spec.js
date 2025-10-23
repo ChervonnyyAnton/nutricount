@@ -6,9 +6,11 @@ const testData = require('./fixtures/test-data');
 test.describe('Product Management Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    // Navigate to Products tab
-    await helpers.clickElement(page, 'text=Products');
+    // Navigate to Products tab using ID
+    await helpers.clickElement(page, '#products-tab');
     await page.waitForTimeout(500); // Wait for tab to load
+    // Ensure products section is visible
+    await page.locator('#products').waitFor({ state: 'visible', timeout: 3000 });
   });
 
   test('should create a new product', async ({ page }) => {
@@ -21,13 +23,13 @@ test.describe('Product Management Workflow', () => {
     // Wait for modal to appear
     await page.waitForSelector('.modal:visible', { timeout: 5000 });
     
-    // Fill in product form
-    await helpers.fillField(page, 'input[name="name"], #product-name', product.name);
-    await helpers.fillField(page, 'input[name="calories_per_100g"], #calories', product.calories_per_100g.toString());
-    await helpers.fillField(page, 'input[name="protein_per_100g"], #protein', product.protein_per_100g.toString());
-    await helpers.fillField(page, 'input[name="fat_per_100g"], #fat', product.fat_per_100g.toString());
-    await helpers.fillField(page, 'input[name="carbs_per_100g"], #carbs', product.carbs_per_100g.toString());
-    await helpers.fillField(page, 'input[name="fiber_per_100g"], #fiber', product.fiber_per_100g.toString());
+    // Fill in product form (demo uses specific IDs)
+    await helpers.fillField(page, 'input[name="name"], #productName', product.name);
+    await helpers.fillField(page, 'input[name="calories_per_100g"], #productCalories', product.calories_per_100g.toString());
+    await helpers.fillField(page, 'input[name="protein_per_100g"], #productProtein', product.protein_per_100g.toString());
+    await helpers.fillField(page, 'input[name="fat_per_100g"], #productFat', product.fat_per_100g.toString());
+    await helpers.fillField(page, 'input[name="carbs_per_100g"], #productCarbs', product.carbs_per_100g.toString());
+    await helpers.fillField(page, 'input[name="fiber_per_100g"], #productFiber', product.fiber_per_100g.toString());
     
     // Submit form
     const submitButton = page.locator('button[type="submit"]:has-text("Save"), button:has-text("Add Product")').last();
