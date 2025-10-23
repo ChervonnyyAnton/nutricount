@@ -1,23 +1,66 @@
-# 📋 Week 6 Planning Document
+# 📋 Week 6-7 Planning Document (REVISED PRIORITIES)
 
 **Date:** October 23, 2025  
-**Status:** 🔄 Planning  
+**Status:** 🔄 Revised - Focus on Technical Tasks  
 **Previous Week:** Week 5 (95% Complete)
 
 ---
 
-## 🎯 Week 6 Objectives
+## ⚡ NEW PRIORITY ORDER (Updated Oct 23, 2025)
 
-Based on INTEGRATED_ROADMAP.md, Week 6 focuses on:
-1. **Documentation & Polish** (Refactoring Track) ✅ COMPLETED
-2. **Community Launch** (Educational & FOSS Track) ⏳ IN PROGRESS
-3. **Rollback Mechanism** (Unified Architecture Track) ⏳ PLANNED
-4. **Advanced Patterns** (Design Patterns Track) 📋 PLANNED
+### 🔧 Priority 1: Technical Tasks (IMMEDIATE FOCUS)
+**Week 7 - 32-42 hours estimated**
+1. Service Layer Extraction (Phase 6) - 18-24h
+2. Rollback Mechanism Implementation - 8-10h
+3. Production Deployment Automation - 6-8h
 
-**Post-Week 6 Priority Items:**
-5. **E2E Test Re-enablement** 🚨 HIGH PRIORITY
-6. **Phase 6: Service Layer Extraction** 🏗️ ARCHITECTURE
-7. **UX/UI Enhancements** 🎨 USER EXPERIENCE
+### 🐛 Priority 2: Known Issues (HIGH PRIORITY)
+**Week 7-8 - 17-25 hours estimated**
+1. E2E Test Re-enablement - 9-13h
+2. Mutation Testing Strategy - 8-12h
+
+### 📚 Priority 3: Documentation & Polish (LOWER PRIORITY)
+**Week 8-9 - 14-20 hours estimated**
+1. Community Infrastructure - 4-6h
+2. UX Documentation - 10-14h
+
+**Rationale**: Technical foundation and bug fixes must come before documentation and polish.
+
+---
+
+## 🎯 Revised Priority Structure
+
+**As of October 23, 2025 - New Priority Order:**
+
+### Priority 1: Technical Tasks 🔧 (IMMEDIATE FOCUS)
+1. **Service Layer Extraction** (Phase 6) - Week 7-8
+2. **Rollback Mechanism Implementation** - Week 7
+3. **Production Deployment Automation** - Week 7
+
+### Priority 2: Known Issues 🐛 (HIGH PRIORITY)
+1. **E2E Test Re-enablement** - Week 7
+2. **Mutation Testing Strategy** - Week 8
+
+### Priority 3: Documentation & Polish 📚 (LOWER PRIORITY)
+1. **Community Infrastructure** - Week 8-9
+2. **UX Documentation** - Week 9
+3. **Marketing Materials** - Week 9
+
+---
+
+## 🎯 Week 6-7 Objectives (UPDATED)
+
+### Week 6 (Current)
+- ✅ **Documentation**: User research + end-user docs (COMPLETED)
+- ⏳ **Remaining**: Lower priority, defer to Week 8-9
+
+### Week 7 (Next - TECHNICAL FOCUS)
+1. **Service Layer Extraction** (18-24 hours) 🔧
+2. **Rollback Implementation** (8-10 hours) 🔧
+3. **Deployment Automation** (6-8 hours) 🔧
+4. **E2E Test Fixes** (9-13 hours) 🐛
+
+**Total Estimated**: 41-55 hours
 
 ---
 
@@ -169,6 +212,61 @@ Based on INTEGRATED_ROADMAP.md, Week 6 focuses on:
 - Identify use cases
 - Plan implementation strategy
 - Document benefits
+
+---
+
+## 📅 REVISED Week 7 Timeline (Technical Focus)
+
+### Days 1-3: Service Layer Extraction (PRIORITY 1 - Technical)
+- [ ] Design service layer architecture (4 hours)
+- [ ] Implement ProductService (4-6 hours)
+- [ ] Implement DishService (4-6 hours)
+- [ ] Implement LogService (3-4 hours)
+- [ ] Implement FastingService (3-4 hours)
+- [ ] **Total: 18-24 hours**
+
+### Days 4-5: Deployment & Rollback (PRIORITY 1 - Technical)
+- [ ] Rollback mechanism implementation (8-10 hours)
+- [ ] Production deployment automation (6-8 hours)
+- [ ] **Total: 14-18 hours**
+
+### Days 6-7: E2E Test Fixes (PRIORITY 2 - Known Issues)
+- [ ] Fix Playwright CI issues (4-6 hours)
+- [ ] Resolve server startup issues (2-3 hours)
+- [ ] Re-enable workflow (1 hour)
+- [ ] Validation testing (2-3 hours)
+- [ ] **Total: 9-13 hours**
+
+### Week 7 Summary
+- **Focus**: Technical tasks and critical bug fixes
+- **Total Estimated Time**: 41-55 hours
+- **Documentation**: Deferred to Week 8-9
+
+---
+
+## 📅 Original Week 6 Timeline (DEPRECATED - For Reference Only)
+
+**Note**: The original timeline focused on documentation. This has been superseded by the revised technical-first approach above.
+
+<details>
+<summary>Click to expand original Week 6 timeline</summary>
+
+### Days 1-2: Documentation Completion (COMPLETED)
+- [x] User research guide (4-6 hours) ✅
+- [x] Expand user documentation (6-8 hours) ✅
+- [x] Total: 10-14 hours ✅
+
+### Days 3-4: Community & Marketing (DEFERRED)
+- [ ] Community infrastructure (4-6 hours) - MOVED TO WEEK 8-9
+- [ ] Marketing materials (4-6 hours) - MOVED TO WEEK 8-9
+- [ ] Total: 8-12 hours
+
+### Days 5-6: Rollback & Deployment Planning (PARTIALLY SUPERSEDED)
+- [ ] Rollback mechanism design (8-10 hours) - NOW IMPLEMENTATION IN WEEK 7
+- [ ] Production deployment planning (4-6 hours) - NOW IMPLEMENTATION IN WEEK 7
+- [ ] Total: 12-16 hours
+
+</details>
 
 ---
 
@@ -472,36 +570,61 @@ After: "Unable to save product. The product name 'Eggs' already exists.
 - ✅ Educational materials comprehensive
 - ✅ FOSS health tracker launched
 
-### Next Phase (Beyond Week 6)
+### Next Phase (REVISED PRIORITIES)
 
-**Immediate Priorities (Week 7):**
-1. **🚨 E2E Test Re-enablement** (Critical)
-   - Fix Playwright CI issues (see E2E_TEST_ANALYSIS.md)
-   - Resolve server startup race conditions
-   - Re-enable .github/workflows/e2e-tests.yml
-   - Ensure all 120+ tests pass consistently
-   - Estimated: 8-12 hours
+**Week 7 - Technical Tasks (IMMEDIATE):**
 
-2. **🏗️ Service Layer Extraction** (Phase 6 - Architecture)
+1. **🔧 Service Layer Extraction** (Phase 6 - Architecture) - PRIORITY 1
    - Extract business logic to service classes
    - ProductService, DishService, LogService, FastingService
    - Improve separation of concerns
    - Update tests for new architecture
-   - Estimated: 12-16 hours
+   - Estimated: 18-24 hours
+   - **Why first**: Core architecture improvement, enables better testing
 
-3. **🎨 UX/UI Enhancements** (User Experience)
-   - Command Pattern (undo/redo functionality)
-   - Enhanced error messaging
-   - Improved mobile responsiveness
-   - Loading states and user feedback
+2. **🔧 Rollback Mechanism Implementation** - PRIORITY 1
+   - Implement failure detection
+   - Automated rollback workflow  
+   - Testing and validation
+   - Estimated: 8-10 hours
+   - **Why first**: Critical for production reliability
+
+3. **🔧 Production Deployment Automation** - PRIORITY 1
+   - Webhook-based deployment
+   - Health check automation
+   - Zero-downtime deployment
+   - Monitoring integration
+   - Estimated: 6-8 hours
+   - **Why first**: Essential technical infrastructure
+
+4. **🐛 E2E Test Re-enablement** - PRIORITY 2 (Known Issues)
+   - Fix Playwright CI issues (see E2E_TEST_ANALYSIS.md)
+   - Resolve server startup race conditions
+   - Re-enable .github/workflows/e2e-tests.yml
+   - Ensure all 120+ tests pass consistently
+   - Estimated: 9-13 hours
+   - **Why second**: Critical bug fix, but less urgent than architecture
+
+**Week 8 - Known Issues & Secondary Technical:**
+5. **🐛 Mutation Testing Strategy** - PRIORITY 2
+   - Define approach and target scores
+   - Implement for critical modules
+   - Estimated: 8-12 hours
+
+**Week 8-9 - Documentation & Polish:**
+6. **📚 Community Infrastructure** - PRIORITY 3
+   - GitHub Discussions, templates, guidelines
+   - Estimated: 4-6 hours
+
+7. **📚 UX Documentation** - PRIORITY 3
+   - Command Pattern, Test Builders, Page Objects
+   - Mobile UX, Accessibility guides
    - Estimated: 10-14 hours
 
-**Secondary Priorities (Week 7-8):**
-4. **Rollback Implementation** (Week 7-8)
-5. **DTO Implementation** (Week 8)
-6. **Advanced Patterns** (Week 9-10)
-7. **Performance Optimization** (Week 11-12)
-8. **Multi-language Support** (Future)
+**Week 9+ - Future Enhancements:**
+8. **Advanced Patterns** (Week 9-10)
+9. **Performance Optimization** (Week 11-12)
+10. **Multi-language Support** (Future)
 
 ---
 

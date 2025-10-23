@@ -33,32 +33,51 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
 - **Week 5 Design & CI/CD**: Design system, architecture documentation ✅
 - **Week 6 Documentation** (Phases 1-2): User research + end-user docs (3,853 lines) ✅ NEW
 
-### In Progress ⏳
-- Phase 2: Mutation Testing (Infrastructure ready, awaiting strategy decision)
-- **Week 6**: Documentation & Community Launch (60% complete) 🔄
-  - ✅ Phase 1: User research guide (1,660 lines)
-  - ✅ Phase 2: End-user documentation (2,193 lines)
-  - ⏳ Phase 3: Community infrastructure setup
-  - ⏳ Phase 4: Rollback mechanism design
-  - ⏳ Phase 5: Production deployment planning
-
-### Planned (Next Priority) 📋
-- **E2E Test Fixes**: Re-enable disabled E2E tests (see E2E_TEST_ANALYSIS.md)
-  - Fix Playwright installation issues in CI
-  - Resolve server startup race conditions
-  - Re-enable e2e-tests.yml workflow
-  - Ensure 120+ E2E tests pass consistently
+### Priority 1: Technical Tasks 🔧 (NEXT FOCUS)
 - **Phase 6: Service Layer Extraction** (Architecture Improvements)
   - Extract business logic from routes to service classes
   - Implement ProductService, DishService, LogService, FastingService
   - Improve testability and maintainability
   - Update unit tests for service layer
-- **UX Enhancements** (User Experience Improvements)
-  - Implement advanced UI patterns (Command pattern for undo/redo)
-  - Add Test Data Builders pattern
-  - Implement Page Object pattern for E2E tests
-  - Improve mobile responsiveness and accessibility
-  - Enhanced error messaging and user feedback
+  - **Estimated**: 18-24 hours (Week 7-8)
+- **Rollback Mechanism Implementation**
+  - Implement failure detection
+  - Automated rollback workflow
+  - Testing and validation
+  - **Estimated**: 8-10 hours (Week 7)
+- **Production Deployment Automation**
+  - Webhook-based deployment implementation
+  - Health check automation
+  - Zero-downtime deployment
+  - Monitoring integration
+  - **Estimated**: 6-8 hours (Week 7)
+
+### Priority 2: Known Issues 🐛 (HIGH PRIORITY)
+- **E2E Test Fixes**: Re-enable disabled E2E tests (see E2E_TEST_ANALYSIS.md)
+  - Fix Playwright installation issues in CI
+  - Resolve server startup race conditions
+  - Re-enable e2e-tests.yml workflow
+  - Ensure 120+ E2E tests pass consistently
+  - **Estimated**: 9-13 hours (Week 7)
+- **Mutation Testing Strategy**
+  - Define mutation testing approach
+  - Set target mutation scores
+  - Implement critical module testing
+  - **Estimated**: 8-12 hours (Week 8)
+
+### Priority 3: Documentation & Polish 📚 (LOWER PRIORITY)
+- **Week 6 Remaining**: Documentation & Community Launch (60% complete)
+  - ✅ Phase 1: User research guide (1,660 lines) - COMPLETED
+  - ✅ Phase 2: End-user documentation (2,193 lines) - COMPLETED
+  - ⏳ Phase 3: Community infrastructure setup
+  - ⏳ Phase 4: Rollback mechanism design documentation
+  - ⏳ Phase 5: Production deployment planning documentation
+- **UX Documentation Enhancements**
+  - Command Pattern documentation
+  - Test Data Builders guide
+  - Page Object Pattern guide
+  - Mobile UX best practices
+  - Accessibility enhancement guide
 
 ### Metrics
 - **Tests**: 844 total (passed), 1 skipped
