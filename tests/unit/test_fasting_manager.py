@@ -1140,3 +1140,18 @@ class TestFastingStatsValidation:
             # Should raise ValueError for float days
             with pytest.raises(ValueError, match="Invalid days parameter"):
                 manager.get_fasting_stats(user_id=1, days=30.5)
+
+    def test_get_fasting_stats_with_boolean_days(self, mock_db):
+        """Test get_fasting_stats rejects boolean days parameter"""
+        with patch('src.fasting_manager.sqlite3.connect') as mock_connect:
+            mock_connect.return_value = mock_db
+
+            manager = FastingManager('test.db')
+
+            # Should raise ValueError for boolean True (isinstance(True, int) is True in Python)
+            with pytest.raises(ValueError, match="Invalid days parameter"):
+                manager.get_fasting_stats(user_id=1, days=True)
+
+            # Should raise ValueError for boolean False
+            with pytest.raises(ValueError, match="Invalid days parameter"):
+                manager.get_fasting_stats(user_id=1, days=False)

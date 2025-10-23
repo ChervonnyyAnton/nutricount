@@ -221,7 +221,8 @@ class FastingManager:
     def get_fasting_stats(self, user_id: int = 1, days: int = 30) -> Dict:
         """Get fasting statistics"""
         # Validate days parameter to prevent SQL injection
-        if not isinstance(days, int) or days < 0:
+        # Note: isinstance(bool, int) is True in Python, so check for bool explicitly
+        if isinstance(days, bool) or not isinstance(days, int) or days < 0:
             raise ValueError(f"Invalid days parameter: {days}")
 
         with self._get_connection() as conn:
