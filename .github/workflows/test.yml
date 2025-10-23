@@ -34,6 +34,45 @@ jobs:
       env:
         PYTHONPATH: ${{ github.workspace }}
     
+    - name: Security scan with Bandit
+      run: |
+        echo "## 🔒 Security Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Run bandit and save results
+        bandit -r src/ app.py -ll -f json -o bandit-report.json || true
+        
+        # Display results in console
+        echo "Running security scan..."
+        bandit -r src/ app.py -ll 2>&1 | tee bandit-output.txt || true
+        
+        # Parse and summarize results
+        if grep -q "No issues identified" bandit-output.txt; then
+          echo "✅ **No security issues found**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Security scan completed successfully with no vulnerabilities detected." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ **Security scan found potential issues**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please review the security report artifact for details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Some findings may be false positives after proper validation." >> $GITHUB_STEP_SUMMARY
+          echo "See SECURITY_FIXES_OCT23.md for documented false positives." >> $GITHUB_STEP_SUMMARY
+        fi
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+      continue-on-error: true
+    
+    - name: Upload security scan results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: bandit-security-report
+        path: |
+          bandit-report.json
+          bandit-output.txt
+        retention-days: 30
+    
     - name: Run tests
       run: |
         pytest tests/ -v --cov=src --cov-report=xml

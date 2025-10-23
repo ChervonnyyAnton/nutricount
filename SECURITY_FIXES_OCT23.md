@@ -156,23 +156,82 @@ __version__ = "1.0.0"
 
 ---
 
+## Automated Security Scanning (NEW - Oct 23, 2025)
+
+### Implementation
+Added automated security scanning to the CI/CD pipeline using Bandit:
+
+**Features:**
+- Runs on every pull request and push to main
+- Scans all Python code in `src/` and `app.py`
+- Reports medium and high severity issues only (`-ll` flag)
+- Generates JSON report for detailed analysis
+- Creates GitHub Actions summary with scan results
+- Uploads security reports as artifacts (30-day retention)
+- Continues build even if issues found (allows review of false positives)
+
+**CI/CD Integration:**
+- Added to `.github/workflows/test.yml` test job
+- Runs after linting, before tests
+- Generates `bandit-report.json` and `bandit-output.txt`
+- Available as downloadable artifacts in GitHub Actions
+
+**Benefits:**
+1. **Early Detection**: Security issues found before merge
+2. **Automated Review**: No manual security scan needed
+3. **Historical Tracking**: Reports saved for 30 days
+4. **Visibility**: Issues shown in GitHub Actions summary
+5. **Non-blocking**: False positives don't block CI/CD
+
+**Known False Positives:**
+- `src/fasting_manager.py:233` - SQL injection warning (validated input, documented in this file)
+
+### Usage
+
+**View security reports in CI/CD:**
+1. Go to GitHub Actions workflow run
+2. Check the "Security scan with Bandit" step in the test job
+3. Download "bandit-security-report" artifact if issues found
+4. Review JSON report for detailed analysis
+
+**Run security scan locally:**
+```bash
+# Quick scan (console output)
+bandit -r src/ app.py -ll
+
+# Generate JSON report
+bandit -r src/ app.py -ll -f json -o bandit-report.json
+
+# View detailed report
+cat bandit-report.json | python3 -m json.tool
+```
+
+---
+
 ## Recommendations for Future Development
 
 1. **Consider parameterized queries**: While SQLite doesn't support parameterized datetime intervals, consider using a prepared statement factory for other dynamic queries
-2. **Add security scanning to CI/CD**: Run Bandit automatically in GitHub Actions
+2. ~~**Add security scanning to CI/CD**: Run Bandit automatically in GitHub Actions~~ ✅ **IMPLEMENTED** (Oct 23, 2025)
 3. **Monitor error counts**: Set up alerts when `es_error_count` exceeds thresholds
 4. **Type hints**: Continue adding type hints to catch issues early with mypy
 5. **Security audit**: Periodic security reviews with tools like Safety, Semgrep, etc.
+6. **Dependency scanning**: Add automated dependency vulnerability scanning (e.g., Safety, Snyk)
+7. **SAST integration**: Consider additional static analysis tools (e.g., Semgrep, CodeQL)
 
 ---
 
 ## Files Changed
 
+### Security Fixes (Oct 23, 2025)
 1. `src/fasting_manager.py` - Added input validation
 2. `src/advanced_logging.py` - Improved exception handling
 3. `src/__init__.py` - Created package definition (NEW)
 4. `tests/unit/test_fasting_manager.py` - Added 4 validation tests
 5. `tests/unit/test_advanced_logging.py` - Added 3 error tracking tests
+
+### CI/CD Improvements (Oct 23, 2025)
+6. `.github/workflows/test.yml` - Added automated security scanning with Bandit
+7. `SECURITY_FIXES_OCT23.md` - Updated documentation with automation details
 
 ---
 
