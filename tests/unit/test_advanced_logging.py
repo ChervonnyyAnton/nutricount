@@ -524,3 +524,46 @@ class TestLogAnalyzerExtended:
             assert "alerts" in result
             assert len(result["alerts"]) > 0
             assert any(alert["type"] == "rate_limit_exceeded" for alert in result["alerts"])
+
+
+class TestElasticsearchErrorTracking:
+    """Test Elasticsearch error tracking improvements"""
+
+    def test_es_error_count_initialization(self, tmp_path):
+        """Test error counter is initialized to 0"""
+        logger = StructuredLogger(app_name="test-app")
+        assert logger.es_error_count == 0
+
+    def test_es_error_count_increments_on_failure(self, tmp_path):
+        """Test error counter increments on Elasticsearch failures"""
+        with patch('src.advanced_logging.ELASTICSEARCH_AVAILABLE', True):
+            with patch('src.advanced_logging.Elasticsearch') as mock_es_class:
+                # Create a mock Elasticsearch client that raises errors
+                mock_es = Mock()
+                mock_es.index.side_effect = Exception("Connection error")
+                mock_es_class.return_value = mock_es
+
+                logger = StructuredLogger(
+                    app_name="test-app",
+                    elasticsearch_url="http://localhost:9200"
+                )
+
+                # Trigger Elasticsearch logging which should fail
+                logger._send_to_elasticsearch("test", "INFO", "test message", {})
+
+                # Error counter should increment
+                assert logger.es_error_count == 1
+
+                # Send another log
+                logger._send_to_elasticsearch("test", "INFO", "test message 2", {})
+                assert logger.es_error_count == 2
+
+    def test_es_error_count_in_stats(self, tmp_path):
+        """Test error count is included in log stats"""
+        logger = StructuredLogger(app_name="test-app")
+        logger.es_error_count = 5  # Simulate errors
+
+        stats = logger.get_log_stats()
+
+        assert "elasticsearch_error_count" in stats
+        assert stats["elasticsearch_error_count"] == 5
