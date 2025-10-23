@@ -176,6 +176,13 @@ frontend/node_modules/
 frontend/coverage/
 frontend/package-lock.json
 
+# E2E test artifacts
+playwright-report/
+test-results/
+screenshots/
+videos/
+.playwright/
+
 # OS files
 .DS_Store
 Thumbs.db
