@@ -41,6 +41,21 @@ Welcome to the Nutricount Design Documentation! This directory contains comprehe
 
 **Use for:** Mobile development, responsive design, PWA implementation
 
+### 4. [Component Library](component-library.md)
+**Complete UI component catalog including:**
+- Buttons (primary, secondary, outline, danger)
+- Cards (standard, target, macro)
+- Forms (inputs, selects, checkboxes, validation)
+- Navigation (tabs, breadcrumbs)
+- Modals (standard, confirmation)
+- Alerts & notifications (alerts, toasts)
+- Progress & loading (progress bars, spinners)
+- Data display (badges, tables, lists)
+- Layout (containers, grid, spacing)
+- Accessibility guidelines for all components
+
+**Use for:** Building UI, consistency, component reference
+
 ## 🎯 Quick Start Guide
 
 ### For UX/UI Designers

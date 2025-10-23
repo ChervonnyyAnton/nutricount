@@ -88,6 +88,19 @@ See [DESIGN_PATTERNS_GUIDE.md](../../DESIGN_PATTERNS_GUIDE.md) for:
 
 ---
 
-**Last Updated**: October 21, 2025  
-**Status**: Structure created, content Weeks 3-6  
+**Last Updated**: October 23, 2025  
+**Status**: ✅ Week 5 Complete - Clean Architecture & MVC documented  
 **See**: [DESIGN_PATTERNS_GUIDE.md](../../DESIGN_PATTERNS_GUIDE.md) for complete guide
+
+## 📚 New Documentation (Week 5)
+
+### [Clean Architecture & MVC](clean-architecture-mvc.md) ✅
+Comprehensive architecture documentation covering:
+- Clean Architecture principles and benefits
+- MVC Pattern implementation in Nutricount
+- Layer architecture (6 layers explained)
+- Dependency flow and the dependency rule
+- Complete implementation examples
+- Best practices for each layer
+
+**Use for:** Understanding system architecture, designing new features, refactoring code
