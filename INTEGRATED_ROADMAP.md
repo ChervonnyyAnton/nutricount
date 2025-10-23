@@ -231,6 +231,10 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
 - [ ] Teaching guides for students
 - [ ] Video tutorials (optional)
 - [ ] Final testing and polish
+- [ ] **Add fasting feature to demo/public version** 🆕
+  - Currently fasting only exists in Flask (local) version
+  - Demo version needs fasting tracker for complete FOSS health solution
+  - Will enable 34 additional E2E tests on demo version
 
 **Educational & FOSS Track:** 🆕
 - [ ] Complete end-user documentation (quick start, tutorials)
