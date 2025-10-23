@@ -48,6 +48,7 @@ class StructuredLogger:
         self.log_level = log_level
         self.elasticsearch_url = elasticsearch_url
         self.es_client = None
+        self.es_error_count = 0  # Track Elasticsearch errors
 
         # Create logs directory
         self.log_dir = Path("logs")
@@ -282,9 +283,12 @@ class StructuredLogger:
             }
 
             self.es_client.index(index=index_name, body=document)
-        except Exception:
-            # Don't log Elasticsearch errors to avoid recursion
-            pass
+        except Exception as e:
+            # Increment error counter to track Elasticsearch issues
+            self.es_error_count += 1
+            # Write to stderr to avoid logging recursion but still capture the error
+            if self.es_error_count <= 5:  # Only log first 5 errors to avoid spam
+                print(f"Elasticsearch error ({self.es_error_count}): {e}", file=sys.stderr)
 
     def get_log_stats(self) -> Dict[str, Any]:
         """Get logging statistics"""
@@ -292,6 +296,7 @@ class StructuredLogger:
             "loguru_available": LOGURU_AVAILABLE,
             "elasticsearch_available": ELASTICSEARCH_AVAILABLE,
             "elasticsearch_connected": self.es_client is not None,
+            "elasticsearch_error_count": self.es_error_count,
             "log_level": self.log_level,
             "log_directory": str(self.log_dir),
         }

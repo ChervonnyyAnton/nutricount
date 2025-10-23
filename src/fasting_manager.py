@@ -220,10 +220,16 @@ class FastingManager:
 
     def get_fasting_stats(self, user_id: int = 1, days: int = 30) -> Dict:
         """Get fasting statistics"""
+        # Validate days parameter to prevent SQL injection
+        if not isinstance(days, int) or days < 0:
+            raise ValueError(f"Invalid days parameter: {days}")
+
         with self._get_connection() as conn:
             # Get completed sessions in the last N days
+            # Note: SQLite's datetime() doesn't support parameterized intervals,
+            # but we've validated that days is a safe integer above
             cursor = conn.execute(
-                """
+                f"""
                 SELECT
                     COUNT(*) as total_sessions,
                     AVG(duration_hours) as avg_duration,
@@ -233,10 +239,8 @@ class FastingManager:
                 FROM fasting_sessions
                 WHERE user_id = ?
                 AND status = 'completed'
-                AND start_time >= datetime('now', '-{} days')
-            """.format(
-                    days
-                ),
+                AND start_time >= datetime('now', '-{int(days)} days')
+            """,
                 (user_id,),
             )
 
