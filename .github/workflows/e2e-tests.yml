@@ -1,21 +1,24 @@
-name: E2E Tests (DISABLED)
+name: E2E Tests
 
-# DISABLED: E2E tests are temporarily disabled due to infrastructure issues
-# To re-enable, uncomment the 'on:' section below
-# See E2E_TEST_ANALYSIS.md for details on the issues
-
-# on:
-#   pull_request:
-#     branches: [ main, develop ]
-#   push:
-#     branches: [ main ]
-#   workflow_dispatch:
-#   schedule:
-#     # Run E2E tests daily at 2 AM UTC
-#     - cron: '0 2 * * *'
+# E2E tests TEMPORARILY DISABLED on PRs until test-level issues are fixed.
+# Infrastructure is working correctly - tests execute in CI.
+# However, 28 out of 120+ tests fail due to test-level issues (not infrastructure):
+# - Modal visibility timeouts
+# - Missing API waits
+# - Console errors
+# - Button click timing issues
+#
+# The workflow can still be triggered manually for testing/debugging.
+# See: ISSUE_E2E_TEST_FIXES.md for the action plan to re-enable.
 
 on:
-  workflow_dispatch:  # Only allow manual triggering
+  # Temporarily disabled to avoid blocking PRs
+  # pull_request:
+  #   branches: [ main, develop ]
+  workflow_dispatch:  # Allow manual triggering for debugging
+  # Disabled scheduled runs until tests are fixed
+  # schedule:
+  #   - cron: '0 2 * * *'
 
 jobs:
   e2e-tests-local:
@@ -48,18 +51,44 @@ jobs:
       run: |
         npm install
     
-    - name: Install Playwright browsers
+    - name: Install Playwright browsers with system dependencies
       run: |
         npx playwright install chromium --with-deps
+      env:
+        # Playwright requires these for browser installation
+        PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
+    
+    - name: Verify Playwright installation
+      run: |
+        npx playwright --version
+        ls -la ~/.cache/ms-playwright/ || echo "Playwright cache not found"
+    
+    - name: Initialize database
+      run: |
+        export PYTHONPATH=${{ github.workspace }}
+        python3 init_db.py
+      env:
+        PYTHONPATH: ${{ github.workspace }}
     
     - name: Start Flask server
       run: |
         export PYTHONPATH=${{ github.workspace }}
         export FLASK_ENV=test
-        python3 app.py &
+        nohup python3 app.py > flask.log 2>&1 &
         echo $! > flask.pid
-        # Wait for server to be ready
-        timeout 60 bash -c 'until curl -f http://localhost:5000/health; do sleep 2; done'
+        sleep 3
+        # Wait for server to be ready with retries
+        for i in {1..30}; do
+          if curl -f http://localhost:5000/health 2>/dev/null; then
+            echo "✅ Flask server is ready"
+            exit 0
+          fi
+          echo "Waiting for Flask server... ($i/30)"
+          sleep 2
+        done
+        echo "❌ Flask server failed to start"
+        cat flask.log
+        exit 1
       env:
         PYTHONPATH: ${{ github.workspace }}
     
@@ -69,6 +98,7 @@ jobs:
       env:
         BASE_URL: http://localhost:5000
         CI: true
+        PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
     
     - name: Upload test results on failure
       if: failure()
@@ -86,6 +116,12 @@ jobs:
         path: test-results/
         retention-days: 7
     
+    - name: Show Flask logs on failure
+      if: failure()
+      run: |
+        echo "=== Flask Server Logs ==="
+        cat flask.log || echo "No flask.log found"
+    
     - name: Stop Flask server
       if: always()
       run: |
@@ -93,6 +129,7 @@ jobs:
           kill $(cat flask.pid) || true
           rm flask.pid
         fi
+        rm -f flask.log
     
     - name: Generate test summary
       if: always()
@@ -124,17 +161,35 @@ jobs:
       run: |
         npm install
     
-    - name: Install Playwright browsers
+    - name: Install Playwright browsers with system dependencies
       run: |
         npx playwright install chromium --with-deps
+      env:
+        PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
+    
+    - name: Verify Playwright installation
+      run: |
+        npx playwright --version
+        ls -la ~/.cache/ms-playwright/ || echo "Playwright cache not found"
     
     - name: Start HTTP server for demo
       run: |
         cd demo
-        python3 -m http.server 8080 &
+        nohup python3 -m http.server 8080 > demo-server.log 2>&1 &
         echo $! > demo-server.pid
-        # Wait for server to be ready
-        timeout 30 bash -c 'until curl -f http://localhost:8080/index.html; do sleep 2; done'
+        sleep 2
+        # Wait for server to be ready with retries
+        for i in {1..15}; do
+          if curl -f http://localhost:8080/index.html 2>/dev/null; then
+            echo "✅ Demo server is ready"
+            exit 0
+          fi
+          echo "Waiting for demo server... ($i/15)"
+          sleep 2
+        done
+        echo "❌ Demo server failed to start"
+        cat demo-server.log
+        exit 1
     
     - name: Run E2E tests (Public Version)
       run: |
@@ -142,6 +197,7 @@ jobs:
       env:
         BASE_URL: http://localhost:8080
         CI: true
+        PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
     
     - name: Upload test results on failure
       if: failure()
@@ -159,6 +215,12 @@ jobs:
         path: test-results/
         retention-days: 7
     
+    - name: Show demo server logs on failure
+      if: failure()
+      run: |
+        echo "=== Demo Server Logs ==="
+        cat demo/demo-server.log || echo "No demo-server.log found"
+    
     - name: Stop demo server
       if: always()
       run: |
@@ -166,6 +228,7 @@ jobs:
           kill $(cat demo/demo-server.pid) || true
           rm demo/demo-server.pid
         fi
+        rm -f demo/demo-server.log
     
     - name: Generate test summary
       if: always()
