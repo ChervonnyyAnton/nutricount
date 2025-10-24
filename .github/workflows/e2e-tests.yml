@@ -53,7 +53,7 @@ jobs:
     
     - name: Install Playwright browsers with system dependencies
       run: |
-        npx playwright install chromium --with-deps
+        npx playwright install --with-deps chromium
       env:
         # Playwright requires these for browser installation
         PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
@@ -163,7 +163,7 @@ jobs:
     
     - name: Install Playwright browsers with system dependencies
       run: |
-        npx playwright install chromium --with-deps
+        npx playwright install --with-deps chromium
       env:
         PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
     

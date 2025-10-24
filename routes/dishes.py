@@ -38,7 +38,7 @@ def _get_dish_service() -> DishService:
 def dishes_api():
     """
     Dishes CRUD endpoint.
-    
+
     Delegates business logic to DishService.
     """
     db = None
@@ -46,10 +46,10 @@ def dishes_api():
         if request.method == "GET":
             # Get service instance
             service = _get_dish_service()
-            
+
             # Get dishes from service
             dishes = service.get_dishes()
-            
+
             return jsonify(json_response(dishes))
 
         else:  # POST
@@ -62,10 +62,10 @@ def dishes_api():
 
             # Get service instance
             service = _get_dish_service()
-            
+
             # Create dish via service
             success, dish, errors = service.create_dish(data)
-            
+
             if not success:
                 return (
                     jsonify(
@@ -75,7 +75,7 @@ def dishes_api():
                     ),
                     HTTP_BAD_REQUEST,
                 )
-            
+
             return (
                 jsonify(json_response(dish, SUCCESS_MESSAGES["dish_created"], HTTP_CREATED)),
                 HTTP_CREATED,
@@ -95,13 +95,13 @@ def dishes_api():
 def dish_detail_api(dish_id):
     """
     Dish detail operations (GET, PUT, DELETE).
-    
+
     Delegates business logic to DishService.
     """
     try:
         # Get service instance
         service = _get_dish_service()
-        
+
         if request.method == "GET":
             # Get dish by ID
             dish = service.get_dish_by_id(dish_id)
@@ -110,7 +110,7 @@ def dish_detail_api(dish_id):
                     jsonify(json_response(None, ERROR_MESSAGES["not_found"], HTTP_NOT_FOUND)),
                     HTTP_NOT_FOUND,
                 )
-            
+
             return jsonify(json_response(dish))
 
         elif request.method == "PUT":
@@ -121,10 +121,10 @@ def dish_detail_api(dish_id):
                     jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
                     HTTP_BAD_REQUEST,
                 )
-            
+
             # Update via service
             success, updated_dish, errors = service.update_dish(dish_id, data)
-            
+
             if not success:
                 # Check if it's "not found" error
                 if errors and "not found" in errors[0].lower():
@@ -132,7 +132,7 @@ def dish_detail_api(dish_id):
                         jsonify(json_response(None, ERROR_MESSAGES["not_found"], HTTP_NOT_FOUND)),
                         HTTP_NOT_FOUND,
                     )
-                
+
                 return (
                     jsonify(
                         json_response(
@@ -141,13 +141,13 @@ def dish_detail_api(dish_id):
                     ),
                     HTTP_BAD_REQUEST,
                 )
-            
+
             return jsonify(json_response(updated_dish, "Dish updated successfully!"))
 
         elif request.method == "DELETE":
             # Delete via service
             success, errors = service.delete_dish(dish_id)
-            
+
             if not success:
                 # Check if it's "not found" error
                 if errors and "not found" in errors[0].lower():
@@ -155,14 +155,14 @@ def dish_detail_api(dish_id):
                         jsonify(json_response(None, ERROR_MESSAGES["not_found"], HTTP_NOT_FOUND)),
                         HTTP_NOT_FOUND,
                     )
-                
+
                 return (
                     jsonify(
                         json_response(None, errors[0] if errors else "Delete failed", HTTP_BAD_REQUEST)
                     ),
                     HTTP_BAD_REQUEST,
                 )
-            
+
             return jsonify(json_response(None, "Dish deleted successfully!"))
 
     except Exception as e:
