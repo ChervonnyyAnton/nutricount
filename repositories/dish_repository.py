@@ -145,8 +145,8 @@ class DishRepository(BaseRepository):
                         "protein": product["protein_per_100g"],
                         "fats": product["fat_per_100g"],
                         "carbs": product["carbs_per_100g"],
-                        "fiber": product["fiber_per_100g"],
-                        "sugars": product["sugars_per_100g"],
+                        "fiber": product.get("fiber_per_100g", 0),
+                        "sugars": product.get("sugars_per_100g", 0),
                     },
                     category=product.get("category", "unknown"),
                     preparation=ingredient.get("preparation_method", "raw"),
@@ -191,7 +191,6 @@ class DishRepository(BaseRepository):
                 carbs_per_100g = ?,
                 net_carbs_per_100g = ?,
                 fiber_per_100g = ?,
-                sugars_per_100g = ?,
                 keto_index = ?,
                 keto_category = ?
             WHERE id = ?""",
@@ -204,7 +203,6 @@ class DishRepository(BaseRepository):
                 recipe_result["nutrition_per_100g"]["carbs"],
                 recipe_result["nutrition_per_100g"]["net_carbs"],
                 recipe_result["nutrition_per_100g"].get("fiber", 0),
-                recipe_result["nutrition_per_100g"].get("sugars", 0),
                 keto_index,
                 keto_category,
                 dish_id,
@@ -262,8 +260,8 @@ class DishRepository(BaseRepository):
                             "protein": product["protein_per_100g"],
                             "fats": product["fat_per_100g"],
                             "carbs": product["carbs_per_100g"],
-                            "fiber": product["fiber_per_100g"],
-                            "sugars": product["sugars_per_100g"],
+                            "fiber": product.get("fiber_per_100g", 0),
+                            "sugars": product.get("sugars_per_100g", 0),
                         },
                         category=product.get("category", "unknown"),
                         preparation=ingredient.get("preparation_method", "raw"),
@@ -307,7 +305,6 @@ class DishRepository(BaseRepository):
                     carbs_per_100g = ?,
                     net_carbs_per_100g = ?,
                     fiber_per_100g = ?,
-                    sugars_per_100g = ?,
                     keto_index = ?,
                     keto_category = ?
                 WHERE id = ?""",
@@ -320,7 +317,6 @@ class DishRepository(BaseRepository):
                     recipe_result["nutrition_per_100g"]["carbs"],
                     recipe_result["nutrition_per_100g"]["net_carbs"],
                     recipe_result["nutrition_per_100g"].get("fiber", 0),
-                    recipe_result["nutrition_per_100g"].get("sugars", 0),
                     keto_index,
                     keto_category,
                     dish_id,
@@ -375,7 +371,7 @@ class DishRepository(BaseRepository):
             Tuple of (is_used, count)
         """
         row = self.db.execute(
-            "SELECT COUNT(*) FROM food_log WHERE item_type = 'dish' AND item_id = ?", (dish_id,)
+            "SELECT COUNT(*) FROM log_entries WHERE item_type = 'dish' AND item_id = ?", (dish_id,)
         ).fetchone()
         count = row[0] if row else 0
         return (count > 0, count)
