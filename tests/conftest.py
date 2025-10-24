@@ -52,9 +52,17 @@ def app():
         conn.execute("DELETE FROM fasting_settings")
         conn.commit()
         conn.close()
-    
+
+        # Clear cache to ensure clean state
+        from src.cache_manager import cache_manager
+        cache_manager.clear()
+
     yield flask_app
-    
+
+    # Clear cache after test
+    from src.cache_manager import cache_manager
+    cache_manager.clear()
+
     # Cleanup
     os.close(db_fd)
     os.unlink(db_path)

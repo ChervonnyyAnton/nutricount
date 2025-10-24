@@ -312,9 +312,8 @@ class LogService:
                     if entry.get("carbs_per_100g")
                     else None
                 )
-                processed_entry["fiber"] = (
-                    entry.get("fiber_per_100g", 0) * quantity_factor
-                )
+                fiber_per_100g = entry.get("fiber_per_100g") or 0
+                processed_entry["fiber"] = fiber_per_100g * quantity_factor
             elif entry["item_type"] == "dish":
                 # For dishes, use dish_per_100g values
                 processed_entry["calories"] = entry.get("calculated_calories")
@@ -333,9 +332,8 @@ class LogService:
                     if entry.get("dish_carbs_per_100g")
                     else None
                 )
-                processed_entry["fiber"] = (
-                    entry.get("dish_fiber_per_100g", 0) * quantity_factor
-                )
+                dish_fiber_per_100g = entry.get("dish_fiber_per_100g") or 0
+                processed_entry["fiber"] = dish_fiber_per_100g * quantity_factor
 
             # Calculate net carbs
             carbs = processed_entry.get("carbs") or 0
