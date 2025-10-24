@@ -446,6 +446,7 @@ jobs:
    - Created on rollback
    - Links to failed workflows
    - Rollback details
+   - Mentions @copilot for automated assistance
    - Assignee: last committer
 
 3. **Slack/Discord** (Optional)
@@ -479,6 +480,10 @@ jobs:
 ✅ Rollback completed successfully
 ✅ Smoke tests passed
 ✅ Demo is accessible at: https://chervonnyyanton.github.io/nutricount/
+
+---
+
+@copilot Please help investigate and fix this rollback incident.
 ```
 
 ---

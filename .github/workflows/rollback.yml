@@ -294,6 +294,10 @@ jobs:
             - Demo URL: https://chervonnyyanton.github.io/nutricount/
             - Version Info: https://chervonnyyanton.github.io/nutricount/.deployment/VERSION
             
+            ---
+            
+            @copilot Please help investigate and fix this rollback incident. Review the rollback details above and the workflow run logs to understand what went wrong.
+            
             cc: @${{ github.actor }}`,
             labels: ['rollback', 'incident', 'priority-high']
           });
