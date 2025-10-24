@@ -70,35 +70,34 @@ cat flask.log
 exit 1
 ```
 
-### 4. ✅ E2E Workflow Triggers Re-enabled
+### 4. ✅ E2E Workflow Triggers Status
 
-**Issue**: Workflow was only triggered manually  
-**Fix Applied**: Re-enabled automatic triggers
-
-**Previous State**:
-```yaml
-on:
-  # pull_request:  # DISABLED
-  #   branches: [ main, develop ]
-  workflow_dispatch:
-  # schedule:  # DISABLED
-  #   - cron: '0 2 * * *'
-```
+**Issue**: Workflow was only triggered manually, but tests have known failures  
+**Decision**: Keep triggers disabled until test-level issues are fixed
 
 **Current State**:
 ```yaml
 on:
-  pull_request:
-    branches: [ main, develop ]
+  # Temporarily disabled to avoid blocking PRs
+  # pull_request:
+  #   branches: [ main, develop ]
   workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  # Disabled scheduled runs until tests are fixed
+  # schedule:
+  #   - cron: '0 2 * * *'
 ```
 
+**Rationale**: 
+- E2E workflow comments indicate "28 out of 120+ tests fail due to test-level issues"
+- Test failures include: modal visibility timeouts, missing API waits, console errors, button click timing
+- Re-enabling would cause all PRs to fail E2E checks
+- Infrastructure fixes are ready, but test-level fixes needed first
+
 **Result**:
-- ✅ E2E tests run automatically on PRs to main/develop
-- ✅ Daily scheduled runs at 2 AM UTC for regression detection
-- ✅ Manual trigger still available via workflow_dispatch
+- ✅ Playwright installation fixed (ready for when tests are fixed)
+- ✅ Health checks properly implemented
+- ⏳ Triggers remain disabled until test issues resolved
+- ✅ Manual trigger available via workflow_dispatch for testing
 
 ## Validation Tests
 
@@ -146,60 +145,64 @@ flake8 src/ routes/ services/ --max-line-length=100 --ignore=E501,W503,E226
    - Daily scheduled runs
    - Manual trigger option
 
-### ⏳ Pending Validation (Requires CI Run)
+### ⏳ Pending Validation (Requires Test Fixes First)
 
 1. **E2E Test Execution**
-   - Need to trigger workflow in CI
-   - Verify browser installation succeeds
-   - Confirm server starts properly
-   - Check test execution
+   - Infrastructure ready but tests have known failures (28/120+)
+   - Need to fix test-level issues before enabling on PRs:
+     * Modal visibility timeouts
+     * Missing API waits
+     * Console errors
+     * Button click timing issues
+   - Can be triggered manually via workflow_dispatch for testing
 
-2. **Test Results**
-   - Monitor pass/fail rate
-   - Identify any flaky tests
-   - Review test performance
-   - Check artifact uploads
+2. **Automatic PR Runs** (When tests are fixed)
+   - Will run on every PR to main/develop
+   - Will catch regressions automatically
+   - Daily runs for environmental issues
 
 ## Next Steps
 
 ### Phase 1: Initial Validation (This PR)
 - [x] Apply Playwright installation fixes
-- [x] Re-enable workflow triggers
+- [x] Keep workflow triggers disabled (test issues need fixing first)
 - [x] Validate YAML syntax
-- [x] Document changes
+- [x] Document changes and rationale
 
-### Phase 2: CI Validation (After Merge)
-- [ ] Monitor first PR run of E2E tests
-- [ ] Check browser installation logs
-- [ ] Verify server startup
-- [ ] Review test results
-- [ ] Check artifact uploads
+### Phase 2: Fix Test-Level Issues (Required Before Automation)
+- [ ] Fix modal visibility timeout issues (28/120+ tests failing)
+- [ ] Add missing API waits
+- [ ] Resolve console errors
+- [ ] Fix button click timing issues
+- [ ] Achieve >95% test pass rate
+- [ ] Document all test fixes
 
-### Phase 3: Monitoring (Week 7)
+### Phase 3: Re-enable Automation (After Test Fixes)
+- [ ] Uncomment pull_request trigger in workflow
+- [ ] Uncomment schedule trigger
+- [ ] Monitor first automated runs
+- [ ] Track success rate
+- [ ] Fix any remaining issues
+
+### Phase 4: Monitoring (Week 8+)
 - [ ] Track E2E test pass rate
 - [ ] Identify flaky tests
 - [ ] Monitor test performance
 - [ ] Document any issues
 
-### Phase 4: Optimization (Week 8)
-- [ ] Fix any flaky tests
-- [ ] Optimize test performance
-- [ ] Consider parallel execution
-- [ ] Update documentation
-
 ## Expected Outcomes
 
 ### Immediate (After Merge)
-- ✅ E2E tests run automatically on PRs
+- ✅ E2E infrastructure fixes in place (browser install, health checks)
+- ✅ Manual testing available via workflow_dispatch
 - ✅ Better error messages when tests fail
 - ✅ No more server startup race conditions
-- ✅ Proper browser installation in CI
 
-### Short-term (1-2 weeks)
-- 🔄 E2E tests catching regressions
-- 🔄 Daily runs detecting environmental issues
-- 🔄 95%+ pass rate (target)
-- 🔄 Reduced manual testing burden
+### Short-term (1-2 weeks) - After Test Fixes
+- 🔄 E2E tests will run automatically on PRs (once enabled)
+- 🔄 Daily runs will detect environmental issues
+- 🔄 Need to fix 28/120+ failing tests first
+- 🔄 95%+ pass rate required before automation
 
 ### Long-term (1+ months)
 - 🔄 High confidence in deployments
@@ -262,18 +265,32 @@ on:
 
 ## Conclusion
 
-All E2E test infrastructure fixes have been **successfully validated and applied**. The workflow is now configured to:
+E2E test **infrastructure fixes** have been **successfully validated and applied**. The workflow is now configured with:
 
-1. ✅ Install Playwright browsers correctly
-2. ✅ Start servers without race conditions
-3. ✅ Provide clear error messages
-4. ✅ Run automatically on PRs and daily
-5. ✅ Capture logs for debugging
+1. ✅ Correct Playwright browser installation
+2. ✅ Proper health checks with retry logic
+3. ✅ Clear error messages and logging
+4. ⏳ Triggers remain disabled until test-level issues are fixed
 
-**Status**: Ready for CI validation on next PR or workflow_dispatch trigger.
+**Infrastructure Status**: Ready and waiting for test fixes
+
+**Known Test Issues** (from workflow comments):
+- 28 out of 120+ tests fail due to test-level issues
+- Modal visibility timeouts
+- Missing API waits
+- Console errors
+- Button click timing issues
+
+**Next Actions**:
+1. Fix test-level issues (Phase 2)
+2. Achieve >95% pass rate
+3. Re-enable triggers (uncomment in workflow)
+4. Monitor automated runs
+
+**Status**: Infrastructure ready, test fixes needed before PR automation.
 
 ---
 
-**Next Action**: Monitor first E2E workflow run in CI  
-**Priority**: High - validates critical test infrastructure  
-**Risk**: Low - changes are infrastructure-only, no code changes
+**Next Action**: Fix E2E test-level issues (see ISSUE_E2E_TEST_FIXES.md)  
+**Priority**: Medium - infrastructure ready, tests need fixes  
+**Risk**: Low - triggers disabled, won't block PRs
