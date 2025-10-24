@@ -54,8 +54,8 @@ class TestFastingRoutes:
 
     def test_start_fasting_exception_handling(self, client, isolated_db):
         """Test exception handling in start fasting"""
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.get_active_session.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.start_fasting_session.side_effect = Exception('Database error')
 
             start_data = {'fasting_type': '16:8'}
             response = client.post(
@@ -69,8 +69,8 @@ class TestFastingRoutes:
 
     def test_end_fasting_exception_handling(self, client, isolated_db):
         """Test exception handling in end fasting"""
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.get_active_session.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_active_session.side_effect = Exception('Database error')
 
             response = client.post('/api/fasting/end')
             assert response.status_code == 500
@@ -79,8 +79,8 @@ class TestFastingRoutes:
 
     def test_pause_fasting_exception_handling(self, client, isolated_db):
         """Test exception handling in pause fasting"""
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.get_active_session.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_active_session.side_effect = Exception('Database error')
 
             response = client.post('/api/fasting/pause')
             assert response.status_code == 500
@@ -97,11 +97,10 @@ class TestFastingRoutes:
             content_type='application/json'
         )
 
-        # Mock pause to return False (failure)
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_instance = mock_manager.return_value
-            mock_instance.get_active_session.return_value = type('obj', (object,), {'id': 1})()
-            mock_instance.pause_fasting_session.return_value = False
+        # Mock pause to return failure tuple
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_active_session.return_value = {'id': 1}
+            mock_service.return_value.pause_fasting_session.return_value = (False, None, ['Failed to pause fasting session'])
 
             response = client.post('/api/fasting/pause')
             assert response.status_code == 400
@@ -374,8 +373,8 @@ class TestFastingRoutes:
 
     def test_get_fasting_sessions_exception_handling(self, client, isolated_db):
         """Test exception handling in get sessions"""
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.get_fasting_sessions.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_fasting_sessions.side_effect = Exception('Database error')
 
             response = client.get('/api/fasting/sessions')
             assert response.status_code == 500
@@ -462,11 +461,9 @@ class TestFastingRoutes:
         session_id = json.loads(start_response.data)['data']['session_id']
         client.post('/api/fasting/pause')
 
-        # Mock resume to return False (failure)
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_instance = mock_manager.return_value
-            mock_instance.get_active_session.return_value = type('obj', (object,), {'id': session_id})()
-            mock_instance.resume_fasting_session.return_value = False
+        # Mock resume to return failure tuple
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.resume_fasting_session.return_value = (False, None, ['Failed to resume fasting session'])
 
             resume_data = {'session_id': session_id}
             response = client.post(
@@ -484,8 +481,8 @@ class TestFastingRoutes:
 
     def test_cancel_fasting_exception_handling(self, client, isolated_db):
         """Test exception handling in cancel fasting"""
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.get_active_session.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_active_session.side_effect = Exception('Database error')
 
             response = client.post('/api/fasting/cancel')
             assert response.status_code == 500
@@ -502,11 +499,10 @@ class TestFastingRoutes:
             content_type='application/json'
         )
 
-        # Mock cancel to return False (failure)
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_instance = mock_manager.return_value
-            mock_instance.get_active_session.return_value = type('obj', (object,), {'id': 1})()
-            mock_instance.cancel_fasting_session.return_value = False
+        # Mock cancel to return failure tuple
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_active_session.return_value = {'id': 1}
+            mock_service.return_value.cancel_fasting_session.return_value = (False, ['Failed to cancel fasting session'])
 
             response = client.post('/api/fasting/cancel')
             assert response.status_code == 400
@@ -532,11 +528,10 @@ class TestFastingRoutes:
             content_type='application/json'
         )
 
-        # Mock end to return False (failure)
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_instance = mock_manager.return_value
-            mock_instance.get_active_session.return_value = type('obj', (object,), {'id': 1})()
-            mock_instance.end_fasting_session.return_value = False
+        # Mock end to return failure tuple
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_active_session.return_value = {'id': 1}
+            mock_service.return_value.end_fasting_session.return_value = (False, None, ['Failed to end fasting session'])
 
             response = client.post('/api/fasting/end')
             assert response.status_code == 400
