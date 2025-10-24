@@ -31,7 +31,6 @@ def db_connection():
             carbs_per_100g REAL,
             net_carbs_per_100g REAL,
             fiber_per_100g REAL,
-            sugars_per_100g REAL,
             keto_index REAL,
             keto_category TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -72,10 +71,10 @@ def db_connection():
     """
     )
 
-    # Create food_log table for testing is_used_in_logs
+    # Create log_entries table for testing is_used_in_logs
     conn.execute(
         """
-        CREATE TABLE food_log (
+        CREATE TABLE log_entries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             item_type TEXT NOT NULL,
             item_id INTEGER NOT NULL,
@@ -395,7 +394,7 @@ class TestDishRepositoryHelpers:
 
         # Add to log
         dish_repo.db.execute(
-            "INSERT INTO food_log (item_type, item_id, date) VALUES ('dish', ?, '2025-01-01')",
+            "INSERT INTO log_entries (item_type, item_id, date) VALUES ('dish', ?, '2025-01-01')",
             (created["id"],),
         )
         dish_repo.db.commit()
