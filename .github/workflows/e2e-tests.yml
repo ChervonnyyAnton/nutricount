@@ -92,6 +92,7 @@ jobs:
       env:
         BASE_URL: http://localhost:5000
         CI: true
+        PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
     
     - name: Upload test results on failure
       if: failure()
@@ -190,6 +191,7 @@ jobs:
       env:
         BASE_URL: http://localhost:8080
         CI: true
+        PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
     
     - name: Upload test results on failure
       if: failure()
