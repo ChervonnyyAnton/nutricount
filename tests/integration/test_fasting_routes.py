@@ -363,8 +363,8 @@ class TestFastingRoutes:
 
     def test_get_fasting_status_exception_handling(self, client, isolated_db):
         """Test exception handling in get status"""
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.get_active_session.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_fasting_progress.side_effect = Exception('Database error')
 
             response = client.get('/api/fasting/status')
             assert response.status_code == 500
@@ -383,8 +383,8 @@ class TestFastingRoutes:
 
     def test_get_fasting_stats_exception_handling(self, client, isolated_db):
         """Test exception handling in get stats"""
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.get_fasting_stats.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_fasting_stats_with_streak.side_effect = Exception('Database error')
 
             response = client.get('/api/fasting/stats')
             assert response.status_code == 500
@@ -393,8 +393,8 @@ class TestFastingRoutes:
 
     def test_get_fasting_goals_exception_handling(self, client, isolated_db):
         """Test exception handling in get goals"""
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.get_fasting_goals.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_fasting_goals.side_effect = Exception('Database error')
 
             response = client.get('/api/fasting/goals')
             assert response.status_code == 500
@@ -412,8 +412,8 @@ class TestFastingRoutes:
             'period_end': (date.today() + timedelta(days=30)).isoformat()
         }
 
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.create_fasting_goal.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.create_fasting_goal.side_effect = Exception('Database error')
 
             response = client.post(
                 '/api/fasting/goals',
@@ -426,8 +426,8 @@ class TestFastingRoutes:
 
     def test_fasting_settings_exception_handling(self, client, isolated_db):
         """Test exception handling in settings"""
-        with patch('routes.fasting.FastingManager') as mock_manager:
-            mock_manager.return_value.get_fasting_settings.side_effect = Exception('Database error')
+        with patch('routes.fasting._get_fasting_service') as mock_service:
+            mock_service.return_value.get_fasting_settings.side_effect = Exception('Database error')
 
             response = client.get('/api/fasting/settings')
             assert response.status_code == 500

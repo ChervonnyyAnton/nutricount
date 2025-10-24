@@ -12,7 +12,6 @@ from routes.helpers import safe_get_json
 from services.fasting_service import FastingService
 from src.config import Config
 from src.constants import ERROR_MESSAGES, HTTP_BAD_REQUEST, HTTP_CREATED, HTTP_OK, SUCCESS_MESSAGES
-from src.fasting_manager import FastingManager
 from src.monitoring import monitor_http_request
 from src.security import rate_limit
 from src.utils import json_response
@@ -304,14 +303,13 @@ def cancel_fasting():
 @rate_limit("api")
 def get_fasting_status():
     """
-    Get current fasting status and progress.
+    Get current fasting status and progress (thin controller).
 
-    Note: Uses FastingManager for now as progress calculation
-    is not yet in FastingService.
+    Delegates business logic to FastingService.
     """
     try:
-        fasting_manager = FastingManager(Config.DATABASE)
-        progress = fasting_manager.get_fasting_progress()
+        service = _get_fasting_service()
+        progress = service.get_fasting_progress()
 
         return (
             jsonify(json_response(progress, "Fasting status retrieved successfully", HTTP_OK)),
@@ -356,15 +354,14 @@ def get_fasting_sessions():
 @rate_limit("api")
 def get_fasting_stats():
     """
-    Get fasting statistics.
+    Get fasting statistics (thin controller).
 
-    Note: Uses FastingManager for now as it includes streak calculation
-    which is not yet in FastingService.
+    Delegates business logic to FastingService.
     """
     try:
         days = request.args.get("days", 30, type=int)
-        fasting_manager = FastingManager(Config.DATABASE)
-        stats = fasting_manager.get_fasting_stats(days=days)
+        service = _get_fasting_service()
+        stats = service.get_fasting_stats_with_streak(days=days)
 
         return (
             jsonify(json_response(stats, "Fasting statistics retrieved successfully", HTTP_OK)),
@@ -380,10 +377,14 @@ def get_fasting_stats():
 @monitor_http_request
 @rate_limit("api")
 def get_fasting_goals():
-    """Get fasting goals"""
+    """
+    Get fasting goals (thin controller).
+
+    Delegates business logic to FastingService.
+    """
     try:
-        fasting_manager = FastingManager(Config.DATABASE)
-        goals = fasting_manager.get_fasting_goals()
+        service = _get_fasting_service()
+        goals = service.get_fasting_goals()
 
         # Convert goals to dict format
         goals_data = []
@@ -420,7 +421,11 @@ def get_fasting_goals():
 @monitor_http_request
 @rate_limit("api")
 def create_fasting_goal():
-    """Create a new fasting goal"""
+    """
+    Create a new fasting goal (thin controller).
+
+    Delegates business logic to FastingService.
+    """
     try:
         data = safe_get_json()
         if data is None:
@@ -484,27 +489,34 @@ def create_fasting_goal():
                 HTTP_BAD_REQUEST,
             )
 
-        fasting_manager = FastingManager(Config.DATABASE)
-        goal = fasting_manager.create_fasting_goal(
+        service = _get_fasting_service()
+        success, goal, errors = service.create_fasting_goal(
             goal_type, target_value, period_start, period_end
         )
 
-        return (
-            jsonify(
-                json_response(
-                    {
-                        "goal_id": goal.id,
-                        "goal_type": goal.goal_type,
-                        "target_value": goal.target_value,
-                        "period_start": goal.period_start.isoformat(),
-                        "period_end": goal.period_end.isoformat(),
-                    },
-                    "Fasting goal created successfully",
-                    HTTP_CREATED,
-                )
-            ),
-            HTTP_CREATED,
-        )
+        if success and goal:
+            return (
+                jsonify(
+                    json_response(
+                        {
+                            "goal_id": goal.id,
+                            "goal_type": goal.goal_type,
+                            "target_value": goal.target_value,
+                            "period_start": goal.period_start.isoformat(),
+                            "period_end": goal.period_end.isoformat(),
+                        },
+                        "Fasting goal created successfully",
+                        HTTP_CREATED,
+                    )
+                ),
+                HTTP_CREATED,
+            )
+        else:
+            message = errors[0] if errors else "Failed to create goal"
+            return (
+                jsonify(json_response(None, message, HTTP_BAD_REQUEST, errors=errors)),
+                HTTP_BAD_REQUEST,
+            )
 
     except Exception as e:
         current_app.logger.error(f"Create fasting goal error: {e}")
@@ -515,15 +527,18 @@ def create_fasting_goal():
 @monitor_http_request
 @rate_limit("api")
 def fasting_settings_api():
-    """Get, create, or update fasting settings"""
+    """
+    Get, create, or update fasting settings (thin controller).
+
+    Delegates business logic to FastingService.
+    """
     try:
         user_id = 1  # Default user for now
+        service = _get_fasting_service()
 
         if request.method == "GET":
             # Get fasting settings
-            fasting_manager = FastingManager(Config.DATABASE)
-            settings = fasting_manager.get_fasting_settings(user_id)
-
+            settings = service.get_fasting_settings(user_id)
             return jsonify(json_response(settings, "Fasting settings retrieved", HTTP_OK)), HTTP_OK
 
         elif request.method in ["POST", "PUT"]:
@@ -574,18 +589,23 @@ def fasting_settings_api():
                 "default_notes": data.get("default_notes", ""),
             }
 
-            fasting_manager = FastingManager(Config.DATABASE)
-
             if request.method == "POST":
                 # Create new settings
-                settings = fasting_manager.create_fasting_settings(settings_data)
+                success, settings, errors = service.create_fasting_settings(settings_data)
                 message = "Fasting settings created successfully"
             else:
                 # Update existing settings
-                settings = fasting_manager.update_fasting_settings(user_id, settings_data)
+                success, settings, errors = service.update_fasting_settings(user_id, settings_data)
                 message = "Fasting settings updated successfully"
 
-            return jsonify(json_response(settings, message, HTTP_OK)), HTTP_OK
+            if success and settings:
+                return jsonify(json_response(settings, message, HTTP_OK)), HTTP_OK
+            else:
+                error_message = errors[0] if errors else "Failed to save settings"
+                return (
+                    jsonify(json_response(None, error_message, HTTP_BAD_REQUEST, errors=errors)),
+                    HTTP_BAD_REQUEST,
+                )
 
     except Exception as e:
         current_app.logger.error(f"Fasting settings error: {e}")

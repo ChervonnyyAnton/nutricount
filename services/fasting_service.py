@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from repositories.fasting_repository import FastingRepository
 from src.cache_manager import cache_manager
+from src.fasting_manager import FastingManager
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,9 @@ class FastingService:
             repository: FastingRepository instance
         """
         self.repository = repository
+        # Use FastingManager for goal/settings/advanced stats (temporary delegation)
+        # TODO: Migrate these to service layer when repository is extended
+        self._manager = FastingManager(repository.db_path) if hasattr(repository, 'db_path') else None
 
     def get_fasting_sessions(
         self,
@@ -352,3 +356,161 @@ class FastingService:
         # Invalidate all fasting cache for this user
         cache_manager.delete(f"fasting:sessions:{user_id}:*")
         cache_manager.delete(f"fasting:stats:{user_id}")
+
+    # === Advanced Features (Delegate to FastingManager) ===
+    # TODO: Migrate these to service layer when repository is extended
+    # with goal, settings, and streak calculation support
+
+    def get_fasting_progress(self, user_id: int = 1) -> Dict[str, Any]:
+        """
+        Get current fasting progress with active session, stats, and goals.
+
+        This includes complex calculations like progress percentage and streak.
+        Delegates to FastingManager until fully migrated to service layer.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            Dictionary with progress information
+        """
+        if self._manager is None:
+            raise RuntimeError("FastingManager not available for progress calculation")
+        return self._manager.get_fasting_progress(user_id)
+
+    def get_fasting_stats_with_streak(self, user_id: int = 1, days: int = 30) -> Dict[str, Any]:
+        """
+        Get fasting statistics including current streak calculation.
+
+        Streak calculation requires complex SQL queries.
+        Delegates to FastingManager until fully migrated to service layer.
+
+        Args:
+            user_id: User ID
+            days: Number of days to include in statistics
+
+        Returns:
+            Dictionary with statistics including current streak
+        """
+        if self._manager is None:
+            raise RuntimeError("FastingManager not available for streak calculation")
+        return self._manager.get_fasting_stats(user_id, days)
+
+    def get_fasting_goals(self, user_id: int = 1) -> List[Any]:
+        """
+        Get user's fasting goals.
+
+        Delegates to FastingManager until goal repository is implemented.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            List of FastingGoal objects
+        """
+        if self._manager is None:
+            raise RuntimeError("FastingManager not available for goals")
+        return self._manager.get_fasting_goals(user_id)
+
+    def create_fasting_goal(
+        self,
+        goal_type: str,
+        target_value: float,
+        period_start: Any,
+        period_end: Any,
+        user_id: int = 1
+    ) -> Tuple[bool, Optional[Any], List[str]]:
+        """
+        Create a new fasting goal.
+
+        Delegates to FastingManager until goal repository is implemented.
+
+        Args:
+            goal_type: Type of goal (e.g., 'daily_hours', 'weekly_sessions')
+            target_value: Target value for the goal
+            period_start: Goal period start date
+            period_end: Goal period end date
+            user_id: User ID
+
+        Returns:
+            Tuple of (success, goal, errors)
+        """
+        if self._manager is None:
+            return (False, None, ["FastingManager not available for goal creation"])
+
+        try:
+            goal = self._manager.create_fasting_goal(
+                goal_type, target_value, period_start, period_end
+            )
+            return (True, goal, [])
+        except Exception as e:
+            logger.exception("Error creating fasting goal")
+            return (False, None, [str(e)])
+
+    def get_fasting_settings(self, user_id: int = 1) -> Optional[Dict[str, Any]]:
+        """
+        Get user's fasting settings.
+
+        Delegates to FastingManager until settings repository is implemented.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            Settings dictionary or None
+        """
+        if self._manager is None:
+            return None
+        return self._manager.get_fasting_settings(user_id)
+
+    def create_fasting_settings(
+        self,
+        settings_data: Dict[str, Any]
+    ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
+        """
+        Create user's fasting settings.
+
+        Delegates to FastingManager until settings repository is implemented.
+
+        Args:
+            settings_data: Settings data dictionary
+
+        Returns:
+            Tuple of (success, settings, errors)
+        """
+        if self._manager is None:
+            return (False, None, ["FastingManager not available for settings creation"])
+
+        try:
+            settings = self._manager.create_fasting_settings(settings_data)
+            return (True, settings, [])
+        except Exception as e:
+            logger.exception("Error creating fasting settings")
+            return (False, None, [str(e)])
+
+    def update_fasting_settings(
+        self,
+        user_id: int,
+        settings_data: Dict[str, Any]
+    ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
+        """
+        Update user's fasting settings.
+
+        Delegates to FastingManager until settings repository is implemented.
+
+        Args:
+            user_id: User ID
+            settings_data: Settings data dictionary
+
+        Returns:
+            Tuple of (success, settings, errors)
+        """
+        if self._manager is None:
+            return (False, None, ["FastingManager not available for settings update"])
+
+        try:
+            settings = self._manager.update_fasting_settings(user_id, settings_data)
+            return (True, settings, [])
+        except Exception as e:
+            logger.exception("Error updating fasting settings")
+            return (False, None, [str(e)])
