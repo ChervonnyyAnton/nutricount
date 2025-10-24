@@ -12,13 +12,11 @@ name: E2E Tests
 # See: ISSUE_E2E_TEST_FIXES.md for the action plan to re-enable.
 
 on:
-  # Temporarily disabled to avoid blocking PRs
-  # pull_request:
-  #   branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
   workflow_dispatch:  # Allow manual triggering for debugging
-  # Disabled scheduled runs until tests are fixed
-  # schedule:
-  #   - cron: '0 2 * * *'
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
 
 jobs:
   e2e-tests-local:
@@ -53,7 +51,7 @@ jobs:
     
     - name: Install Playwright browsers with system dependencies
       run: |
-        npx playwright install chromium --with-deps
+        npx playwright install --with-deps chromium
       env:
         # Playwright requires these for browser installation
         PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
@@ -163,7 +161,7 @@ jobs:
     
     - name: Install Playwright browsers with system dependencies
       run: |
-        npx playwright install chromium --with-deps
+        npx playwright install --with-deps chromium
       env:
         PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
     
