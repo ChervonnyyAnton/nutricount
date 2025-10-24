@@ -191,10 +191,56 @@ Based on WEEK6_PLANNING.md (revised October 23, 2025):
 
 ## 💡 Strategic Recommendations
 
-### Option A: Production Infrastructure (RECOMMENDED) 🌟
+### Priority Order (Updated per Stakeholder Feedback)
+
+**As requested by project owner:**
+1. **Option C** - Complete Service Layer (HIGHEST PRIORITY) 🌟
+2. **Option A** - Production Infrastructure (MEDIUM PRIORITY)
+3. **Option B** - Fix E2E Tests (LOWER PRIORITY)
+
+---
+
+### Option C: Complete Service Layer (HIGHEST PRIORITY) 🌟
+
+**Duration**: 2-4 hours  
+**Impact**: Architectural consistency, quick win
+
+**Tasks**:
+1. Extend FastingService with remaining methods
+   - Add `get_fasting_goals()` method
+   - Add `create_fasting_goal()` method
+   - Add `get_fasting_settings()` method
+   - Add settings create/update methods
+   - Port streak calculation to repository
+2. Migrate 4 remaining endpoints
+   - GET `/api/fasting/stats` (with streak calculation)
+   - GET `/api/fasting/goals`
+   - POST `/api/fasting/goals`
+   - GET/POST/PUT `/api/fasting/settings`
+3. Update routes to use FastingService
+4. Remove FastingManager dependencies
+5. Test all endpoints
+
+**Benefits**:
+- ✅ 100% service layer completion (75% → 100%)
+- ✅ Architectural consistency across all services
+- ✅ Future-proof codebase
+- ✅ Quick win (completes in 2-4 hours)
+- ✅ Low risk (current hybrid works, this enhances it)
+
+**Why Highest Priority**:
+- Quick completion time (2-4 hours)
+- Completes major architectural initiative
+- Unblocks future refactoring
+- Low complexity, well understood
+- High value for relatively low effort
+
+---
+
+### Option A: Production Infrastructure (MEDIUM PRIORITY)
 
 **Duration**: 14-18 hours  
-**Impact**: Highest business value
+**Impact**: High business value
 
 **Tasks**:
 1. Implement Rollback Mechanism (8-10h)
@@ -220,14 +266,17 @@ Based on WEEK6_PLANNING.md (revised October 23, 2025):
 - ✅ Increased reliability and confidence
 - ✅ Foundation for safe experimentation
 
-**Why This Choice**:
-1. **Highest Business Value**: Production reliability is critical
+**Why Medium Priority**:
+1. **Business Value**: Production reliability is critical
 2. **Unblocks Future Work**: Safe to experiment with rollback in place
-3. **Lower Complexity**: Well-documented with clear requirements
-4. **Immediate Impact**: Improves deployment confidence immediately
+3. **Well-documented**: Clear requirements and implementation path
+4. **Immediate Impact**: Improves deployment confidence
 5. **Enables Growth**: Foundation for scaling and continuous deployment
+6. **Longer Timeline**: 14-18 hours, better to start after quick wins
 
-### Option B: Fix E2E Tests
+---
+
+### Option B: Fix E2E Tests (LOWER PRIORITY)
 
 **Duration**: 14-20 hours  
 **Impact**: High (unblocks PR testing)
@@ -258,51 +307,46 @@ Based on WEEK6_PLANNING.md (revised October 23, 2025):
 - ✅ Reduced manual testing burden
 - ✅ Catch UI bugs before merge
 
-**Why Consider**:
-- High impact on development workflow
-- Well-documented issues
-- Infrastructure already working
-
-### Option C: Complete Service Layer
-
-**Duration**: 2-4 hours  
-**Impact**: Medium (architectural consistency)
-
-**Tasks**:
-1. Extend FastingService with remaining methods
-2. Migrate 4 remaining endpoints
-3. Port streak calculation from FastingManager
-4. Update any remaining tests
-
-**Benefits**:
-- ✅ 100% service layer completion
-- ✅ Architectural consistency
-- ✅ Future-proof codebase
-
-**Why Consider**:
-- Quick win (2-4 hours)
-- Completes major architectural initiative
-- Low risk (current hybrid works)
+**Why Lower Priority**:
+- High impact but time-intensive (14-20 hours)
+- Infrastructure already working, not blocking
+- Can be addressed after completing service layer and deployment automation
+- Test-level issues, not infrastructure problems
 
 ---
 
-## 🎯 Final Recommendation
+## 🎯 Final Recommendation (Updated per Stakeholder)
 
-### **Start with Option A: Production Infrastructure** 🌟
+### **Start with Option C: Complete Service Layer** 🌟
 
-**Reasoning**:
-1. **Highest ROI**: Production reliability has immediate business impact
-2. **Foundation First**: Enables safe deployments for all future work
-3. **Lower Risk**: Well-documented, clear deliverables
-4. **Strategic Value**: Critical infrastructure investment
-5. **Enables Velocity**: With rollback, team can deploy more confidently
+**Priority Order** (as specified by @ChervonnyyAnton):
+1. **Option C** - Complete Service Layer (HIGHEST) 🌟
+2. **Option A** - Production Infrastructure (MEDIUM)
+3. **Option B** - Fix E2E Tests (LOWER)
 
-**Proposed Timeline**:
-- **Week 7** (Now): Rollback + Deployment (14-18h)
+**Reasoning for This Priority**:
+1. **Quick Win**: 2-4 hours to complete, provides immediate value
+2. **Architectural Completion**: Finishes major service layer initiative (75% → 100%)
+3. **Foundation for Next Steps**: Clean architecture enables safer deployment work
+4. **Low Risk**: Current hybrid approach works, this enhances it
+5. **High Value/Effort Ratio**: Maximum benefit for minimal time investment
+
+**Updated Timeline**:
+- **Week 7 Phase 1** (Now): Complete Service Layer (2-4h) ✅ HIGHEST PRIORITY
+- **Week 7 Phase 2**: Production Infrastructure - Rollback + Deployment (14-18h)
 - **Week 8**: E2E Test Fixes (14-20h)
-- **Week 9**: Complete Service Layer + Polish (6-10h)
+- **Week 9**: Polish and optimization
 
-**Success Criteria**:
+**Success Criteria for Option C (Immediate)**:
+- [ ] FastingService extended with all remaining methods
+- [ ] All 4 remaining endpoints migrated (stats, goals GET/POST, settings GET/POST/PUT)
+- [ ] Streak calculation ported from FastingManager to repository
+- [ ] All 36 fasting tests still passing
+- [ ] Service layer at 100% completion (26/26 endpoints)
+- [ ] FastingManager dependencies removed from routes
+- [ ] Documentation updated
+
+**Success Criteria for Option A (After C)**:
 - [ ] Automatic rollback on deployment failure
 - [ ] Zero-downtime deployment process
 - [ ] Health check automation integrated
