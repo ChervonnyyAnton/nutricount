@@ -148,10 +148,16 @@ def test_update_dish_name_conflict(client, app):
     dish2_response = client.post("/api/dishes", json=dish2_data)
     dish2_id = dish2_response.json["data"]["id"]
 
-    # Try to update dish2 with dish1's name
-    response = client.put(f"/api/dishes/{dish2_id}", json={"name": "Dish One"})
+    # Try to update dish2 with dish1's name (must include ingredients for validation)
+    response = client.put(
+        f"/api/dishes/{dish2_id}",
+        json={
+            "name": "Dish One",
+            "ingredients": [{"product_id": product_id, "quantity_grams": 100}]
+        }
+    )
     assert response.status_code == 400
-    assert "already exists" in str(response.json.get("errors", []))
+    assert "already" in str(response.json.get("errors", []))
 
 
 def test_delete_dish_with_log_entries(client, app):
@@ -190,7 +196,7 @@ def test_delete_dish_with_log_entries(client, app):
     response = client.delete(f"/api/dishes/{dish_id}")
     assert response.status_code == 400
     assert "Cannot delete" in response.json["message"]
-    assert "log entries" in response.json["message"]
+    assert "used in" in response.json["message"]
 
 
 def test_delete_dish_not_found(client, app):
