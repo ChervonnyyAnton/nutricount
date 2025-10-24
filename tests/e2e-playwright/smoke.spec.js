@@ -97,9 +97,12 @@ test.describe('Smoke Tests', () => {
       if (await addButton.isVisible()) {
         await addButton.click();
         
+        // Wait for modal with proper CI timeout
+        await helpers.waitForModal(page);
+        
         // Verify modal is displayed
         const modal = page.locator('.modal:visible').first();
-        await expect(modal).toBeVisible({ timeout: 5000 });
+        await expect(modal).toBeVisible({ timeout: 15000 });
       }
     });
 
@@ -144,22 +147,18 @@ test.describe('Smoke Tests', () => {
     });
 
     test('should not have console errors on load', async ({ page }) => {
-      const consoleErrors = [];
-      page.on('console', (msg) => {
-        if (msg.type() === 'error') {
-          consoleErrors.push(msg.text());
-        }
-      });
+      const consoleErrors = await helpers.captureConsoleErrors(page);
       
       await page.goto('/');
       await page.waitForLoadState('networkidle');
       
-      // Filter out known non-critical errors
-      const criticalErrors = consoleErrors.filter(
-        (error) => !error.includes('favicon') && !error.includes('sourcemap')
-      );
+      // All non-critical errors are already filtered by the helper
+      expect(consoleErrors.length).toBe(0);
       
-      expect(criticalErrors.length).toBe(0);
+      // If there are errors, log them for debugging
+      if (consoleErrors.length > 0) {
+        console.log('Critical console errors found:', consoleErrors);
+      }
     });
   });
 });

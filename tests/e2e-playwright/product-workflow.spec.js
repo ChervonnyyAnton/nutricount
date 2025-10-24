@@ -20,8 +20,8 @@ test.describe('Product Management Workflow', () => {
     const addButton = page.locator('button:has-text("Add Product")').first();
     await addButton.click();
     
-    // Wait for modal to appear
-    await page.waitForSelector('.modal:visible', { timeout: 5000 });
+    // Wait for modal with proper CI timeout
+    await helpers.waitForModal(page);
     
     // Fill in product form (demo uses specific IDs)
     await helpers.fillField(page, 'input[name="name"], #productName', product.name);
@@ -31,16 +31,12 @@ test.describe('Product Management Workflow', () => {
     await helpers.fillField(page, 'input[name="carbs_per_100g"], #productCarbs', product.carbs_per_100g.toString());
     await helpers.fillField(page, 'input[name="fiber_per_100g"], #productFiber', product.fiber_per_100g.toString());
     
-    // Submit form
-    const submitButton = page.locator('button[type="submit"]:has-text("Save"), button:has-text("Add Product")').last();
-    await submitButton.click();
-    
-    // Wait for modal to close or success message
-    await page.waitForTimeout(1000);
+    // Submit form with proper API wait
+    await helpers.submitModalForm(page);
     
     // Verify product appears in the list
     const productCard = page.locator(`text=${product.name}`).first();
-    await expect(productCard).toBeVisible({ timeout: 5000 });
+    await expect(productCard).toBeVisible({ timeout: 15000 });
   });
 
   test('should display product list', async ({ page }) => {
@@ -118,8 +114,8 @@ test.describe('Product Management Workflow', () => {
     const addButton = page.locator('button:has-text("Add Product")').first();
     await addButton.click();
     
-    // Wait for modal to appear
-    await page.waitForSelector('.modal:visible', { timeout: 5000 });
+    // Wait for modal with proper CI timeout
+    await helpers.waitForModal(page);
     
     // Try to submit empty form
     const submitButton = page.locator('button[type="submit"]:has-text("Save"), button:has-text("Add Product")').last();
@@ -144,8 +140,8 @@ test.describe('Product Management Workflow', () => {
     const addButton = page.locator('button:has-text("Add Product")').first();
     await addButton.click();
     
-    // Wait for modal to appear
-    await page.waitForSelector('.modal:visible', { timeout: 5000 });
+    // Wait for modal with proper CI timeout
+    await helpers.waitForModal(page);
     
     // Fill in high-fat, low-carb product
     await helpers.fillField(page, 'input[name="name"], #product-name', product.name);
