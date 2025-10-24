@@ -97,9 +97,12 @@ test.describe('Smoke Tests', () => {
       if (await addButton.isVisible()) {
         await addButton.click();
         
+        // Wait for modal with proper CI timeout
+        await helpers.waitForModal(page);
+        
         // Verify modal is displayed
         const modal = page.locator('.modal:visible').first();
-        await expect(modal).toBeVisible({ timeout: 5000 });
+        await expect(modal).toBeVisible({ timeout: 15000 });
       }
     });
 

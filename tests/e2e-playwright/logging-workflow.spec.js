@@ -43,7 +43,9 @@ test.describe('Daily Logging Workflow', () => {
     const addProductBtn = page.locator('button:has-text("Add Product")').first();
     if (await addProductBtn.isVisible({ timeout: 2000 })) {
       await addProductBtn.click();
-      await page.waitForSelector('.modal:visible', { timeout: 5000 });
+      
+      // Wait for modal with proper CI timeout
+      await helpers.waitForModal(page);
       
       const product = testData.products.apple;
       await helpers.fillField(page, 'input[name="name"], #product-name', product.name + ' - Log Test');
@@ -52,9 +54,8 @@ test.describe('Daily Logging Workflow', () => {
       await helpers.fillField(page, 'input[name="fat_per_100g"], #fat', product.fat_per_100g.toString());
       await helpers.fillField(page, 'input[name="carbs_per_100g"], #carbs', product.carbs_per_100g.toString());
       
-      const submitBtn = page.locator('button[type="submit"]:has-text("Save"), button:has-text("Add Product")').last();
-      await submitBtn.click();
-      await page.waitForTimeout(1000);
+      // Submit form with proper API wait
+      await helpers.submitModalForm(page);
     }
     
     // Go back to Log tab
