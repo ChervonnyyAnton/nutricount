@@ -67,17 +67,20 @@ module.exports = defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  /* Only auto-start Flask server if BASE_URL is not set (local development) or set to Flask URL */
-  webServer: process.env.BASE_URL && process.env.BASE_URL !== 'http://localhost:5000' 
+  /* Only auto-start server in local development (not in CI) */
+  /* In CI, the workflow starts the server manually to have better control */
+  webServer: process.env.CI 
     ? undefined 
-    : {
-        command: 'python3 app.py',
-        url: 'http://localhost:5000',
-        reuseExistingServer: !!process.env.CI, // Reuse server in CI, auto-start in local development
-        timeout: 120 * 1000,
-        env: {
-          FLASK_ENV: 'test',
-          PYTHONPATH: process.cwd(),
-        },
-      },
+    : (process.env.BASE_URL && process.env.BASE_URL !== 'http://localhost:5000' 
+      ? undefined 
+      : {
+          command: 'python3 app.py',
+          url: 'http://localhost:5000',
+          reuseExistingServer: false, // Always start fresh server in local development
+          timeout: 120 * 1000,
+          env: {
+            FLASK_ENV: 'test',
+            PYTHONPATH: process.cwd(),
+          },
+        }),
 });
