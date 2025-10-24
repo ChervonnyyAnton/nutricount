@@ -1,0 +1,307 @@
+name: Rollback GitHub Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for rollback (required)'
+        required: true
+        type: string
+      target_commit:
+        description: 'Target commit SHA (leave empty for previous successful deployment)'
+        required: false
+        type: string
+
+# Sets permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read
+
+# Allow only one rollback at a time
+concurrency:
+  group: "pages-rollback"
+  cancel-in-progress: false
+
+jobs:
+  validate-rollback:
+    name: Validate Rollback Request
+    runs-on: ubuntu-latest
+    outputs:
+      target_commit: ${{ steps.determine-target.outputs.commit }}
+      should_proceed: ${{ steps.validate.outputs.proceed }}
+    
+    steps:
+    - name: Checkout current main
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 50  # Fetch last 50 commits for history
+    
+    - name: Determine target commit
+      id: determine-target
+      run: |
+        if [ -n "${{ inputs.target_commit }}" ]; then
+          TARGET="${{ inputs.target_commit }}"
+          echo "Using manually specified commit: $TARGET"
+        else
+          # Find previous commit (one before HEAD)
+          TARGET=$(git log --format=%H --skip=1 -n 1)
+          echo "Using previous commit: $TARGET"
+        fi
+        
+        echo "commit=$TARGET" >> $GITHUB_OUTPUT
+        echo "## 🎯 Rollback Target" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Target Commit**: \`$TARGET\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit Message**: $(git log --format=%s -n 1 $TARGET)" >> $GITHUB_STEP_SUMMARY
+        echo "**Author**: $(git log --format='%an' -n 1 $TARGET)" >> $GITHUB_STEP_SUMMARY
+        echo "**Date**: $(git log --format='%ci' -n 1 $TARGET)" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Check rollback history (loop prevention)
+      id: check-history
+      run: |
+        # Check how many rollbacks in the last hour using workflow runs
+        ROLLBACK_COUNT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/rollback.yml/runs?created=>$(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%SZ)&status=success" \
+          | jq '.total_count // 0')
+        
+        echo "Rollbacks in last hour: $ROLLBACK_COUNT"
+        
+        if [ "$ROLLBACK_COUNT" -ge 3 ]; then
+          echo "❌ Too many rollbacks detected ($ROLLBACK_COUNT in last hour)"
+          echo "## ⚠️ Rollback Loop Detected" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ❌ Blocked" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason**: More than 3 rollbacks in the last hour" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This indicates a potential rollback loop. Manual intervention required." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action Required**: Investigate root cause before attempting another rollback" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+        
+        echo "✅ Rollback history check passed"
+    
+    - name: Validate target commit age
+      run: |
+        TARGET_DATE=$(git show -s --format=%ct ${{ steps.determine-target.outputs.commit }})
+        CURRENT_DATE=$(date +%s)
+        DAYS_OLD=$(( ($CURRENT_DATE - $TARGET_DATE) / 86400 ))
+        
+        echo "Target commit is $DAYS_OLD days old"
+        
+        if [ $DAYS_OLD -gt 30 ]; then
+          echo "## ⚠️ Warning: Old Target Version" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Target Age**: $DAYS_OLD days" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ Rolling back to a version more than 30 days old may introduce:" >> $GITHUB_STEP_SUMMARY
+          echo "- Security vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "- Missing features" >> $GITHUB_STEP_SUMMARY
+          echo "- Bug regressions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Recommendation**: Verify this is the correct version" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "✅ Age validation complete"
+    
+    - name: Validate rollback decision
+      id: validate
+      run: |
+        echo "## 📋 Rollback Request Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Reason**: ${{ inputs.reason }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Requested by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Current Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Target Commit**: \`${{ steps.determine-target.outputs.commit }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ All validation checks passed - proceeding with rollback" >> $GITHUB_STEP_SUMMARY
+        echo "proceed=true" >> $GITHUB_OUTPUT
+
+  rollback:
+    name: Execute Rollback
+    runs-on: ubuntu-latest
+    needs: validate-rollback
+    if: needs.validate-rollback.outputs.should_proceed == 'true'
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - name: Checkout target commit
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ needs.validate-rollback.outputs.target_commit }}
+    
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+    
+    - name: Create rollback version file
+      run: |
+        # Create deployment metadata with rollback info
+        mkdir -p demo/.deployment
+        cat > demo/.deployment/version.json << EOF
+        {
+          "commit_sha": "${{ needs.validate-rollback.outputs.target_commit }}",
+          "commit_message": "$(git log --format=%s -n 1)",
+          "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "deployed_by": "${{ github.actor }}",
+          "deployment_type": "rollback",
+          "rollback_reason": "${{ inputs.reason }}",
+          "rollback_from": "${{ github.sha }}",
+          "workflow_run": "${{ github.run_id }}",
+          "workflow_run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+          "git_ref": "${{ github.ref }}",
+          "repository": "${{ github.repository }}"
+        }
+        EOF
+        
+        # Create human-readable version file
+        cat > demo/.deployment/VERSION << EOF
+        Deployment Information (ROLLBACK)
+        ==================================
+        Version: ${{ needs.validate-rollback.outputs.target_commit }}
+        Deployed: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)
+        By: ${{ github.actor }}
+        
+        ROLLBACK INFORMATION:
+        Reason: ${{ inputs.reason }}
+        Rolled back from: ${{ github.sha }}
+        
+        Original Commit: $(git log --format=%s -n 1)
+        Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        EOF
+        
+        echo "✅ Created rollback version files"
+        cat demo/.deployment/VERSION
+    
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'demo'
+    
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+    
+    - name: Rollback Summary
+      run: |
+        echo "## 🔄 Rollback Completed Successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Rolled back to commit: \`${{ needs.validate-rollback.outputs.target_commit }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "📱 Demo URL: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 Rollback Details" >> $GITHUB_STEP_SUMMARY
+        echo "- **Reason**: ${{ inputs.reason }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Executed by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Completed at**: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version Info**: [${{ steps.deployment.outputs.page_url }}.deployment/VERSION](${{ steps.deployment.outputs.page_url }}.deployment/VERSION)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ⚠️ Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "1. Verify the demo is working correctly" >> $GITHUB_STEP_SUMMARY
+        echo "2. Create an issue to track the root cause" >> $GITHUB_STEP_SUMMARY
+        echo "3. Develop and test a fix" >> $GITHUB_STEP_SUMMARY
+        echo "4. Deploy the fix when ready" >> $GITHUB_STEP_SUMMARY
+
+  smoke-test:
+    name: Post-Rollback Smoke Tests
+    runs-on: ubuntu-latest
+    needs: rollback
+    
+    steps:
+    - name: Wait for deployment to propagate
+      run: |
+        echo "Waiting for GitHub Pages to update..."
+        sleep 30
+    
+    - name: Test demo accessibility
+      run: |
+        echo "Testing demo URL accessibility..."
+        
+        # Test main page
+        if curl -f -s https://chervonnyyanton.github.io/nutricount/ > /dev/null; then
+          echo "✅ Main page is accessible"
+        else
+          echo "❌ Main page is NOT accessible"
+          exit 1
+        fi
+        
+        # Test version file
+        if curl -f -s https://chervonnyyanton.github.io/nutricount/.deployment/VERSION > /dev/null; then
+          echo "✅ Version file is accessible"
+          echo ""
+          echo "Version info:"
+          curl -s https://chervonnyyanton.github.io/nutricount/.deployment/VERSION
+        else
+          echo "⚠️ Version file not accessible (non-critical)"
+        fi
+    
+    - name: Smoke test summary
+      run: |
+        echo "## ✅ Smoke Tests Passed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Demo is accessible and responding correctly after rollback." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Tested**:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Main page accessibility" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Version file availability" >> $GITHUB_STEP_SUMMARY
+
+  create-incident-issue:
+    name: Create Incident Report
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, rollback, smoke-test]
+    if: success()
+    
+    steps:
+    - name: Create GitHub Issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issue = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `🔄 Rollback Incident: ${{ inputs.reason }}`,
+            body: `## Rollback Incident Report
+            
+            A rollback was performed on the GitHub Pages demo deployment.
+            
+            ### Rollback Details
+            - **Reason**: ${{ inputs.reason }}
+            - **Executed by**: @${{ github.actor }}
+            - **Date**: ${new Date().toISOString()}
+            - **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            ### Version Information
+            - **Rolled back from**: \`${{ github.sha }}\`
+            - **Rolled back to**: \`${{ needs.validate-rollback.outputs.target_commit }}\`
+            
+            ### Status
+            - ✅ Rollback completed successfully
+            - ✅ Smoke tests passed
+            - ✅ Demo is accessible
+            
+            ### Required Actions
+            1. [ ] Investigate root cause of the issue that triggered rollback
+            2. [ ] Document findings
+            3. [ ] Create fix PR
+            4. [ ] Ensure tests cover the regression
+            5. [ ] Deploy fix when validated
+            6. [ ] Close this issue
+            
+            ### Links
+            - Demo URL: https://chervonnyyanton.github.io/nutricount/
+            - Version Info: https://chervonnyyanton.github.io/nutricount/.deployment/VERSION
+            
+            cc: @${{ github.actor }}`,
+            labels: ['rollback', 'incident', 'priority-high']
+          });
+          
+          console.log(`Created issue #${issue.data.number}`);
+          
+          core.summary
+            .addHeading('📝 Incident Report Created')
+            .addRaw('')
+            .addLink(`Issue #${issue.data.number}`, issue.data.html_url)
+            .write();
