@@ -3,12 +3,11 @@ Log routes for Nutricount application.
 Handles CRUD operations for food log entries.
 """
 
-import sqlite3
-
 from flask import Blueprint, current_app, jsonify, request
 
-from routes.helpers import get_db, safe_get_json
-from src.config import Config
+from repositories.log_repository import LogRepository
+from routes.helpers import safe_get_json
+from services.log_service import LogService
 from src.constants import (
     ERROR_MESSAGES,
     HTTP_BAD_REQUEST,
@@ -18,11 +17,19 @@ from src.constants import (
 )
 from src.monitoring import monitor_http_request
 from src.security import rate_limit
-from src.utils import json_response, safe_float, validate_log_data
+from src.utils import json_response
 
 
 # Create blueprint
 log_bp = Blueprint("log", __name__, url_prefix="/api/log")
+
+
+# Initialize service (repository will be created with Config.DATABASE)
+def _get_log_service() -> LogService:
+    """Get LogService instance."""
+    from flask import current_app
+    repository = LogRepository(current_app.config["DATABASE"])
+    return LogService(repository)
 
 
 @log_bp.route("", methods=["GET", "POST"])
@@ -30,83 +37,17 @@ log_bp = Blueprint("log", __name__, url_prefix="/api/log")
 @rate_limit("api")
 def log_api():
     """Food log CRUD endpoint"""
-    db = get_db()
+    service = _get_log_service()
 
     try:
         if request.method == "GET":
             date_filter = request.args.get("date")
-            limit = min(int(request.args.get("limit", 100)), Config.API_MAX_PER_PAGE)
+            limit = int(request.args.get("limit", 100))
 
-            if date_filter:
-                query = """
-                    SELECT * FROM log_entries_with_details
-                    WHERE date = ?
-                    ORDER BY created_at DESC
-                    LIMIT ?
-                """
-                params = (date_filter, limit)
-            else:
-                query = """
-                    SELECT * FROM log_entries_with_details
-                    ORDER BY date DESC, created_at DESC
-                    LIMIT ?
-                """
-                params = (limit,)
+            # Get log entries using service
+            entries = service.get_log_entries(date_filter=date_filter, limit=limit)
 
-            log_entries = [dict(row) for row in db.execute(query, params).fetchall()]
-
-            # Process log entries to calculate nutrition values
-            processed_entries = []
-            for entry in log_entries:
-                processed_entry = dict(entry)
-
-                # Calculate nutrition values based on item type
-                if entry["item_type"] == "product":
-                    # For products, use per_100g values and calculate actual amounts
-                    quantity_factor = entry["quantity_grams"] / 100.0
-                    processed_entry["calories"] = (
-                        entry["calories_per_100g"] * quantity_factor
-                        if entry["calories_per_100g"]
-                        else None
-                    )
-                    processed_entry["protein"] = (
-                        entry["protein_per_100g"] * quantity_factor
-                        if entry["protein_per_100g"]
-                        else None
-                    )
-                    processed_entry["fat"] = (
-                        entry["fat_per_100g"] * quantity_factor if entry["fat_per_100g"] else None
-                    )
-                    processed_entry["carbs"] = (
-                        entry["carbs_per_100g"] * quantity_factor
-                        if entry["carbs_per_100g"]
-                        else None
-                    )
-                elif entry["item_type"] == "dish":
-                    # For dishes, use dish_per_100g values and calculate actual amounts
-                    quantity_factor = entry["quantity_grams"] / 100.0
-                    processed_entry["calories"] = (
-                        entry["calculated_calories"] if entry["calculated_calories"] else None
-                    )
-                    processed_entry["protein"] = (
-                        entry["dish_protein_per_100g"] * quantity_factor
-                        if entry["dish_protein_per_100g"]
-                        else None
-                    )
-                    processed_entry["fat"] = (
-                        entry["dish_fat_per_100g"] * quantity_factor
-                        if entry["dish_fat_per_100g"]
-                        else None
-                    )
-                    processed_entry["carbs"] = (
-                        entry["dish_carbs_per_100g"] * quantity_factor
-                        if entry["dish_carbs_per_100g"]
-                        else None
-                    )
-
-                processed_entries.append(processed_entry)
-
-            return jsonify(json_response(processed_entries))
+            return jsonify(json_response(entries))
 
         else:  # POST
             data = safe_get_json()
@@ -116,9 +57,10 @@ def log_api():
                     HTTP_BAD_REQUEST,
                 )
 
-            # Validate log data
-            is_valid, errors, cleaned_data = validate_log_data(data)
-            if not is_valid:
+            # Create log entry using service
+            success, entry, errors = service.create_log_entry(data)
+
+            if not success:
                 return (
                     jsonify(
                         json_response(
@@ -128,106 +70,35 @@ def log_api():
                     HTTP_BAD_REQUEST,
                 )
 
-            # Verify item exists
-            if cleaned_data["item_type"] == "product":
-                item_exists = db.execute(
-                    "SELECT name FROM products WHERE id = ?", (cleaned_data["item_id"],)
-                ).fetchone()
-            else:
-                item_exists = db.execute(
-                    "SELECT name FROM dishes WHERE id = ?", (cleaned_data["item_id"],)
-                ).fetchone()
-
-            if not item_exists:
-                return (
-                    jsonify(
-                        json_response(
-                            None,
-                            "Validation failed",
-                            status=HTTP_BAD_REQUEST,
-                            errors=[
-                                f"{cleaned_data['item_type'].title()} with ID {cleaned_data['item_id']} not found"
-                            ],
-                        )
-                    ),
-                    HTTP_BAD_REQUEST,
-                )
-
-            # Create log entry
-            try:
-                cursor = db.execute(
-                    """
-                    INSERT INTO log_entries (date, item_type, item_id, quantity_grams, meal_time, notes)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                    (
-                        cleaned_data["date"],
-                        cleaned_data["item_type"],
-                        cleaned_data["item_id"],
-                        cleaned_data["quantity_grams"],
-                        cleaned_data["meal_time"],
-                        cleaned_data.get("notes", ""),
-                    ),
-                )
-
-                db.commit()
-
-                # Return created log entry with details
-                log_id = cursor.lastrowid
-                log_entry = dict(
-                    db.execute(
-                        "SELECT * FROM log_entries_with_details WHERE id = ?", (log_id,)
-                    ).fetchone()
-                )
-
-                return (
-                    jsonify(json_response(log_entry, SUCCESS_MESSAGES["log_added"], HTTP_CREATED)),
-                    HTTP_CREATED,
-                )
-
-            except sqlite3.IntegrityError as e:
-                current_app.logger.error(f"Log creation integrity error: {e}")
-                return (
-                    jsonify(
-                        json_response(
-                            None,
-                            "Database error",
-                            status=HTTP_BAD_REQUEST,
-                            errors=["Failed to create log entry due to database constraint"],
-                        )
-                    ),
-                    HTTP_BAD_REQUEST,
-                )
+            return (
+                jsonify(json_response(entry, SUCCESS_MESSAGES["log_added"], HTTP_CREATED)),
+                HTTP_CREATED,
+            )
 
     except Exception as e:
         current_app.logger.error(f"Log API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
-    finally:
-        db.close()
 
 
 @log_bp.route("/<int:log_id>", methods=["GET", "PUT", "DELETE"])
+@monitor_http_request
+@rate_limit("api")
 def log_detail_api(log_id):
     """Log entry detail operations (GET, PUT, DELETE)"""
-    db = get_db()
+    service = _get_log_service()
 
     try:
         if request.method == "GET":
-            # Get log entry details
-            log_entry = db.execute(
-                """
-                SELECT * FROM log_entries_with_details WHERE id = ?
-            """,
-                (log_id,),
-            ).fetchone()
+            # Get log entry using service
+            entry = service.get_log_entry_by_id(log_id)
 
-            if not log_entry:
+            if not entry:
                 return (
                     jsonify(json_response(None, ERROR_MESSAGES["not_found"], HTTP_NOT_FOUND)),
                     HTTP_NOT_FOUND,
                 )
 
-            return jsonify(json_response(dict(log_entry)))
+            return jsonify(json_response(entry))
 
         elif request.method == "PUT":
             # Update log entry
@@ -238,113 +109,54 @@ def log_detail_api(log_id):
                     HTTP_BAD_REQUEST,
                 )
 
-            # Validate required fields
-            date = (data.get("date") or "").strip()
-            item_type = (data.get("item_type") or "").strip()
-            item_id = data.get("item_id")
-            quantity_grams = safe_float(data.get("quantity_grams", 0))
-            meal_time = (data.get("meal_time") or "").strip()
+            # Update using service
+            success, entry, errors = service.update_log_entry(log_id, data)
 
-            if not date or not item_type or not item_id or quantity_grams <= 0 or not meal_time:
+            if not success:
+                # Check if it's a not found error or validation error
+                if "not found" in (errors[0] if errors else "").lower():
+                    return (
+                        jsonify(json_response(None, ERROR_MESSAGES["not_found"], HTTP_NOT_FOUND)),
+                        HTTP_NOT_FOUND,
+                    )
                 return (
                     jsonify(
                         json_response(
                             None,
                             ERROR_MESSAGES["validation_error"],
                             status=HTTP_BAD_REQUEST,
-                            errors=["All fields are required"],
+                            errors=errors,
                         )
                     ),
                     HTTP_BAD_REQUEST,
                 )
 
-            # Check if log entry exists
-            existing = db.execute("SELECT id FROM log_entries WHERE id = ?", (log_id,)).fetchone()
-            if not existing:
-                return (
-                    jsonify(json_response(None, ERROR_MESSAGES["not_found"], HTTP_NOT_FOUND)),
-                    HTTP_NOT_FOUND,
-                )
-
-            # Validate item exists
-            if item_type == "product":
-                item_exists = db.execute(
-                    "SELECT id FROM products WHERE id = ?", (item_id,)
-                ).fetchone()
-            elif item_type == "dish":
-                item_exists = db.execute(
-                    "SELECT id FROM dishes WHERE id = ?", (item_id,)
-                ).fetchone()
-            else:
-                return (
-                    jsonify(
-                        json_response(
-                            None,
-                            ERROR_MESSAGES["validation_error"],
-                            status=HTTP_BAD_REQUEST,
-                            errors=["Invalid item type"],
-                        )
-                    ),
-                    HTTP_BAD_REQUEST,
-                )
-
-            if not item_exists:
-                return (
-                    jsonify(
-                        json_response(
-                            None,
-                            ERROR_MESSAGES["validation_error"],
-                            status=HTTP_BAD_REQUEST,
-                            errors=[f"{item_type.title()} not found"],
-                        )
-                    ),
-                    HTTP_BAD_REQUEST,
-                )
-
-            # Update log entry
-            cursor = db.execute(
-                """
-                UPDATE log_entries
-                SET date = ?, item_type = ?, item_id = ?, quantity_grams = ?,
-                    meal_time = ?, notes = ?
-                WHERE id = ?
-            """,
-                (
-                    date,
-                    item_type,
-                    item_id,
-                    quantity_grams,
-                    meal_time,
-                    (data.get("notes") or "").strip(),
-                    log_id,
-                ),
-            )
-
-            db.commit()
-
-            # Return updated log entry
-            updated_entry = db.execute(
-                """
-                SELECT * FROM log_entries_with_details WHERE id = ?
-            """,
-                (log_id,),
-            ).fetchone()
-
-            return jsonify(json_response(dict(updated_entry), "Log entry updated successfully!"))
+            return jsonify(json_response(entry, "Log entry updated successfully!"))
 
         elif request.method == "DELETE":
-            cursor = db.execute("DELETE FROM log_entries WHERE id = ?", (log_id,))
-            if cursor.rowcount == 0:
+            # Delete using service
+            success, errors = service.delete_log_entry(log_id)
+
+            if not success:
+                if "not found" in (errors[0] if errors else "").lower():
+                    return (
+                        jsonify(json_response(None, ERROR_MESSAGES["not_found"], HTTP_NOT_FOUND)),
+                        HTTP_NOT_FOUND,
+                    )
                 return (
-                    jsonify(json_response(None, ERROR_MESSAGES["not_found"], HTTP_NOT_FOUND)),
-                    HTTP_NOT_FOUND,
+                    jsonify(
+                        json_response(
+                            None,
+                            ERROR_MESSAGES["server_error"],
+                            status=500,
+                            errors=errors,
+                        )
+                    ),
+                    500,
                 )
 
-            db.commit()
             return jsonify(json_response({}, SUCCESS_MESSAGES["log_deleted"]))
 
     except Exception as e:
         current_app.logger.error(f"Log detail API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
-    finally:
-        db.close()

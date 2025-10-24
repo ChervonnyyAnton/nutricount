@@ -414,7 +414,6 @@ class TestLogRoutesAdvanced:
 
     def test_log_create_integrity_error(self, client):
         """Test IntegrityError handling in log creation"""
-        import sqlite3
         from unittest.mock import patch, MagicMock
 
         # First create a valid product
@@ -438,41 +437,32 @@ class TestLogRoutesAdvanced:
             "meal_time": "lunch"
         }
 
-        # Mock database to raise IntegrityError
-        with patch("routes.log.get_db") as mock_get_db:
-            mock_db = MagicMock()
-            mock_get_db.return_value = mock_db
-
-            # Mock to return valid product data first
-            mock_db.execute.return_value.fetchone.return_value = {
-                "id": product_id,
-                "name": "Test Product",
-                "proteins_per_100g": 5.0,
-                "fats_per_100g": 2.0,
-                "carbs_per_100g": 10.0,
-                "calories_per_100g": 80.0
-            }
-            # Then raise IntegrityError on insert
-            mock_db.execute.side_effect = [
-                MagicMock(fetchone=lambda: {"id": product_id}),  # Product validation
-                sqlite3.IntegrityError("UNIQUE constraint failed")  # Insert
-            ]
+        # Mock LogService to raise IntegrityError
+        with patch("routes.log._get_log_service") as mock_get_service:
+            mock_service = MagicMock()
+            mock_get_service.return_value = mock_service
+            # Service returns failure with database error message
+            mock_service.create_log_entry.return_value = (
+                False,
+                None,
+                ["Database constraint violation"]
+            )
 
             response = client.post("/api/log", json=log_data)
             assert response.status_code == 400
             data = response.json
             assert data["status"] == "error"
-            assert "database" in data["message"].lower() or "constraint" in data["message"].lower()
+            assert "constraint" in str(data).lower() or "validation" in data["message"].lower()
 
     def test_log_main_exception_handler(self, client):
         """Test main exception handler in log creation"""
         from unittest.mock import patch, MagicMock
 
-        # Mock get_db to raise exception
-        with patch("routes.log.get_db") as mock_get_db:
-            mock_db = MagicMock()
-            mock_get_db.return_value = mock_db
-            mock_db.execute.side_effect = Exception("Database error")
+        # Mock LogService to raise exception
+        with patch("routes.log._get_log_service") as mock_get_service:
+            mock_service = MagicMock()
+            mock_get_service.return_value = mock_service
+            mock_service.create_log_entry.side_effect = Exception("Database error")
 
             log_data = {
                 "date": "2025-10-21",
@@ -491,11 +481,11 @@ class TestLogRoutesAdvanced:
         """Test exception handler in log detail endpoint"""
         from unittest.mock import patch, MagicMock
 
-        # Mock get_db to raise exception
-        with patch("routes.log.get_db") as mock_get_db:
-            mock_db = MagicMock()
-            mock_get_db.return_value = mock_db
-            mock_db.execute.side_effect = Exception("Database error")
+        # Mock LogService to raise exception
+        with patch("routes.log._get_log_service") as mock_get_service:
+            mock_service = MagicMock()
+            mock_get_service.return_value = mock_service
+            mock_service.get_log_entry_by_id.side_effect = Exception("Database error")
 
             response = client.get("/api/log/1")
             assert response.status_code == 500
