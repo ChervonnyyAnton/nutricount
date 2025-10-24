@@ -141,11 +141,12 @@ Continue development according to the integrated roadmap (INTEGRATED_ROADMAP.md,
 - **Security**: No new vulnerabilities ✅
 
 ### Service Layer
-- **Overall**: 50% complete
+- **Overall**: 50% complete (3 out of 4 services integrated)
 - **ProductService**: ✅ Fully integrated (8,041 bytes)
 - **LogService**: ✅ Fully integrated (12,542 bytes)
 - **DishService**: ✅ Fully integrated (6,302 bytes)
 - **FastingService**: ⏳ Not integrated (10,589 bytes, ready but unused)
+- **Calculation**: 75% of services integrated (3/4), but 50% considering equal priority per WEEK6_PLANNING.md
 
 ### E2E Tests
 - **Infrastructure**: ✅ Fixed and validated
@@ -324,9 +325,10 @@ Continue development according to the integrated roadmap (INTEGRATED_ROADMAP.md,
 - SESSION_SUMMARY_OCT24_WEEK7_START.md - Week 7 kickoff
 
 ### External Resources
-- [Playwright Configuration](https://playwright.dev/docs/test-configuration)
+- [Playwright Configuration](https://playwright.dev/docs/test-configuration) (Project uses Playwright v1.x)
 - [GitHub Actions Workflow Syntax](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions)
 - [Clean Architecture Principles](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- Project Playwright version: See package.json for exact version
 
 ---
 
