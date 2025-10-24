@@ -50,6 +50,38 @@ jobs:
     - name: Setup Pages
       uses: actions/configure-pages@v4
     
+    - name: Create deployment version file
+      run: |
+        # Create deployment metadata
+        mkdir -p demo/.deployment
+        cat > demo/.deployment/version.json << EOF
+        {
+          "commit_sha": "${{ github.sha }}",
+          "commit_message": "${{ github.event.head_commit.message || github.event.workflow_run.head_commit.message }}",
+          "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "deployed_by": "${{ github.actor }}",
+          "workflow_run": "${{ github.run_id }}",
+          "workflow_run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+          "ci_workflow_run": "${{ github.event.workflow_run.html_url }}",
+          "git_ref": "${{ github.ref }}",
+          "repository": "${{ github.repository }}"
+        }
+        EOF
+        
+        # Create human-readable version file
+        cat > demo/.deployment/VERSION << EOF
+        Deployment Information
+        ======================
+        Version: ${{ github.sha }}
+        Deployed: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)
+        By: ${{ github.actor }}
+        Commit: ${{ github.event.head_commit.message || github.event.workflow_run.head_commit.message }}
+        Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        EOF
+        
+        echo "✅ Created deployment version files"
+        cat demo/.deployment/VERSION
+    
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
@@ -65,6 +97,12 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "✅ Demo deployed to GitHub Pages" >> $GITHUB_STEP_SUMMARY
         echo "📱 Access at: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Deployment Version" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Deployed**: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)" >> $GITHUB_STEP_SUMMARY
+        echo "- **By**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version Info**: [${{ steps.deployment.outputs.page_url }}.deployment/VERSION](${{ steps.deployment.outputs.page_url }}.deployment/VERSION)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Demo Features:" >> $GITHUB_STEP_SUMMARY
         echo "- Product management" >> $GITHUB_STEP_SUMMARY
