@@ -1,13 +1,17 @@
 """
 Fasting routes for Nutricount application.
 Handles intermittent fasting tracking: sessions, goals, statistics, and settings.
+
+Refactored to use Service Layer pattern for thin controllers.
 """
 
 from flask import Blueprint, current_app, jsonify, request
 
+from repositories.fasting_repository import FastingRepository
 from routes.helpers import safe_get_json
+from services.fasting_service import FastingService
 from src.config import Config
-from src.constants import ERROR_MESSAGES, HTTP_BAD_REQUEST, HTTP_CREATED, HTTP_OK
+from src.constants import ERROR_MESSAGES, HTTP_BAD_REQUEST, HTTP_CREATED, HTTP_OK, SUCCESS_MESSAGES
 from src.fasting_manager import FastingManager
 from src.monitoring import monitor_http_request
 from src.security import rate_limit
@@ -18,11 +22,26 @@ from src.utils import json_response
 fasting_bp = Blueprint("fasting", __name__, url_prefix="/api/fasting")
 
 
+def _get_fasting_service() -> FastingService:
+    """
+    Get FastingService instance with repository.
+
+    Returns:
+        FastingService instance
+    """
+    repository = FastingRepository(Config.DATABASE)
+    return FastingService(repository)
+
+
 @fasting_bp.route("/start", methods=["POST"])
 @monitor_http_request
 @rate_limit("api")
 def start_fasting():
-    """Start a new fasting session"""
+    """
+    Start a new fasting session (thin controller).
+
+    Delegates business logic to FastingService.
+    """
     try:
         data = safe_get_json()
         if data is None:
@@ -30,71 +49,58 @@ def start_fasting():
                 jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
                 HTTP_BAD_REQUEST,
             )
+
         fasting_type = data.get("fasting_type", "16:8")
         notes = data.get("notes", "")
         target_hours = data.get("target_hours")
 
-        # Validate fasting type
-        valid_types = ["16:8", "18:6", "20:4", "OMAD", "Custom"]
-        if fasting_type not in valid_types:
-            return (
-                jsonify(
-                    json_response(
-                        None,
-                        ERROR_MESSAGES["validation_error"],
-                        HTTP_BAD_REQUEST,
-                        errors=[f"Invalid fasting type. Must be one of: {', '.join(valid_types)}"],
-                    )
-                ),
-                HTTP_BAD_REQUEST,
-            )
-
-        # Validate target_hours if provided
+        # Validate target_hours if provided (legacy validation)
         if target_hours is not None and target_hours < 0:
             return (
                 jsonify(
                     json_response(
                         None,
-                        ERROR_MESSAGES["validation_error"],
+                        "Validation error: Target hours must be non-negative",
                         HTTP_BAD_REQUEST,
-                        errors=["Target hours must be non-negative"],
                     )
                 ),
                 HTTP_BAD_REQUEST,
             )
 
-        fasting_manager = FastingManager(Config.DATABASE)
+        # Delegate to service
+        service = _get_fasting_service()
+        success, session, errors = service.start_fasting_session(fasting_type, notes)
 
-        # Check if there's already an active session
-        active_session = fasting_manager.get_active_session()
-        if active_session:
+        if success:
             return (
                 jsonify(
                     json_response(
-                        None, "You already have an active fasting session", HTTP_BAD_REQUEST
+                        {
+                            "session_id": session["id"],
+                            "start_time": session["start_time"],
+                            "fasting_type": session["fasting_type"],
+                            "status": session["status"],
+                        },
+                        SUCCESS_MESSAGES.get("fasting_started", "Fasting session started successfully"),
+                        HTTP_CREATED,
+                    )
+                ),
+                HTTP_CREATED,
+            )
+        else:
+            # Use first error as message if single error, otherwise "Validation failed"
+            message = errors[0] if len(errors) == 1 else "Validation failed"
+            return (
+                jsonify(
+                    json_response(
+                        None,
+                        message,
+                        HTTP_BAD_REQUEST,
+                        errors=errors if len(errors) > 1 else None,
                     )
                 ),
                 HTTP_BAD_REQUEST,
             )
-
-        # Start new session
-        session = fasting_manager.start_fasting_session(fasting_type, notes)
-
-        return (
-            jsonify(
-                json_response(
-                    {
-                        "session_id": session.id,
-                        "start_time": session.start_time.isoformat(),
-                        "fasting_type": session.fasting_type,
-                        "status": session.status,
-                    },
-                    "Fasting session started successfully",
-                    HTTP_CREATED,
-                )
-            ),
-            HTTP_CREATED,
-        )
 
     except Exception as e:
         current_app.logger.error(f"Start fasting error: {e}")
@@ -105,12 +111,16 @@ def start_fasting():
 @monitor_http_request
 @rate_limit("api")
 def end_fasting():
-    """End current fasting session"""
+    """
+    End current fasting session (thin controller).
+
+    Delegates business logic to FastingService.
+    """
     try:
-        fasting_manager = FastingManager(Config.DATABASE)
+        service = _get_fasting_service()
 
         # Get active session
-        active_session = fasting_manager.get_active_session()
+        active_session = service.get_active_session()
         if not active_session:
             return (
                 jsonify(json_response(None, "No active fasting session found", HTTP_BAD_REQUEST)),
@@ -118,26 +128,28 @@ def end_fasting():
             )
 
         # End session
-        ended_session = fasting_manager.end_fasting_session(active_session.id)
+        success, ended_session, errors = service.end_fasting_session(active_session["id"])
 
-        if ended_session:
+        if success:
             return (
                 jsonify(
                     json_response(
                         {
-                            "session_id": ended_session.id,
-                            "duration_hours": ended_session.duration_hours,
-                            "end_time": ended_session.end_time.isoformat(),
+                            "session_id": ended_session["id"],
+                            "duration_hours": ended_session["duration_hours"],
+                            "end_time": ended_session["end_time"],
                         },
-                        "Fasting session completed successfully",
+                        SUCCESS_MESSAGES.get("fasting_ended", "Fasting session completed successfully"),
                         HTTP_OK,
                     )
                 ),
                 HTTP_OK,
             )
         else:
+            # Use first error as message
+            message = errors[0] if errors else "Failed to end fasting session"
             return (
-                jsonify(json_response(None, "Failed to end fasting session", HTTP_BAD_REQUEST)),
+                jsonify(json_response(None, message, HTTP_BAD_REQUEST)),
                 HTTP_BAD_REQUEST,
             )
 
@@ -150,33 +162,39 @@ def end_fasting():
 @monitor_http_request
 @rate_limit("api")
 def pause_fasting():
-    """Pause current fasting session"""
-    try:
-        fasting_manager = FastingManager(Config.DATABASE)
+    """
+    Pause current fasting session (thin controller).
 
-        active_session = fasting_manager.get_active_session()
+    Delegates business logic to FastingService.
+    """
+    try:
+        service = _get_fasting_service()
+
+        active_session = service.get_active_session()
         if not active_session:
             return (
                 jsonify(json_response(None, "No active fasting session found", HTTP_BAD_REQUEST)),
                 HTTP_BAD_REQUEST,
             )
 
-        success = fasting_manager.pause_fasting_session(active_session.id)
+        success, paused_session, errors = service.pause_fasting_session(active_session["id"])
 
         if success:
             return (
                 jsonify(
                     json_response(
-                        {"session_id": active_session.id},
-                        "Fasting session paused successfully",
+                        {"session_id": active_session["id"]},
+                        SUCCESS_MESSAGES.get("fasting_paused", "Fasting session paused successfully"),
                         HTTP_OK,
                     )
                 ),
                 HTTP_OK,
             )
         else:
+            # Use first error as message
+            message = errors[0] if errors else "Failed to pause fasting session"
             return (
-                jsonify(json_response(None, "Failed to pause fasting session", HTTP_BAD_REQUEST)),
+                jsonify(json_response(None, message, HTTP_BAD_REQUEST)),
                 HTTP_BAD_REQUEST,
             )
 
@@ -189,7 +207,11 @@ def pause_fasting():
 @monitor_http_request
 @rate_limit("api")
 def resume_fasting():
-    """Resume paused fasting session"""
+    """
+    Resume paused fasting session (thin controller).
+
+    Delegates business logic to FastingService.
+    """
     try:
         data = safe_get_json()
         if data is None:
@@ -205,21 +227,25 @@ def resume_fasting():
                 HTTP_BAD_REQUEST,
             )
 
-        fasting_manager = FastingManager(Config.DATABASE)
-        success = fasting_manager.resume_fasting_session(session_id)
+        service = _get_fasting_service()
+        success, resumed_session, errors = service.resume_fasting_session(session_id)
 
         if success:
             return (
                 jsonify(
                     json_response(
-                        {"session_id": session_id}, "Fasting session resumed successfully", HTTP_OK
+                        {"session_id": session_id},
+                        SUCCESS_MESSAGES.get("fasting_resumed", "Fasting session resumed successfully"),
+                        HTTP_OK,
                     )
                 ),
                 HTTP_OK,
             )
         else:
+            # Use first error as message
+            message = errors[0] if errors else "Failed to resume fasting session"
             return (
-                jsonify(json_response(None, "Failed to resume fasting session", HTTP_BAD_REQUEST)),
+                jsonify(json_response(None, message, HTTP_BAD_REQUEST)),
                 HTTP_BAD_REQUEST,
             )
 
@@ -232,33 +258,39 @@ def resume_fasting():
 @monitor_http_request
 @rate_limit("api")
 def cancel_fasting():
-    """Cancel current fasting session"""
-    try:
-        fasting_manager = FastingManager(Config.DATABASE)
+    """
+    Cancel current fasting session (thin controller).
 
-        active_session = fasting_manager.get_active_session()
+    Delegates business logic to FastingService.
+    """
+    try:
+        service = _get_fasting_service()
+
+        active_session = service.get_active_session()
         if not active_session:
             return (
                 jsonify(json_response(None, "No active fasting session found", HTTP_BAD_REQUEST)),
                 HTTP_BAD_REQUEST,
             )
 
-        success = fasting_manager.cancel_fasting_session(active_session.id)
+        success, errors = service.cancel_fasting_session(active_session["id"])
 
         if success:
             return (
                 jsonify(
                     json_response(
-                        {"session_id": active_session.id},
-                        "Fasting session cancelled successfully",
+                        {"session_id": active_session["id"]},
+                        SUCCESS_MESSAGES.get("fasting_cancelled", "Fasting session cancelled successfully"),
                         HTTP_OK,
                     )
                 ),
                 HTTP_OK,
             )
         else:
+            # Use first error as message
+            message = errors[0] if errors else "Failed to cancel fasting session"
             return (
-                jsonify(json_response(None, "Failed to cancel fasting session", HTTP_BAD_REQUEST)),
+                jsonify(json_response(None, message, HTTP_BAD_REQUEST)),
                 HTTP_BAD_REQUEST,
             )
 
@@ -271,7 +303,12 @@ def cancel_fasting():
 @monitor_http_request
 @rate_limit("api")
 def get_fasting_status():
-    """Get current fasting status and progress"""
+    """
+    Get current fasting status and progress.
+
+    Note: Uses FastingManager for now as progress calculation
+    is not yet in FastingService.
+    """
     try:
         fasting_manager = FastingManager(Config.DATABASE)
         progress = fasting_manager.get_fasting_progress()
@@ -290,30 +327,20 @@ def get_fasting_status():
 @monitor_http_request
 @rate_limit("api")
 def get_fasting_sessions():
-    """Get recent fasting sessions"""
+    """
+    Get recent fasting sessions (thin controller).
+
+    Delegates business logic to FastingService.
+    """
     try:
         limit = request.args.get("limit", 30, type=int)
-        fasting_manager = FastingManager(Config.DATABASE)
-        sessions = fasting_manager.get_fasting_sessions(limit=limit)
-
-        # Convert sessions to dict format
-        sessions_data = []
-        for session in sessions:
-            session_dict = {
-                "id": session.id,
-                "start_time": session.start_time.isoformat() if session.start_time else None,
-                "end_time": session.end_time.isoformat() if session.end_time else None,
-                "duration_hours": session.duration_hours,
-                "fasting_type": session.fasting_type,
-                "status": session.status,
-                "notes": session.notes,
-            }
-            sessions_data.append(session_dict)
+        service = _get_fasting_service()
+        sessions = service.get_fasting_sessions(limit=limit)
 
         return (
             jsonify(
                 json_response(
-                    {"sessions": sessions_data}, "Fasting sessions retrieved successfully", HTTP_OK
+                    {"sessions": sessions}, "Fasting sessions retrieved successfully", HTTP_OK
                 )
             ),
             HTTP_OK,
@@ -328,7 +355,12 @@ def get_fasting_sessions():
 @monitor_http_request
 @rate_limit("api")
 def get_fasting_stats():
-    """Get fasting statistics"""
+    """
+    Get fasting statistics.
+
+    Note: Uses FastingManager for now as it includes streak calculation
+    which is not yet in FastingService.
+    """
     try:
         days = request.args.get("days", 30, type=int)
         fasting_manager = FastingManager(Config.DATABASE)
