@@ -356,6 +356,59 @@ async function submitModalForm(page, options = {}) {
   }
 }
 
+/**
+ * List of known non-critical console error patterns to filter out
+ * These are errors that don't affect functionality
+ */
+const KNOWN_NON_CRITICAL_ERRORS = [
+  'favicon',              // Missing favicon
+  'sourcemap',            // Missing source maps
+  'Failed to load resource', // Generic resource loading (often non-critical)
+  'net::ERR_',           // Network errors during testing
+  'ResizeObserver',      // ResizeObserver loop limit exceeded (browser bug)
+  'chrome-extension',    // Chrome extension errors
+  'Manifest:',          // PWA manifest warnings
+  'Service Worker',     // Service worker registration issues in tests
+];
+
+/**
+ * Capture and filter console errors on a page
+ * @param {import('@playwright/test').Page} page
+ * @param {Object} options
+ * @returns {Promise<Array<string>>} Array of critical error messages
+ */
+async function captureConsoleErrors(page, options = {}) {
+  const errors = [];
+  const additionalFilters = options.additionalFilters || [];
+  const allFilters = [...KNOWN_NON_CRITICAL_ERRORS, ...additionalFilters];
+  
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') {
+      const errorText = msg.text();
+      
+      // Check if error matches any known non-critical pattern
+      const isNonCritical = allFilters.some(pattern => 
+        errorText.toLowerCase().includes(pattern.toLowerCase())
+      );
+      
+      if (!isNonCritical) {
+        errors.push(errorText);
+      }
+    }
+  });
+  
+  return errors;
+}
+
+/**
+ * Get captured console errors
+ * @param {Array<string>} errors - Array returned by captureConsoleErrors
+ * @returns {Array<string>} Array of critical error messages
+ */
+function getCriticalErrors(errors) {
+  return errors;
+}
+
 module.exports = {
   waitForElement,
   fillField,
@@ -375,4 +428,8 @@ module.exports = {
   closeModal,
   clickWhenReady,
   submitModalForm,
+  // Console error helpers
+  captureConsoleErrors,
+  getCriticalErrors,
+  KNOWN_NON_CRITICAL_ERRORS,
 };
