@@ -33,6 +33,18 @@ Related to #
 - 
 - 
 
+## Implementation Details
+
+<!-- Brief explanation of how the changes were implemented -->
+
+### Architecture/Design Decisions
+
+<!-- Any significant architectural or design decisions -->
+
+### Alternatives Considered
+
+<!-- What other approaches were considered and why this approach was chosen -->
+
 ## Testing Performed
 
 <!-- Describe the testing you've done -->
@@ -40,11 +52,13 @@ Related to #
 ### Unit Tests
 - [ ] All existing tests pass
 - [ ] Added new unit tests for changes
-- [ ] Coverage: __%
+- [ ] Coverage: __% (target: >80%)
+- [ ] No flaky tests introduced
 
 ### Integration Tests
 - [ ] Integration tests pass
 - [ ] Added integration tests if needed
+- [ ] Tested with real database (SQLite in-memory)
 
 ### E2E Tests
 - [ ] E2E tests pass (if applicable)
