@@ -660,3 +660,50 @@ docker-compose up -d
 - **Database**: Up to 10,000 records
 - **Memory usage**: ~400-800MB
 - **Temperature**: Keep below 70°C
+
+## 🤝 Contributing & Community
+
+We welcome contributions from everyone! Whether you're an end user, developer, QA engineer, product owner, DevOps engineer, or UX/UI designer, there's a way for you to contribute.
+
+### How to Contribute
+
+- **Report Bugs**: Use our [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.yml)
+- **Request Features**: Submit a [Feature Request](.github/ISSUE_TEMPLATE/feature_request.yml)
+- **Improve Documentation**: Help us improve our [documentation](docs/)
+- **Write Code**: Submit pull requests following our [PR Template](.github/pull_request_template.md)
+- **Help Others**: Answer questions in [GitHub Discussions](https://github.com/ChervonnyyAnton/nutricount/discussions)
+
+### Community Resources
+
+- 📖 [Contributing Guide](CONTRIBUTING.md) - How to contribute code and documentation
+- 📜 [Code of Conduct](CODE_OF_CONDUCT.md) - Our community standards
+- 🌟 [Community Guidelines](COMMUNITY_GUIDELINES.md) - How to participate
+- 💬 [GitHub Discussions](https://github.com/ChervonnyyAnton/nutricount/discussions) - Ask questions, share ideas
+- 📚 [Documentation](docs/) - Comprehensive guides for all roles
+
+### For Different Roles
+
+- **End Users**: Share feedback, suggest features, help improve user docs
+- **Developers**: Fix bugs, implement features, improve architecture
+- **QA Engineers**: Add tests, improve test infrastructure, find bugs
+- **Product Owners/Managers**: Define features, prioritize backlog, gather feedback
+- **DevOps Engineers**: Improve CI/CD, optimize deployments, enhance monitoring
+- **UX/UI Designers**: Improve user interface, enhance accessibility, conduct user research
+
+### Recognition
+
+All contributors are recognized in our project. Thank you for helping make Nutricount better! 🎉
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) file for details
+
+## 🙏 Acknowledgments
+
+- Built with ❤️ for health-conscious individuals and tech learners
+- Powered by Flask, SQLite, Bootstrap, and open-source technologies
+- Special thanks to all [contributors](https://github.com/ChervonnyyAnton/nutricount/graphs/contributors)
+
+---
+
+**Made with 🥗 and ⌨️ by the Nutricount community**
