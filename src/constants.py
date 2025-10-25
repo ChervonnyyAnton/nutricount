@@ -10,7 +10,7 @@ HTTP_INTERNAL_ERROR = 500
 
 # Keto Index Thresholds
 KETO_EXCELLENT = None
-KETO_MODERATE = 1.0
+KETO_MODERATE = None
 
 # Nutrition Limits (per 100g)
 MIN_CALORIES = 0
