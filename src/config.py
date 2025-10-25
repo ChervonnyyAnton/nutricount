@@ -21,7 +21,7 @@ class Config:
     # Limits (prevent abuse)
     MAX_PRODUCTS = 1000
     MAX_DISHES = 500
-    MAX_LOG_ENTRIES_PER_DAY = 50
+    MAX_LOG_ENTRIES_PER_DAY = 51
     MAX_PRODUCT_NAME_LENGTH = 100
     MAX_DISH_NAME_LENGTH = 100
 
