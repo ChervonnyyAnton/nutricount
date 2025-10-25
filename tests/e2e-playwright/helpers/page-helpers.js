@@ -280,10 +280,19 @@ async function clickWhenReady(page, selector, options = {}) {
   });
   
   // Wait for element to be enabled (not disabled)
-  await page.waitForSelector(selector, { 
-    state: 'enabled', 
-    timeout: timeout 
-  });
+  // Note: 'enabled' is not a valid Playwright state, so we check it separately
+  const locator = page.locator(selector);
+  await locator.waitFor({ state: 'visible', timeout: timeout });
+  
+  // Poll until element is enabled (check :not([disabled]) attribute)
+  await page.waitForFunction(
+    (selector) => {
+      const element = document.querySelector(selector);
+      return element && !element.disabled && !element.classList.contains('disabled');
+    },
+    selector,
+    { timeout: timeout }
+  );
   
   // Wait for any animations to complete
   await page.waitForTimeout(300);
