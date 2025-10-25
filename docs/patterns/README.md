@@ -1,106 +1,121 @@
-# 🎨 Design Patterns & Best Practices
+# 🎨 Design Patterns & Architecture
 
-Comprehensive guide to software design patterns and best practices demonstrated in Nutricount.
+This directory contains documentation on design patterns and architectural decisions used in the Nutricount project.
 
-## 📚 Contents
+## 📚 Available Documentation
 
-### [Design Patterns](design-patterns/)
-Classical Gang of Four patterns with practical examples:
-- **Creational**: Singleton, Factory, Builder
-- **Structural**: Adapter, Proxy, Facade, Decorator
-- **Behavioral**: Strategy, Observer, Command, Chain of Responsibility, Template Method
+### Architecture & Clean Code
+- 📘 [Clean Architecture & MVC](clean-architecture-mvc.md) - 1,000+ lines of comprehensive architecture guide
+  - Clean Architecture principles with practical examples
+  - MVC pattern implementation in Nutricount
+  - Layer responsibilities and interactions
+  - SOLID principles in action
+  - Dependency management strategies
+  - **Status**: ✅ Implemented & Documented
 
-### [SOLID Principles](solid-principles/)
-Five principles of object-oriented design:
-- **S**ingle Responsibility Principle
-- **O**pen/Closed Principle
-- **L**iskov Substitution Principle
-- **I**nterface Segregation Principle
-- **D**ependency Inversion Principle
+### Design Patterns ✨ NEW
 
-### [Best Practices](best-practices/)
-Industry-standard coding principles:
-- **YAGNI** - You Aren't Gonna Need It
-- **KISS** - Keep It Simple, Stupid
-- **DRY** - Don't Repeat Yourself
+#### Behavioral Patterns
+- 📗 [Command Pattern](command-pattern.md) - 17.7KB comprehensive guide ✅ **NEW**
+  - Undo/Redo implementation for user actions
+  - Concrete command examples (Add, Delete, Edit, Create)
+  - Command manager with history
+  - UI integration with keyboard shortcuts (Ctrl+Z, Ctrl+Y)
+  - Testing strategy and best practices
+  - Implementation time: ~12 hours
+  - **Status**: 📋 Design document ready for implementation
 
-### [Architectural Patterns](architectural-patterns/)
-High-level system design patterns:
-- Layered Architecture
-- MVC (Model-View-Controller)
-- Clean Architecture
-- Repository Pattern
-- Service Layer Pattern
+#### Testing Patterns
+- 📕 [Test Data Builders](test-data-builders.md) - 20.5KB complete guide ✅ **NEW**
+  - Fluent API for creating test data
+  - ProductBuilder, DishBuilder, LogEntryBuilder, FastingSessionBuilder
+  - Preset configurations (withKeto, withHighProtein, etc.)
+  - Usage examples and migration strategy
+  - Implementation time: ~8 hours
+  - **Status**: 📋 Design document ready for implementation
 
-## 🎯 Quick Start
+- 📙 [Page Object Pattern](page-object-pattern.md) - 20.9KB detailed guide ✅ **NEW**
+  - Organizing Playwright E2E tests
+  - BasePage, NavigationComponent, ModalComponent
+  - Page object examples (DailyLog, Products, Fasting)
+  - Best practices for maintainable E2E tests
+  - Implementation time: ~14 hours
+  - **Status**: 📋 Design document (highly recommended)
 
-### I want to learn about...
+## 🎓 Learning Path
 
-**Data Access**
-→ [Repository Pattern](design-patterns/repository.md) (Week 3)
+For developers new to these patterns:
+1. Start with [Clean Architecture & MVC](clean-architecture-mvc.md) to understand the overall structure
+2. **NEW**: Review [Page Object Pattern](page-object-pattern.md) if working on E2E tests
+3. **NEW**: Study [Test Data Builders](test-data-builders.md) before writing new tests
+4. **NEW**: Read [Command Pattern](command-pattern.md) if implementing undo/redo features
+5. Review existing code examples in the codebase
+6. Refer to the DESIGN_PATTERNS_GUIDE.md in the root directory for comprehensive coverage
 
-**Different Algorithms**
-→ [Strategy Pattern](design-patterns/strategy.md) (Week 4)
+## 🚀 Implementation Priorities
 
-**Complex Object Creation**
-→ [Builder Pattern](design-patterns/builder.md) (Week 4)
+Based on WEEK6_PLANNING.md and current project needs:
 
-**Simplifying Complex APIs**
-→ [Facade Pattern](design-patterns/facade.md) (Week 5)
+### High Priority (Immediate Value)
+1. **Page Object Pattern** - Critical for E2E test maintainability
+   - Current E2E tests have duplication and maintenance issues
+   - Implementation will make tests more reliable
+   - Estimated ROI: Very High
 
-**Caching & Access Control**
-→ [Proxy Pattern](design-patterns/proxy.md) (Week 5)
+2. **Test Data Builders** - High value for test quality
+   - Current tests use verbose object literals
+   - Will significantly improve test readability
+   - Estimated ROI: High
 
-**Undo/Redo Functionality**
-→ [Command Pattern](design-patterns/command.md) (Week 6)
+### Medium Priority (Nice to Have)
+3. **Command Pattern** - Excellent UX improvement
+   - Adds undo/redo functionality
+   - Increases user confidence
+   - Estimated ROI: High (but not critical)
 
-**Clean Code Principles**
-→ [SOLID Principles](solid-principles/) (Weeks 3-6)
+## 📊 Implementation Status
 
-## 📖 Complete Guide
+| Pattern | Status | Documentation | Implementation | Priority |
+|---------|--------|--------------|----------------|----------|
+| Clean Architecture & MVC | ✅ Implemented | 100% | 100% | - |
+| Page Object Pattern | 📋 Design Ready | 100% | 0% | High |
+| Test Data Builders | 📋 Design Ready | 100% | 0% | High |
+| Command Pattern | 📋 Design Ready | 100% | 0% | Medium |
 
-See [DESIGN_PATTERNS_GUIDE.md](../../DESIGN_PATTERNS_GUIDE.md) for:
-- Complete pattern catalog with examples
-- Implementation roadmap (Weeks 3-6)
-- Real code from Nutricount
-- Anti-patterns to avoid
-- Testing patterns
+**Total Documentation**: 59KB of comprehensive pattern guides  
+**Total Estimated Implementation Time**: 34 hours (if all patterns implemented)
 
-## 🗓️ Implementation Timeline
+## 🎯 Quick Reference
 
-**Week 3**: Repository, Service Layer, Single Responsibility  
-**Week 4**: Strategy, Builder, Chain of Responsibility  
-**Week 5**: Facade, Proxy, Decorator (advanced)  
-**Week 6**: Command, Test Builders, Page Objects
+### When to Use Each Pattern
 
-## ✅ Current Status
+| Scenario | Pattern | Documentation |
+|----------|---------|---------------|
+| Writing E2E tests | Page Object Pattern | [page-object-pattern.md](page-object-pattern.md) |
+| Creating test data | Test Data Builders | [test-data-builders.md](test-data-builders.md) |
+| Need undo/redo | Command Pattern | [command-pattern.md](command-pattern.md) |
+| Understanding architecture | Clean Architecture | [clean-architecture-mvc.md](clean-architecture-mvc.md) |
 
-- ✅ Adapter Pattern (implemented)
-- ✅ Singleton Pattern (implemented)
-- ✅ Decorator Pattern (basic, implemented)
-- ✅ Observer Pattern (implemented)
-- 📝 Repository Pattern (Week 3)
-- 📝 Strategy Pattern (Week 4)
-- 📝 Builder Pattern (Week 4)
-- 📝 Facade Pattern (Week 5)
-- 📝 Proxy Pattern (Week 5)
-- 📝 Command Pattern (Week 6)
+## 📖 Related Documentation
+
+- [DESIGN_PATTERNS_GUIDE.md](../../DESIGN_PATTERNS_GUIDE.md) - Complete pattern catalog
+- [WEEK6_PLANNING.md](../../WEEK6_PLANNING.md) - Implementation timeline
+- [INTEGRATED_ROADMAP.md](../../INTEGRATED_ROADMAP.md) - Project roadmap
+- [docs/qa/testing-strategy.md](../qa/testing-strategy.md) - Testing approach
+
+## 🗓️ Version History
+
+**October 25, 2025** - Added 3 comprehensive pattern guides:
+- Command Pattern (17.7KB)
+- Test Data Builders (20.5KB)
+- Page Object Pattern (20.9KB)
+
+**October 23, 2025** - Added Clean Architecture & MVC documentation (1,000+ lines)
+
+**October 21, 2025** - Initial patterns directory structure
 
 ---
 
-**Last Updated**: October 23, 2025  
-**Status**: ✅ Week 5 Complete - Clean Architecture & MVC documented  
-**See**: [DESIGN_PATTERNS_GUIDE.md](../../DESIGN_PATTERNS_GUIDE.md) for complete guide
-
-## 📚 New Documentation (Week 5)
-
-### [Clean Architecture & MVC](clean-architecture-mvc.md) ✅
-Comprehensive architecture documentation covering:
-- Clean Architecture principles and benefits
-- MVC Pattern implementation in Nutricount
-- Layer architecture (6 layers explained)
-- Dependency flow and the dependency rule
-- Complete implementation examples
-- Best practices for each layer
-
-**Use for:** Understanding system architecture, designing new features, refactoring code
+**Last Updated**: October 25, 2025  
+**Status**: ✅ 59KB of new pattern documentation added  
+**Next**: Implementation phases for each pattern (optional, as needed)
