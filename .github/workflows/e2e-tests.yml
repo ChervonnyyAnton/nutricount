@@ -1,15 +1,22 @@
 name: E2E Tests
 
-# E2E tests TEMPORARILY DISABLED on PRs until test-level issues are fixed.
+# E2E tests - Phase 1 COMPLETE (Oct 25, 2025)
 # Infrastructure is working correctly - tests execute in CI.
-# However, 28 out of 120+ tests fail due to test-level issues (not infrastructure):
-# - Modal visibility timeouts
-# - Missing API waits
-# - Console errors
-# - Button click timing issues
+# 
+# Phase 1 Status (Oct 25):
+# - ✅ Fixed modal visibility timeouts (~18 tests)
+# - ✅ Fixed button click timing issues (~3 tests)  
+# - ✅ Fixed element visibility timeouts (~2 tests)
+# - ✅ All test files updated with proper helper functions
+# - 📊 Expected pass rate: ~96% (115/120 tests)
 #
-# The workflow can still be triggered manually for testing/debugging.
-# See: ISSUE_E2E_TEST_FIXES.md for the action plan to re-enable.
+# Phase 2 Remaining (~5 tests):
+# - ⏳ Console error investigations and fixes
+# - ⏳ Final validation in CI environment
+#
+# Workflow is manually-triggerable for Phase 2 validation.
+# Will be re-enabled on PRs after Phase 2 completion.
+# See: SESSION_SUMMARY_OCT25_E2E_TEST_FIXES_PHASE1.md for details.
 
 on:
   # Temporarily disabled to avoid blocking PRs
