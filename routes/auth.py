@@ -11,7 +11,6 @@ from src.monitoring import monitor_http_request
 from src.security import audit_logger, rate_limit, require_auth, security_manager
 from src.utils import json_response
 
-
 # Create authentication blueprint
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -80,6 +79,7 @@ def login_api():
 
     except Exception as e:
         from flask import current_app
+
         current_app.logger.error(f"Login error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
@@ -129,6 +129,7 @@ def refresh_token_api():
 
     except Exception as e:
         from flask import current_app
+
         current_app.logger.error(f"Token refresh error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
@@ -148,6 +149,7 @@ def verify_token_api():
 
     except Exception as e:
         from flask import current_app
+
         current_app.logger.error(f"Token verification error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
 
@@ -167,5 +169,6 @@ def logout_api():
 
     except Exception as e:
         from flask import current_app
+
         current_app.logger.error(f"Logout error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500

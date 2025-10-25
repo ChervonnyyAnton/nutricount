@@ -27,7 +27,7 @@ class ProductRepository(BaseRepository):
         search: str = "",
         limit: int = 50,
         offset: int = 0,
-        include_calculated_fields: bool = True
+        include_calculated_fields: bool = True,
     ) -> List[Dict[str, Any]]:
         """
         Find all products with optional search, pagination, and calculated fields.
@@ -69,10 +69,7 @@ class ProductRepository(BaseRepository):
         Returns:
             Product dictionary or None if not found
         """
-        row = self.db.execute(
-            "SELECT * FROM products WHERE id = ?",
-            (product_id,)
-        ).fetchone()
+        row = self.db.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
 
         if not row:
             return None
@@ -89,10 +86,7 @@ class ProductRepository(BaseRepository):
         Returns:
             Product dictionary or None if not found
         """
-        row = self.db.execute(
-            "SELECT * FROM products WHERE name = ?",
-            (name,)
-        ).fetchone()
+        row = self.db.execute("SELECT * FROM products WHERE name = ?", (name,)).fetchone()
 
         if not row:
             return None
@@ -132,13 +126,10 @@ class ProductRepository(BaseRepository):
         # Calculate enhanced nutrition values
         calculated_calories = calculate_calories_from_macros(protein, fat, carbs)
 
-        net_carbs_result = calculate_net_carbs_advanced(
-            carbs, fiber_per_100g, category, region
-        )
+        net_carbs_result = calculate_net_carbs_advanced(carbs, fiber_per_100g, category, region)
 
         keto_result = calculate_keto_index_advanced(
-            protein, fat, carbs, fiber_per_100g,
-            category, glycemic_index, processing_level
+            protein, fat, carbs, fiber_per_100g, category, glycemic_index, processing_level
         )
 
         # Insert product
@@ -234,10 +225,7 @@ class ProductRepository(BaseRepository):
         Returns:
             True if deleted, False if not found
         """
-        cursor = self.db.execute(
-            "DELETE FROM products WHERE id = ?",
-            (product_id,)
-        )
+        cursor = self.db.execute("DELETE FROM products WHERE id = ?", (product_id,))
 
         self.db.commit()
 
@@ -258,7 +246,7 @@ class ProductRepository(BaseRepository):
             SELECT COUNT(*) as count FROM log_entries
             WHERE item_type = 'product' AND item_id = ?
             """,
-            (product_id,)
+            (product_id,),
         ).fetchone()["count"]
 
         return usage_count > 0, usage_count
@@ -296,9 +284,7 @@ class ProductRepository(BaseRepository):
             # Add calculated fields
             product["net_carbs"] = net_carbs_result["net_carbs"]
             product["fiber_estimated"] = net_carbs_result["fiber_estimated"]
-            product["fiber_deduction_coefficient"] = net_carbs_result[
-                "fiber_deduction_coefficient"
-            ]
+            product["fiber_deduction_coefficient"] = net_carbs_result["fiber_deduction_coefficient"]
             product["keto_index"] = keto_result["keto_index"]
             product["keto_category"] = keto_result["keto_category"]
             product["carbs_score"] = keto_result["carbs_score"]
@@ -309,8 +295,7 @@ class ProductRepository(BaseRepository):
         except Exception:
             # Log the error and add default values if calculation fails
             logger.exception(
-                "Failed to calculate nutrition fields for product %s",
-                product.get("id", "unknown")
+                "Failed to calculate nutrition fields for product %s", product.get("id", "unknown")
             )
             # Add default values if calculation fails
             product["net_carbs"] = product["carbs_per_100g"]

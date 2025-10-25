@@ -36,11 +36,7 @@ class ProductService:
         self.repository = repository
 
     def get_products(
-        self,
-        search: str = "",
-        limit: int = 50,
-        offset: int = 0,
-        use_cache: bool = True
+        self, search: str = "", limit: int = 50, offset: int = 0, use_cache: bool = True
     ) -> List[Dict[str, Any]]:
         """
         Get products with search, pagination, and caching.
@@ -67,10 +63,7 @@ class ProductService:
 
         # Get from repository
         products = self.repository.find_all(
-            search=search,
-            limit=limit,
-            offset=offset,
-            include_calculated_fields=True
+            search=search, limit=limit, offset=offset, include_calculated_fields=True
         )
 
         # Cache result
@@ -91,7 +84,9 @@ class ProductService:
         """
         return self.repository.find_by_id(product_id)
 
-    def create_product(self, data: Dict[str, Any]) -> tuple[bool, Optional[Dict[str, Any]], List[str]]:
+    def create_product(
+        self, data: Dict[str, Any]
+    ) -> tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         Create new product with validation and business rules.
 
@@ -133,9 +128,7 @@ class ProductService:
             return False, None, ["Failed to create product"]
 
     def update_product(
-        self,
-        product_id: int,
-        data: Dict[str, Any]
+        self, product_id: int, data: Dict[str, Any]
     ) -> tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         Update existing product with validation and business rules.
@@ -220,11 +213,7 @@ class ProductService:
             logger.exception("Unexpected error deleting product %s", product_id)
             return False, ["Failed to delete product"]
 
-    def search_products(
-        self,
-        query: str,
-        limit: int = 20
-    ) -> List[Dict[str, Any]]:
+    def search_products(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
         """
         Search products by name (convenience method).
 

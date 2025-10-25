@@ -31,13 +31,13 @@ test-docker:
 	docker run --rm nutrition-tracker-test pytest tests/ -v
 
 lint:
-	flake8 app.py src/ --max-line-length=100 --ignore=E501,W503,E226 --statistics
-	black --check app.py src/
-	isort --check-only app.py src/
+	flake8 app.py src/ routes/ services/ repositories/ --max-line-length=100 --ignore=E501,W503,E226 --statistics
+	black --check app.py src/ routes/ services/ repositories/
+	isort --check-only app.py src/ routes/ services/ repositories/
 
 format:
-	black app.py src/
-	isort app.py src/
+	black app.py src/ routes/ services/ repositories/
+	isort app.py src/ routes/ services/ repositories/
 
 mutation-test:
 	@chmod +x scripts/mutation_test.sh

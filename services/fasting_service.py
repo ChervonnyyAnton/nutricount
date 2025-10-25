@@ -36,14 +36,16 @@ class FastingService:
         self.repository = repository
         # Use FastingManager for goal/settings/advanced stats (temporary delegation)
         # TODO: Migrate these to service layer when repository is extended
-        self._manager = FastingManager(repository.db_path) if hasattr(repository, 'db_path') else None
+        self._manager = (
+            FastingManager(repository.db_path) if hasattr(repository, "db_path") else None
+        )
 
     def get_fasting_sessions(
         self,
         user_id: int = 1,
         status: Optional[str] = None,
         limit: int = 100,
-        use_cache: bool = True
+        use_cache: bool = True,
     ) -> List[Dict[str, Any]]:
         """
         Get fasting sessions with optional filters and caching.
@@ -98,10 +100,7 @@ class FastingService:
         return self.repository.find_by_id(session_id)
 
     def start_fasting_session(
-        self,
-        fasting_type: str = "16:8",
-        notes: str = "",
-        user_id: int = 1
+        self, fasting_type: str = "16:8", notes: str = "", user_id: int = 1
     ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         Start new fasting session with validation and business rules.
@@ -123,17 +122,13 @@ class FastingService:
             return (
                 False,
                 None,
-                [f"Invalid fasting type. Must be one of: {', '.join(self.VALID_FASTING_TYPES)}"]
+                [f"Invalid fasting type. Must be one of: {', '.join(self.VALID_FASTING_TYPES)}"],
             )
 
         # Business rule: Check for active session
         active_session = self.repository.get_active_session(user_id)
         if active_session:
-            return (
-                False,
-                None,
-                ["You already have an active fasting session"]
-            )
+            return (False, None, ["You already have an active fasting session"])
 
         # Create session
         try:
@@ -156,9 +151,7 @@ class FastingService:
             return (False, None, [f"Failed to start fasting session: {str(e)}"])
 
     def end_fasting_session(
-        self,
-        session_id: int,
-        user_id: int = 1
+        self, session_id: int, user_id: int = 1
     ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         End active fasting session.
@@ -202,9 +195,7 @@ class FastingService:
             return (False, None, [f"Failed to end fasting session: {str(e)}"])
 
     def pause_fasting_session(
-        self,
-        session_id: int,
-        user_id: int = 1
+        self, session_id: int, user_id: int = 1
     ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         Pause active fasting session.
@@ -238,9 +229,7 @@ class FastingService:
             return (False, None, [f"Failed to pause fasting session: {str(e)}"])
 
     def resume_fasting_session(
-        self,
-        session_id: int,
-        user_id: int = 1
+        self, session_id: int, user_id: int = 1
     ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         Resume paused fasting session.
@@ -263,11 +252,7 @@ class FastingService:
         # Business rule: Check for other active sessions
         active_session = self.repository.get_active_session(user_id)
         if active_session:
-            return (
-                False,
-                None,
-                ["You already have an active fasting session"]
-            )
+            return (False, None, ["You already have an active fasting session"])
 
         # Resume session
         try:
@@ -282,11 +267,7 @@ class FastingService:
             logger.exception(f"Error resuming fasting session {session_id}")
             return (False, None, [f"Failed to resume fasting session: {str(e)}"])
 
-    def cancel_fasting_session(
-        self,
-        session_id: int,
-        user_id: int = 1
-    ) -> Tuple[bool, List[str]]:
+    def cancel_fasting_session(self, session_id: int, user_id: int = 1) -> Tuple[bool, List[str]]:
         """
         Cancel fasting session.
 
@@ -315,11 +296,7 @@ class FastingService:
             logger.exception(f"Error cancelling fasting session {session_id}")
             return (False, [f"Failed to cancel fasting session: {str(e)}"])
 
-    def get_fasting_statistics(
-        self,
-        user_id: int = 1,
-        use_cache: bool = True
-    ) -> Dict[str, Any]:
+    def get_fasting_statistics(self, user_id: int = 1, use_cache: bool = True) -> Dict[str, Any]:
         """
         Get fasting statistics for user.
 
@@ -418,7 +395,7 @@ class FastingService:
         target_value: float,
         period_start: Any,
         period_end: Any,
-        user_id: int = 1
+        user_id: int = 1,
     ) -> Tuple[bool, Optional[Any], List[str]]:
         """
         Create a new fasting goal.
@@ -464,8 +441,7 @@ class FastingService:
         return self._manager.get_fasting_settings(user_id)
 
     def create_fasting_settings(
-        self,
-        settings_data: Dict[str, Any]
+        self, settings_data: Dict[str, Any]
     ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         Create user's fasting settings.
@@ -489,9 +465,7 @@ class FastingService:
             return (False, None, [str(e)])
 
     def update_fasting_settings(
-        self,
-        user_id: int,
-        settings_data: Dict[str, Any]
+        self, user_id: int, settings_data: Dict[str, Any]
     ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         Update user's fasting settings.

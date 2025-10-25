@@ -96,9 +96,9 @@ def clean_string(text: str, max_length: int = 100) -> str:
     # Remove single quotes, semicolons, double dashes, and other SQL metacharacters
     dangerous_patterns = [
         (r"['\";]", ""),  # Remove quotes and semicolons
-        (r"--", ""),       # Remove SQL comments
-        (r"/\*", ""),      # Remove multi-line comment start
-        (r"\*/", ""),      # Remove multi-line comment end
+        (r"--", ""),  # Remove SQL comments
+        (r"/\*", ""),  # Remove multi-line comment start
+        (r"\*/", ""),  # Remove multi-line comment end
     ]
 
     cleaned = text

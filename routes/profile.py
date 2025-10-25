@@ -8,13 +8,7 @@ from datetime import date, datetime
 from flask import Blueprint, current_app, jsonify, request
 
 from routes.helpers import get_db, safe_get_json
-from src.constants import (
-    ERROR_MESSAGES,
-    HTTP_BAD_REQUEST,
-    HTTP_CREATED,
-    HTTP_NOT_FOUND,
-    HTTP_OK,
-)
+from src.constants import ERROR_MESSAGES, HTTP_BAD_REQUEST, HTTP_CREATED, HTTP_NOT_FOUND, HTTP_OK
 from src.nutrition_calculator import (
     calculate_bmr_katch_mcardle,
     calculate_bmr_mifflin_st_jeor,
@@ -25,7 +19,6 @@ from src.nutrition_calculator import (
     calculate_tdee,
 )
 from src.utils import json_response, safe_float
-
 
 # Create blueprint
 profile_bp = Blueprint("profile", __name__, url_prefix="/api")

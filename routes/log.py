@@ -19,7 +19,6 @@ from src.monitoring import monitor_http_request
 from src.security import rate_limit
 from src.utils import json_response
 
-
 # Create blueprint
 log_bp = Blueprint("log", __name__, url_prefix="/api/log")
 
@@ -28,6 +27,7 @@ log_bp = Blueprint("log", __name__, url_prefix="/api/log")
 def _get_log_service() -> LogService:
     """Get LogService instance."""
     from flask import current_app
+
     repository = LogRepository(current_app.config["DATABASE"])
     return LogService(repository)
 

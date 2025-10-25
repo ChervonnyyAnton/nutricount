@@ -20,7 +20,6 @@ from src.monitoring import monitor_http_request
 from src.security import rate_limit
 from src.utils import json_response
 
-
 # Create blueprint
 dishes_bp = Blueprint("dishes", __name__, url_prefix="/api/dishes")
 
@@ -158,7 +157,9 @@ def dish_detail_api(dish_id):
 
                 return (
                     jsonify(
-                        json_response(None, errors[0] if errors else "Delete failed", HTTP_BAD_REQUEST)
+                        json_response(
+                            None, errors[0] if errors else "Delete failed", HTTP_BAD_REQUEST
+                        )
                     ),
                     HTTP_BAD_REQUEST,
                 )
