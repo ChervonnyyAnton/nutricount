@@ -24,7 +24,7 @@ test.describe('Statistics Workflow', () => {
     // Look for daily stats display
     const dailyStats = page.locator('.daily-stats, .today-stats, [data-daily-stats]').first();
     
-    if (await dailyStats.isVisible({ timeout: 2000 })) {
+    if (await dailyStats.isVisible({ timeout: 5000 })) {
       const content = await dailyStats.textContent();
       
       // Should contain nutrition information
@@ -43,13 +43,13 @@ test.describe('Statistics Workflow', () => {
     // Look for weekly stats display or tab
     const weeklyTab = page.locator('button:has-text("Weekly"), .tab:has-text("Week"), [data-tab="weekly"]').first();
     
-    if (await weeklyTab.isVisible({ timeout: 2000 })) {
-      await weeklyTab.click();
+    if (await weeklyTab.isVisible({ timeout: 5000 })) {
+      await helpers.clickWhenReady(page, 'button:has-text("Weekly"), .tab:has-text("Week"), [data-tab="weekly"]');
       await page.waitForTimeout(500);
       
       // Verify weekly stats are shown
       const weeklyStats = page.locator('.weekly-stats, [data-weekly-stats]').first();
-      await expect(weeklyStats).toBeVisible({ timeout: 3000 });
+      await expect(weeklyStats).toBeVisible({ timeout: 5000 });
     }
   });
 
@@ -59,7 +59,7 @@ test.describe('Statistics Workflow', () => {
     // Look for macronutrient breakdown
     const macros = page.locator('.macros, .macro-breakdown, [data-macros]').first();
     
-    if (await macros.isVisible({ timeout: 2000 })) {
+    if (await macros.isVisible({ timeout: 5000 })) {
       const content = await macros.textContent();
       
       // Should show protein, fat, and carbs
@@ -77,7 +77,7 @@ test.describe('Statistics Workflow', () => {
     // Look for calorie display
     const calories = page.locator('.calories, [data-calories]').or(page.locator('text=/calor/i')).first();
     
-    if (await calories.isVisible({ timeout: 2000 })) {
+    if (await calories.isVisible({ timeout: 5000 })) {
       const text = await calories.textContent();
       
       // Should contain a number
@@ -92,7 +92,7 @@ test.describe('Statistics Workflow', () => {
     // Look for keto-related information
     const ketoSection = page.locator('.keto, [data-keto]').or(page.locator('text=/keto index/i')).first();
     
-    if (await ketoSection.isVisible({ timeout: 2000 })) {
+    if (await ketoSection.isVisible({ timeout: 5000 })) {
       const content = await ketoSection.textContent();
       
       // Should mention keto-related terms
@@ -109,7 +109,7 @@ test.describe('Statistics Workflow', () => {
     // Look for net carbs display
     const netCarbs = page.locator('[data-net-carbs]').or(page.locator('text=/net carb/i')).first();
     
-    if (await netCarbs.isVisible({ timeout: 2000 })) {
+    if (await netCarbs.isVisible({ timeout: 5000 })) {
       const text = await netCarbs.textContent();
       
       // Should show a number
@@ -124,7 +124,7 @@ test.describe('Statistics Workflow', () => {
     // Look for date range picker or buttons
     const dateRange = page.locator('input[type="date"]').first();
     
-    if (await dateRange.isVisible({ timeout: 2000 })) {
+    if (await dateRange.isVisible({ timeout: 5000 })) {
       // Change to yesterday
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
@@ -145,7 +145,7 @@ test.describe('Statistics Workflow', () => {
     // Look for chart elements (canvas, svg, chart containers)
     const chart = page.locator('canvas, svg.chart, .chart-container, [data-chart]').first();
     
-    if (await chart.isVisible({ timeout: 2000 })) {
+    if (await chart.isVisible({ timeout: 5000 })) {
       // Verify chart is rendered
       await expect(chart).toBeVisible();
       
@@ -162,7 +162,7 @@ test.describe('Statistics Workflow', () => {
     // Look for goal progress indicators
     const progress = page.locator('.progress, [data-progress]').or(page.locator('text=/goal/i')).first();
     
-    if (await progress.isVisible({ timeout: 2000 })) {
+    if (await progress.isVisible({ timeout: 5000 })) {
       const content = await progress.textContent();
       
       // Should mention goals or progress
@@ -180,7 +180,7 @@ test.describe('Statistics Workflow', () => {
     // Look for meal time distribution
     const mealBreakdown = page.locator('.meal-breakdown, [data-meals]').first();
     
-    if (await mealBreakdown.isVisible({ timeout: 2000 })) {
+    if (await mealBreakdown.isVisible({ timeout: 5000 })) {
       const content = await mealBreakdown.textContent();
       
       // Should show meal times
@@ -198,14 +198,14 @@ test.describe('Statistics Workflow', () => {
     // Look for "Weekly" or "Average" tab/section
     const weeklyTab = page.locator('button:has-text("Weekly"), .tab:has-text("Week")').first();
     
-    if (await weeklyTab.isVisible({ timeout: 2000 })) {
-      await weeklyTab.click();
+    if (await weeklyTab.isVisible({ timeout: 5000 })) {
+      await helpers.clickWhenReady(page, 'button:has-text("Weekly"), .tab:has-text("Week")');
       await page.waitForTimeout(500);
       
       // Look for average statistics
       const averages = page.locator('[data-average]').or(page.locator('text=/average/i')).first();
       
-      if (await averages.isVisible({ timeout: 2000 })) {
+      if (await averages.isVisible({ timeout: 5000 })) {
         const text = await averages.textContent();
         
         // Should contain numbers
@@ -221,12 +221,12 @@ test.describe('Statistics Workflow', () => {
     // Look for export button
     const exportBtn = page.locator('button:has-text("Export"), button:has-text("Download"), [data-action="export"]').first();
     
-    if (await exportBtn.isVisible({ timeout: 2000 })) {
+    if (await exportBtn.isVisible({ timeout: 5000 })) {
       // Set up download listener
-      const downloadPromise = page.waitForEvent('download', { timeout: 5000 }).catch(() => null);
+      const downloadPromise = page.waitForEvent('download', { timeout: 10000 }).catch(() => null);
       
       // Click export
-      await exportBtn.click();
+      await helpers.clickWhenReady(page, 'button:has-text("Export"), button:has-text("Download"), [data-action="export"]');
       
       // Wait for download
       const download = await downloadPromise;
@@ -251,7 +251,7 @@ test.describe('Statistics Workflow', () => {
     // Look for comparison features (this week vs last week, etc.)
     const comparison = page.locator('text=/vs|compare|previous/i').first();
     
-    if (await comparison.isVisible({ timeout: 2000 })) {
+    if (await comparison.isVisible({ timeout: 5000 })) {
       // Verify comparison is displayed
       await expect(comparison).toBeVisible();
     }
@@ -263,7 +263,7 @@ test.describe('Statistics Workflow', () => {
     // Look for micronutrient information (fiber, sugars, etc.)
     const micronutrients = page.locator('text=/fiber|sugar|sodium|vitamin/i').first();
     
-    if (await micronutrients.isVisible({ timeout: 2000 })) {
+    if (await micronutrients.isVisible({ timeout: 5000 })) {
       const text = await micronutrients.textContent();
       
       // Should show nutrition values
@@ -278,7 +278,7 @@ test.describe('Statistics Workflow', () => {
     // Change to a future date (should have no data)
     const datePicker = page.locator('input[type="date"]').first();
     
-    if (await datePicker.isVisible({ timeout: 2000 })) {
+    if (await datePicker.isVisible({ timeout: 5000 })) {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 365);
       const futureDateStr = futureDate.toISOString().split('T')[0];
@@ -288,11 +288,11 @@ test.describe('Statistics Workflow', () => {
       
       // Should show empty state or zero values
       const emptyState = page.locator('text=/no data|no statistics|no entries/i').first();
-      const hasEmptyState = await emptyState.isVisible({ timeout: 2000 }).catch(() => false);
+      const hasEmptyState = await emptyState.isVisible({ timeout: 5000 }).catch(() => false);
       
       // Or should show zero values
       const zeroValues = page.locator('text=/0\\s*(cal|g)/').first();
-      const hasZeros = await zeroValues.isVisible({ timeout: 2000 }).catch(() => false);
+      const hasZeros = await zeroValues.isVisible({ timeout: 5000 }).catch(() => false);
       
       expect(hasEmptyState || hasZeros).toBeTruthy();
     }

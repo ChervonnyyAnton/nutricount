@@ -48,7 +48,7 @@ test.describe('Smoke Tests', () => {
       try {
         const response = await page.waitForResponse(
           (response) => response.url().includes('/api/') && response.status() === 200,
-          { timeout: 5000 }
+          { timeout: 10000 } // Increased from 5s to 10s for CI
         );
         expect(response.status()).toBe(200);
       } catch (e) {

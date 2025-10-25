@@ -16,9 +16,8 @@ test.describe('Product Management Workflow', () => {
   test('should create a new product', async ({ page }) => {
     const product = testData.products.apple;
     
-    // Click "Add Product" button
-    const addButton = page.locator('button:has-text("Add Product")').first();
-    await addButton.click();
+    // Click "Add Product" button with proper wait
+    await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
     
     // Wait for modal with proper CI timeout
     await helpers.waitForModal(page);
@@ -70,14 +69,21 @@ test.describe('Product Management Workflow', () => {
     // Find first product card
     const productCard = page.locator('.product-card, [data-product], .product-item').first();
     
-    if (await productCard.isVisible({ timeout: 2000 })) {
+    if (await productCard.isVisible({ timeout: 5000 })) {
       // Click to view details
-      await productCard.click();
+      await helpers.clickWhenReady(page, '.product-card, [data-product], .product-item');
       await page.waitForTimeout(500);
+      
+      // Wait for modal if details open in modal
+      try {
+        await helpers.waitForModal(page, { timeout: 5000 });
+      } catch (e) {
+        // May not be a modal, could be inline expansion
+      }
       
       // Check if details modal or expanded view appears
       const detailsView = page.locator('.modal:visible, .product-details:visible').first();
-      await expect(detailsView).toBeVisible({ timeout: 3000 });
+      await expect(detailsView).toBeVisible({ timeout: 5000 });
     }
   });
 
@@ -87,21 +93,30 @@ test.describe('Product Management Workflow', () => {
     // Find a product with delete button
     const deleteButton = page.locator('button:has-text("Delete"), .delete-btn, [data-action="delete"]').first();
     
-    if (await deleteButton.isVisible({ timeout: 2000 })) {
+    if (await deleteButton.isVisible({ timeout: 5000 })) {
       // Click delete button
-      await deleteButton.click();
+      await helpers.clickWhenReady(page, 'button:has-text("Delete"), .delete-btn, [data-action="delete"]');
       
       // Wait for confirmation dialog or direct deletion
       await page.waitForTimeout(500);
       
       // If confirmation dialog appears, confirm
       const confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Yes"), button:has-text("Delete")').last();
-      if (await confirmButton.isVisible({ timeout: 1000 })) {
-        await confirmButton.click();
+      if (await confirmButton.isVisible({ timeout: 2000 })) {
+        try {
+          await Promise.all([
+            page.waitForResponse(resp => resp.url().includes('/api/products') && resp.status() === 200, { timeout: 10000 }),
+            helpers.clickWhenReady(page, 'button:has-text("Confirm"), button:has-text("Yes"), button:has-text("Delete")')
+          ]);
+        } catch (e) {
+          // Demo version - just click
+          await helpers.clickWhenReady(page, 'button:has-text("Confirm"), button:has-text("Yes"), button:has-text("Delete")');
+        }
       }
       
-      // Wait for deletion to complete
-      await page.waitForTimeout(1000);
+      // Wait for network to settle
+      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(500);
       
       // Verify success (product removed or success message)
       const hasSuccess = await helpers.hasSuccessMessage(page);
@@ -111,15 +126,13 @@ test.describe('Product Management Workflow', () => {
 
   test('should validate product form', async ({ page }) => {
     // Click "Add Product" button
-    const addButton = page.locator('button:has-text("Add Product")').first();
-    await addButton.click();
+    await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
     
     // Wait for modal with proper CI timeout
     await helpers.waitForModal(page);
     
     // Try to submit empty form
-    const submitButton = page.locator('button[type="submit"]:has-text("Save"), button:has-text("Add Product")').last();
-    await submitButton.click();
+    await helpers.clickWhenReady(page, 'button[type="submit"]:has-text("Save"), button:has-text("Add Product")');
     
     // Wait a bit for validation
     await page.waitForTimeout(500);
@@ -127,7 +140,7 @@ test.describe('Product Management Workflow', () => {
     // Check for validation messages
     const hasError = await helpers.hasErrorMessage(page);
     const validationMessage = page.locator('.invalid-feedback, .error-message, [role="alert"]').first();
-    const hasValidation = await validationMessage.isVisible({ timeout: 1000 }).catch(() => false);
+    const hasValidation = await validationMessage.isVisible({ timeout: 2000 }).catch(() => false);
     
     // Should show validation error or prevent submission
     expect(hasError || hasValidation).toBeTruthy();
@@ -137,8 +150,7 @@ test.describe('Product Management Workflow', () => {
     const product = testData.products.avocado; // High-fat, low-carb product
     
     // Click "Add Product" button
-    const addButton = page.locator('button:has-text("Add Product")').first();
-    await addButton.click();
+    await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
     
     // Wait for modal with proper CI timeout
     await helpers.waitForModal(page);

@@ -32,7 +32,7 @@ test.describe('Fasting Tracking Workflow', () => {
     // Look for fasting type options (16:8, 18:6, 20:4, OMAD, etc.)
     const fastingTypes = page.locator('text=/16:8|18:6|20:4|OMAD/i').first();
     
-    if (await fastingTypes.isVisible({ timeout: 2000 })) {
+    if (await fastingTypes.isVisible({ timeout: 5000 })) {
       const text = await fastingTypes.textContent();
       
       // Should show at least one fasting type
@@ -47,26 +47,36 @@ test.describe('Fasting Tracking Workflow', () => {
     // Look for "Start Fasting" button
     const startBtn = page.locator('button:has-text("Start"), button:has-text("Begin"), [data-action="start"]').first();
     
-    if (await startBtn.isVisible({ timeout: 2000 })) {
+    if (await startBtn.isVisible({ timeout: 5000 })) {
       // Select fasting type if available
       const fastingTypeSelect = page.locator('select[name="fasting_type"], input[name="type"]').first();
-      if (await fastingTypeSelect.isVisible({ timeout: 2000 })) {
+      if (await fastingTypeSelect.isVisible({ timeout: 5000 })) {
         if (await fastingTypeSelect.evaluate(el => el.tagName === 'SELECT')) {
           await fastingTypeSelect.selectOption('16:8');
         }
       }
       
-      // Click start button
-      await startBtn.click();
-      await page.waitForTimeout(1000);
+      // Click start button with API wait
+      try {
+        await Promise.all([
+          page.waitForResponse(resp => resp.url().includes('/api/fasting') && resp.status() === 200, { timeout: 10000 }),
+          helpers.clickWhenReady(page, 'button:has-text("Start"), button:has-text("Begin"), [data-action="start"]')
+        ]);
+      } catch (e) {
+        // Demo version - just click
+        await helpers.clickWhenReady(page, 'button:has-text("Start"), button:has-text("Begin"), [data-action="start"]');
+      }
+      
+      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(500);
       
       // Verify fasting session started
       const status = page.locator('text=/fasting|active|in progress/i').first();
-      const hasActiveSession = await status.isVisible({ timeout: 3000 }).catch(() => false);
+      const hasActiveSession = await status.isVisible({ timeout: 5000 }).catch(() => false);
       
       // Or check for timer
-    const timer = page.locator('.timer, [data-timer]').or(page.locator('text=/\\d+:\\d+/')).first();
-      const hasTimer = await timer.isVisible({ timeout: 3000 }).catch(() => false);
+      const timer = page.locator('.timer, [data-timer]').or(page.locator('text=/\\d+:\\d+/')).first();
+      const hasTimer = await timer.isVisible({ timeout: 5000 }).catch(() => false);
       
       expect(hasActiveSession || hasTimer).toBeTruthy();
     }
@@ -105,18 +115,27 @@ test.describe('Fasting Tracking Workflow', () => {
     // Look for pause button (only visible if session is active)
     const pauseBtn = page.locator('button:has-text("Pause"), [data-action="pause"]').first();
     
-    if (await pauseBtn.isVisible({ timeout: 2000 })) {
-      // Click pause
-      await pauseBtn.click();
-      await page.waitForTimeout(1000);
+    if (await pauseBtn.isVisible({ timeout: 5000 })) {
+      // Click pause with API wait
+      try {
+        await Promise.all([
+          page.waitForResponse(resp => resp.url().includes('/api/fasting') && resp.status() === 200, { timeout: 10000 }),
+          helpers.clickWhenReady(page, 'button:has-text("Pause"), [data-action="pause"]')
+        ]);
+      } catch (e) {
+        await helpers.clickWhenReady(page, 'button:has-text("Pause"), [data-action="pause"]');
+      }
+      
+      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(500);
       
       // Verify session is paused
       const pausedStatus = page.locator('text=/paused/i').first();
-      const isPaused = await pausedStatus.isVisible({ timeout: 3000 }).catch(() => false);
+      const isPaused = await pausedStatus.isVisible({ timeout: 5000 }).catch(() => false);
       
       // Or check for resume button
       const resumeBtn = page.locator('button:has-text("Resume")').first();
-      const hasResume = await resumeBtn.isVisible({ timeout: 3000 }).catch(() => false);
+      const hasResume = await resumeBtn.isVisible({ timeout: 5000 }).catch(() => false);
       
       expect(isPaused || hasResume).toBeTruthy();
     }
@@ -128,14 +147,23 @@ test.describe('Fasting Tracking Workflow', () => {
     // Look for resume button
     const resumeBtn = page.locator('button:has-text("Resume"), [data-action="resume"]').first();
     
-    if (await resumeBtn.isVisible({ timeout: 2000 })) {
-      // Click resume
-      await resumeBtn.click();
-      await page.waitForTimeout(1000);
+    if (await resumeBtn.isVisible({ timeout: 5000 })) {
+      // Click resume with API wait
+      try {
+        await Promise.all([
+          page.waitForResponse(resp => resp.url().includes('/api/fasting') && resp.status() === 200, { timeout: 10000 }),
+          helpers.clickWhenReady(page, 'button:has-text("Resume"), [data-action="resume"]')
+        ]);
+      } catch (e) {
+        await helpers.clickWhenReady(page, 'button:has-text("Resume"), [data-action="resume"]');
+      }
+      
+      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(500);
       
       // Verify session is active again
       const activeStatus = page.locator('text=/active|in progress/i').first();
-      const isActive = await activeStatus.isVisible({ timeout: 3000 }).catch(() => false);
+      const isActive = await activeStatus.isVisible({ timeout: 5000 }).catch(() => false);
       
       expect(isActive).toBeTruthy();
     }
@@ -147,23 +175,31 @@ test.describe('Fasting Tracking Workflow', () => {
     // Look for end/stop button
     const endBtn = page.locator('button:has-text("End"), button:has-text("Stop"), button:has-text("Finish"), [data-action="end"]').first();
     
-    if (await endBtn.isVisible({ timeout: 2000 })) {
+    if (await endBtn.isVisible({ timeout: 5000 })) {
       // Click end button
-      await endBtn.click();
+      await helpers.clickWhenReady(page, 'button:has-text("End"), button:has-text("Stop"), button:has-text("Finish"), [data-action="end"]');
       await page.waitForTimeout(500);
       
       // Confirm if needed
       const confirmBtn = page.locator('button:has-text("Confirm"), button:has-text("Yes")').last();
-      if (await confirmBtn.isVisible({ timeout: 1000 })) {
-        await confirmBtn.click();
+      if (await confirmBtn.isVisible({ timeout: 2000 })) {
+        try {
+          await Promise.all([
+            page.waitForResponse(resp => resp.url().includes('/api/fasting') && resp.status() === 200, { timeout: 10000 }),
+            helpers.clickWhenReady(page, 'button:has-text("Confirm"), button:has-text("Yes")')
+          ]);
+        } catch (e) {
+          await helpers.clickWhenReady(page, 'button:has-text("Confirm"), button:has-text("Yes")');
+        }
       }
       
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(500);
       
       // Verify session ended
       const hasSuccess = await helpers.hasSuccessMessage(page);
       const startBtn = page.locator('button:has-text("Start")').first();
-      const canStartNew = await startBtn.isVisible({ timeout: 3000 }).catch(() => false);
+      const canStartNew = await startBtn.isVisible({ timeout: 5000 }).catch(() => false);
       
       expect(hasSuccess || canStartNew).toBeTruthy();
     }
@@ -175,13 +211,13 @@ test.describe('Fasting Tracking Workflow', () => {
     // Look for history section or tab
     const historyTab = page.locator('button:has-text("History"), .tab:has-text("History"), [data-tab="history"]').first();
     
-    if (await historyTab.isVisible({ timeout: 2000 })) {
-      await historyTab.click();
+    if (await historyTab.isVisible({ timeout: 5000 })) {
+      await helpers.clickWhenReady(page, 'button:has-text("History"), .tab:has-text("History"), [data-tab="history"]');
       await page.waitForTimeout(500);
       
       // Verify history section is shown
       const historySection = page.locator('.history, .fasting-history, [data-history]').first();
-      await expect(historySection).toBeVisible({ timeout: 3000 });
+      await expect(historySection).toBeVisible({ timeout: 5000 });
     }
   });
 
