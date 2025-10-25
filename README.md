@@ -202,7 +202,7 @@ python3 -m http.server 8000
 ### Documentation
 - [Demo README](demo/README.md) - Complete usage guide
 - [Deployment Guide](demo/DEPLOYMENT.md) - Deployment instructions
-- [Implementation Plan](SPA_DEMO_PLAN.md) - Technical details
+- [Implementation Plan](archive/planning/SPA_DEMO_PLAN.md) - Technical details (archived)
 
 ### Use Cases
 - 📱 Mobile demonstrations

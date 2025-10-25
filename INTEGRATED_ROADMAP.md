@@ -14,7 +14,7 @@ All tracks work in parallel without blocking each other.
 **Educational Platform:** From developers only → QA, PO, PM, DevOps, UX/UI Designers  
 **FOSS Health Tracker:** Complete, privacy-focused nutrition tracker for keto followers
 
-See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed plan.
+> **Note:** Detailed expansion plan available in [archive/planning/EDUCATIONAL_EXPANSION_PLAN.md](archive/planning/EDUCATIONAL_EXPANSION_PLAN.md)
 
 ---
 
@@ -75,19 +75,22 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
   - Implement critical module testing
   - **Estimated**: 8-12 hours (Week 8)
 
-### Priority 3: Documentation & Polish 📚 (LOWER PRIORITY)
-- **Week 6 Remaining**: Documentation & Community Launch (60% complete)
+### Priority 3: Documentation & Polish 📚 (CURRENT FOCUS - Oct 25)
+- **Documentation Consolidation** ✅ COMPLETE (Oct 25)
+  - ✅ Reduced root markdown files from 85 to 16 (81% reduction)
+  - ✅ Created archive/ directory for historical documents
+  - ✅ Archived 39 session summaries, 8 E2E test docs, 5 phase docs
+  - ✅ Archived 5 status files, 6 planning docs, 2 Russian docs
+  - ✅ Consolidated demo documentation (moved to demo/ folder)
+  - ✅ Created comprehensive archive README with navigation
+  - **Result**: Clean, maintainable documentation structure
+- **Week 6 Remaining**: Documentation & Community Launch (75% complete)
   - ✅ Phase 1: User research guide (1,660 lines) - COMPLETED
   - ✅ Phase 2: End-user documentation (2,193 lines) - COMPLETED
-  - ⏳ Phase 3: Community infrastructure setup
-  - ⏳ Phase 4: Rollback mechanism design documentation
-  - ⏳ Phase 5: Production deployment planning documentation
-- **UX Documentation Enhancements**
-  - Command Pattern documentation
-  - Test Data Builders guide
-  - Page Object Pattern guide
-  - Mobile UX best practices
-  - Accessibility enhancement guide
+  - ✅ Phase 3: Documentation consolidation - COMPLETED (Oct 25)
+  - ⏳ Phase 4: Community infrastructure setup
+  - ⏳ Phase 5: Rollback mechanism design documentation
+  - ⏳ Phase 6: Production deployment planning documentation
 
 ### Metrics (Updated Oct 25, 2025)
 - **Tests**: 844 unit/integration (passed), 1 skipped
@@ -95,21 +98,14 @@ See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed 
 - **Coverage**: 87-94% (excellent across modules)
 - **Quality Score**: 96/100 (Grade A)
 - **Linting**: 0 errors
-- **Documentation**: 70+ markdown files, 8,253+ new lines (Week 5+6) ✅ UPDATED
-- **Service Layer**: 100% complete ✅ NEW
-- **Rollback**: Fully implemented ✅ NEW
+- **Documentation**: 16 core docs (81% reduction from 85), organized archive ✅ NEW
+- **Service Layer**: 100% complete ✅
+- **Rollback**: Fully implemented ✅
 - **Week 5 Progress**: 100% complete ✅
-- **Week 6 Progress**: 60% complete (Phases 1-2 done, 3,853 lines) ✅ NEW
-- **Week 7 Progress**: Priority 1 complete, Priority 2 in progress (E2E Phase 2) ✅ NEW
+- **Week 6 Progress**: 75% complete (Phases 1-3 done, documentation consolidated) ✅ NEW
+- **Week 7 Progress**: Priority 1 complete, Priority 2 in progress (E2E Phase 2) ✅
 - **Design Documentation**: 100% (8 comprehensive documents) ✅
-- **User Documentation**: 100% (5 comprehensive documents) ✅ NEW
-- **CI/CD Documentation**: 100% (Architecture fully documented) ✅
-- **Linting**: 0 errors
-- **Documentation**: 70+ markdown files, 8,253+ new lines (Week 5+6) ✅ UPDATED
-- **Week 5 Progress**: 100% complete ✅
-- **Week 6 Progress**: 60% complete (Phases 1-2 done, 3,853 lines) ✅ NEW
-- **Design Documentation**: 100% (8 comprehensive documents) ✅
-- **User Documentation**: 100% (5 comprehensive documents) ✅ NEW
+- **User Documentation**: 100% (5 comprehensive documents) ✅
 - **CI/CD Documentation**: 100% (Architecture fully documented) ✅
 
 ---
@@ -773,7 +769,7 @@ Unified Architecture Track Dependencies:
 - [ ] Barcode scanning (optional)
 - [ ] Progress tracking (weight, measurements)
 
-See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for complete details.
+> **Note:** Complete educational expansion details in [archive/planning/EDUCATIONAL_EXPANSION_PLAN.md](archive/planning/EDUCATIONAL_EXPANSION_PLAN.md)
 
 ---
 

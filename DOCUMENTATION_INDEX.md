@@ -1,7 +1,11 @@
 # 📚 Nutricount Documentation Index
-**Last Updated:** October 25, 2025
+**Last Updated:** October 25, 2025  
+**Documentation Version:** 2.0 (Consolidated)
 
 Welcome to the Nutricount documentation! This index helps you find the right document for your needs.
+
+> **🎯 New!** Documentation has been consolidated from 85 to 16 core files (81% reduction).  
+> Historical documents are now in the [archive/](archive/) directory.
 
 ---
 
@@ -11,7 +15,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 1. 📖 [README.md](README.md) - Project overview and quick start
 2. 🏗️ [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture overview
 3. 🔧 [PROJECT_SETUP.md](PROJECT_SETUP.md) - Development setup
-4. 🗺️ [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md) - Current development roadmap
+4. 🗺️ [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md) - Current development status
 
 ---
 
@@ -98,11 +102,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
   - Coverage gaps
   - Recommendations
 
-- **🎭 [E2E_TEST_ANALYSIS.md](E2E_TEST_ANALYSIS.md)** - E2E testing analysis
-  - E2E test status
-  - Infrastructure issues
-  - Recommendations
-  - Troubleshooting
+> **Note:** Historical E2E test analysis available in [archive/testing/](archive/testing/)
 
 ### 🚀 For DevOps Engineers
 - **📖 [docs/devops/](docs/devops/)** - DevOps documentation
@@ -146,22 +146,10 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 
 ### 🛠️ For Maintainers
 - **🗺️ [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md)** - Development roadmap
-  - Current phase status
+  - Current phase status (Week 6, 75% complete)
   - Week-by-week timeline
   - Parallel tracks
   - Success criteria
-
-- **🔄 [REFACTORING_STATUS.md](REFACTORING_STATUS.md)** - Current refactoring status
-  - Phase completion tracking
-  - Next actions and timeline
-  - Progress metrics
-  - Risk assessment
-
-- **📊 [PHASE4_NEXT_STEPS.md](PHASE4_NEXT_STEPS.md)** - Phase 4 completion
-  - Code modularization complete
-  - Blueprint structure
-  - App.py reduction (92%)
-  - Future opportunities
 
 ---
 
@@ -171,13 +159,11 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Comprehensive architecture guide with diagrams
 - [DESIGN_PATTERNS_GUIDE.md](DESIGN_PATTERNS_GUIDE.md) - Design patterns in use
 - [docs/patterns/](docs/patterns/) - Pattern implementations
-- [UNIFIED_ARCHITECTURE_PLAN.md](UNIFIED_ARCHITECTURE_PLAN.md) - Unified architecture approach
 
 ### 🧪 Testing & Quality
 - [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) - Coverage details (94%, 845 tests)
 - [MUTATION_TESTING.md](MUTATION_TESTING.md) - Mutation testing guide
 - [MUTATION_TESTING_PLAN.md](MUTATION_TESTING_PLAN.md) - Implementation plan
-- [E2E_TEST_ANALYSIS.md](E2E_TEST_ANALYSIS.md) - E2E testing status
 - [docs/qa/testing-strategy.md](docs/qa/testing-strategy.md) - Testing strategy
 - [CODE_QUALITY.md](CODE_QUALITY.md) - Quality metrics
 
@@ -191,7 +177,6 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ### 🚀 CI/CD & DevOps
 - [docs/devops/ci-cd-pipeline.md](docs/devops/ci-cd-pipeline.md) - CI/CD pipeline guide
 - [TESTING_WORKFLOW_DEPENDENCIES.md](TESTING_WORKFLOW_DEPENDENCIES.md) - Workflow structure
-- [WORKFLOW_DEPENDENCY_SUMMARY.md](WORKFLOW_DEPENDENCY_SUMMARY.md) - Dependency summary
 
 ### 🔧 Development & Setup
 - [PROJECT_SETUP.md](PROJECT_SETUP.md) - Setup instructions
@@ -231,65 +216,66 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ### 📱 Demo & Deployment
 - [demo/README.md](demo/README.md) - Demo version guide
 - [demo/DEPLOYMENT.md](demo/DEPLOYMENT.md) - Deployment instructions
-- [ENABLE_DEMO.md](ENABLE_DEMO.md) - Demo setup
-- [SPA_DEMO_PLAN.md](SPA_DEMO_PLAN.md) - SPA demo implementation
 - [docs/GITHUB_PAGES_SETUP.md](docs/GITHUB_PAGES_SETUP.md) - GitHub Pages setup
 
-### 🔄 Refactoring & Analysis
-- [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md) - Current roadmap (Week 5)
+### 🔄 Project Status & Planning
+- [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md) - Current roadmap (Week 6, 75% complete)
 - [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Comprehensive analysis
-- [REFACTORING_STATUS.md](REFACTORING_STATUS.md) - Current refactoring status
-- [REFACTORING.md](REFACTORING.md) - Refactoring history
-- [PHASE4_NEXT_STEPS.md](PHASE4_NEXT_STEPS.md) - Phase 4 completion
 
-### 📚 Educational Resources
-- [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) - Learning materials plan
-- [docs/users/](docs/users/) - User guides
-- [docs/qa/](docs/qa/) - QA engineer guides
-- [docs/devops/](docs/devops/) - DevOps guides
-- [docs/product/](docs/product/) - Product owner guides
-- [docs/product-management/](docs/product-management/) - PM guides
-- [docs/design/](docs/design/) - UX/UI guides
+### 📚 Historical Documentation
+- [archive/](archive/) - Archived historical documents
+  - [archive/sessions/](archive/sessions/) - 39 session summaries
+  - [archive/testing/](archive/testing/) - Historical E2E test documentation
+  - [archive/phases/](archive/phases/) - Completed development phases
+  - [archive/status/](archive/status/) - Historical status reports
+  - [archive/planning/](archive/planning/) - Historical planning documents
+  - [archive/international/](archive/international/) - Non-English documentation
 
 ---
 
-## 📚 Complete Document List
+## 📚 Core Documentation Files
 
-### User-Facing Documentation
-| Document | Purpose | Audience | Size |
-|----------|---------|----------|------|
-| [README.md](README.md) | Main documentation | Users, Developers | 602 lines |
+### Essential Documentation (Root Directory - 16 Files)
 
-### Developer Documentation
-| Document | Purpose | Audience | Size |
-|----------|---------|----------|------|
-| [PROJECT_SETUP.md](PROJECT_SETUP.md) | Development setup | Developers | 469 lines |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture guide | Developers, Architects | NEW |
-| [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) | Project analysis | All developers | NEW |
+| Document | Purpose | Audience | Lines |
+|----------|---------|----------|-------|
+| [README.md](README.md) | Main documentation & quick start | All Users | ~700 |
+| [PROJECT_SETUP.md](PROJECT_SETUP.md) | Development setup | Developers | ~470 |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture guide | Developers, Architects | ~530 |
+| [DESIGN_PATTERNS_GUIDE.md](DESIGN_PATTERNS_GUIDE.md) | Design patterns | Developers | - |
+| [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) | Project analysis | All Developers | - |
+| [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md) | Current roadmap & status | Maintainers | - |
+| [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) | Coverage report (94%, 845 tests) | QA, Developers | ~280 |
+| [MUTATION_TESTING.md](MUTATION_TESTING.md) | Testing guide with results | QA, Developers | ~500 |
+| [MUTATION_TESTING_PLAN.md](MUTATION_TESTING_PLAN.md) | Implementation plan | QA, Developers | ~350 |
+| [CODE_QUALITY.md](CODE_QUALITY.md) | Quality metrics | Developers | ~225 |
+| [SECURITY_FIXES_OCT23.md](SECURITY_FIXES_OCT23.md) | Security documentation | DevOps, Developers | - |
+| [TESTING_WORKFLOW_DEPENDENCIES.md](TESTING_WORKFLOW_DEPENDENCIES.md) | CI/CD workflow | DevOps | - |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines | Contributors | - |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards | All | - |
+| [COMMUNITY_GUIDELINES.md](COMMUNITY_GUIDELINES.md) | Participation guide | All | - |
+| [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) | This file | All | ~520 |
 
-### Architecture & Design
-| Document | Purpose | Audience | Size |
-|----------|---------|----------|------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Comprehensive architecture guide | Developers, Architects | 529 lines |
+### Role-Specific Documentation (docs/ - 34 Files)
 
-### Testing Documentation
-| Document | Purpose | Audience | Size |
-|----------|---------|----------|------|
-| [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) | Coverage report (94%, 845 tests) | QA, Developers | ~280 lines |
-| [MUTATION_TESTING.md](MUTATION_TESTING.md) | Testing guide with results | QA, Developers | ~500 lines |
-| [MUTATION_TESTING_PLAN.md](MUTATION_TESTING_PLAN.md) | Implementation plan | QA, Developers | ~350 lines |
+See [docs/README.md](docs/README.md) for complete listing of role-specific documentation:
+- **[docs/users/](docs/users/)** - End-user guides (5 files)
+- **[docs/qa/](docs/qa/)** - QA engineer documentation (2 files)
+- **[docs/devops/](docs/devops/)** - DevOps documentation (7 files)
+- **[docs/product/](docs/product/)** - Product owner documentation (4 files)
+- **[docs/product-management/](docs/product-management/)** - PM documentation (2 files)
+- **[docs/design/](docs/design/)** - UX/UI design documentation (6 files)
+- **[docs/patterns/](docs/patterns/)** - Design pattern documentation (5 files)
 
-### Quality & Refactoring
-| Document | Purpose | Audience | Size |
-|----------|---------|----------|------|
-| [CODE_QUALITY.md](CODE_QUALITY.md) | Quality metrics | Developers | 225 lines |
-| [REFACTORING_STATUS.md](REFACTORING_STATUS.md) | Current status & progress | Maintainers | NEW |
-| [REFACTORING.md](REFACTORING.md) | Refactoring docs | Developers | 374 lines |
+### Historical Documentation (archive/ - 69 Files)
 
-### GitHub Integration
-| Document | Purpose | Audience | Size |
-|----------|---------|----------|------|
-| [.github/copilot-instructions.md](.github/copilot-instructions.md) | Copilot config | AI Assistants | - |
+See [archive/README.md](archive/README.md) for complete archive documentation:
+- **[archive/sessions/](archive/sessions/)** - 39 session summaries (Oct 2025)
+- **[archive/testing/](archive/testing/)** - 11 E2E test documents
+- **[archive/phases/](archive/phases/)** - 5 phase completion docs
+- **[archive/status/](archive/status/)** - 4 historical status reports
+- **[archive/planning/](archive/planning/)** - 8 planning documents
+- **[archive/international/](archive/international/)** - 2 Russian documents
 
 ---
 
@@ -306,7 +292,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 1. **Day 1:** Read [README.md](README.md) - Get project overview
 2. **Day 2:** Read [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) - Coverage status (94%, 845 tests)
 3. **Day 3:** Read [docs/qa/testing-strategy.md](docs/qa/testing-strategy.md) - Testing approach
-4. **Day 4:** Read [E2E_TEST_ANALYSIS.md](E2E_TEST_ANALYSIS.md) - E2E testing status
+4. **Day 4:** Review [archive/testing/](archive/testing/) - Historical E2E test documentation
 5. **Day 5:** Start testing!
 
 ### Path 3: DevOps Engineer Onboarding
@@ -327,42 +313,40 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 1. **Read:** [ARCHITECTURE.md](ARCHITECTURE.md) - Comprehensive architecture overview
 2. **Read:** [DESIGN_PATTERNS_GUIDE.md](DESIGN_PATTERNS_GUIDE.md) - Design patterns in use
 3. **Read:** [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Analysis and plans
-4. **Read:** [UNIFIED_ARCHITECTURE_PLAN.md](UNIFIED_ARCHITECTURE_PLAN.md) - Future architecture
+4. **Read:** [archive/planning/UNIFIED_ARCHITECTURE_PLAN.md](archive/planning/UNIFIED_ARCHITECTURE_PLAN.md) - Historical architecture plan
 
 ---
 
 ## 📊 Documentation Statistics
 
-### Total Documentation
-- **Total Documents:** 70+ markdown files
-- **Main Documentation:** 20+ files in root
-- **Role-specific Guides:** 9 directories (docs/)
-- **Session Summaries:** 15+ files
-- **Total Size:** ~1MB+
-- **Last Updated:** October 23, 2025
+### Current Documentation (Oct 25, 2025)
+- **Root Directory:** 16 core markdown files (down from 85 - 81% reduction)
+- **Role-specific (docs/):** 34 files organized by role
+- **Archive:** 69 historical documents preserved
+- **Total Active Documentation:** 50 files (16 core + 34 role-specific)
+- **Total with Archive:** 119 files
+- **Last Major Update:** October 25, 2025 (Documentation Consolidation v2.0)
 
 ### Documentation by Category
-- **User Docs:** README.md + demo/ + docs/users/
-- **Developer Docs:** PROJECT_SETUP.md + ARCHITECTURE.md + DESIGN_PATTERNS_GUIDE.md
-- **Architecture Docs:** ARCHITECTURE.md + UNIFIED_ARCHITECTURE_PLAN.md + docs/patterns/
-- **Testing Docs:** TEST_COVERAGE_REPORT.md + MUTATION_TESTING.md + E2E_TEST_ANALYSIS.md + docs/qa/
-- **Quality & Refactoring:** CODE_QUALITY.md + REFACTORING_STATUS.md + PHASE4_NEXT_STEPS.md
-- **Security:** SECURITY_FIXES_OCT23.md
-- **DevOps:** docs/devops/ + TESTING_WORKFLOW_DEPENDENCIES.md
-- **Product:** docs/product/ + docs/product-management/
-- **Design:** docs/design/
-- **Educational:** EDUCATIONAL_EXPANSION_PLAN.md + role-specific guides
+- **Essential Docs:** README, PROJECT_SETUP, ARCHITECTURE, DOCUMENTATION_INDEX (4 files)
+- **Development Docs:** Design patterns, analysis, quality metrics (3 files)
+- **Testing Docs:** Coverage, mutation testing, workflow dependencies (4 files)
+- **Community Docs:** Contributing, code of conduct, guidelines (3 files)
+- **Planning Docs:** Roadmap, security documentation (2 files)
+- **Role-specific Docs:** Users, QA, DevOps, PO, PM, Design, Patterns (34 files in docs/)
+- **Historical Archive:** Sessions, testing, phases, status, planning (69 files in archive/)
 
 ### Documentation Coverage
 - ✅ **User Documentation:** Comprehensive (README + demo guides + user guides)
 - ✅ **Developer Documentation:** Excellent (setup + architecture + patterns)
-- ✅ **Architecture Documentation:** Complete (diagrams + patterns + plans)
-- ✅ **Testing Documentation:** Detailed (coverage + mutation + E2E + strategy)
+- ✅ **Architecture Documentation:** Complete (diagrams + patterns)
+- ✅ **Testing Documentation:** Detailed (coverage + mutation + strategy)
 - ✅ **Security Documentation:** Complete (fixes + scanning + best practices)
 - ✅ **DevOps Documentation:** Comprehensive (CI/CD + workflows + deployment)
 - ✅ **Product Documentation:** Excellent (stories + backlog + personas + metrics)
 - ✅ **Design Documentation:** Good (design system + patterns)
-- ✅ **API Documentation:** In code (OpenAPI planned)
+- ✅ **Historical Documentation:** Preserved in archive (69 files)
+- 📋 **API Documentation:** In code (OpenAPI planned)
 
 ---
 
@@ -392,7 +376,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 **A:** See [PROJECT_SETUP.md](PROJECT_SETUP.md) - Testing section
 
 **Q: What's the current development status?**  
-**A:** See [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md) - Currently in Week 5
+**A:** See [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md) - Currently in Week 6 (75% complete)
 
 **Q: What security measures are in place?**  
 **A:** See [SECURITY_FIXES_OCT23.md](SECURITY_FIXES_OCT23.md) - Security fixes and automated scanning
@@ -406,11 +390,14 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 **Q: How do I contribute?**  
 **A:** See [CONTRIBUTING.md](CONTRIBUTING.md) and [PROJECT_SETUP.md](PROJECT_SETUP.md)
 
-**Q: What's the refactoring plan?**  
-**A:** See [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md) for current roadmap
-
 **Q: How do I deploy the demo?**  
 **A:** See [demo/DEPLOYMENT.md](demo/DEPLOYMENT.md) for deployment options
+
+**Q: Where are historical development logs?**  
+**A:** See [archive/sessions/](archive/sessions/) - 39 session summaries from October 2025
+
+**Q: Where are past status reports?**  
+**A:** See [archive/status/](archive/status/) and [archive/phases/](archive/phases/)
 
 ---
 
@@ -418,7 +405,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 
 ### Essential Reading (Start Here!)
 1. **[README.md](README.md)** - Project overview and quick start
-2. **[INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md)** - Current development status (Week 5)
+2. **[INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md)** - Current development status (Week 6, 75%)
 3. **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture
 4. **[PROJECT_SETUP.md](PROJECT_SETUP.md)** - Development setup
 
@@ -430,11 +417,17 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 
 ### Role-Specific Documentation
 1. **Developers:** [PROJECT_SETUP.md](PROJECT_SETUP.md) → [ARCHITECTURE.md](ARCHITECTURE.md) → [DESIGN_PATTERNS_GUIDE.md](DESIGN_PATTERNS_GUIDE.md)
-2. **QA Engineers:** [docs/qa/](docs/qa/) → [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) → [E2E_TEST_ANALYSIS.md](E2E_TEST_ANALYSIS.md)
-3. **DevOps:** [docs/devops/](docs/devops/) → [SECURITY_FIXES_OCT23.md](SECURITY_FIXES_OCT23.md) → [TESTING_WORKFLOW_DEPENDENCIES.md](TESTING_WORKFLOW_DEPENDENCIES.md)
+2. **QA Engineers:** [docs/qa/](docs/qa/) → [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md)
+3. **DevOps:** [docs/devops/](docs/devops/) → [SECURITY_FIXES_OCT23.md](SECURITY_FIXES_OCT23.md)
 4. **Product Owners:** [docs/product/](docs/product/) → [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md)
 5. **Product Managers:** [docs/product-management/](docs/product-management/) → [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md)
 6. **Designers:** [docs/design/](docs/design/) → [ARCHITECTURE.md](ARCHITECTURE.md)
+
+### Historical Reference
+1. **Development Sessions:** [archive/sessions/](archive/sessions/) - 39 session summaries
+2. **Status Reports:** [archive/status/](archive/status/) - Historical project status
+3. **Completed Phases:** [archive/phases/](archive/phases/) - Phase 2 & 4 documentation
+4. **Planning History:** [archive/planning/](archive/planning/) - Historical planning docs
 
 ---
 
@@ -446,15 +439,24 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 - **INTEGRATED_ROADMAP.md:** Weekly (current phase tracking)
 - **TEST_COVERAGE_REPORT.md:** After test improvements
 - **SECURITY_FIXES_OCT23.md:** After security updates
-- **DOCUMENTATION_INDEX.md:** Monthly or when structure changes
+- **DOCUMENTATION_INDEX.md:** After documentation structure changes
+- **archive/:** Never (historical preservation only)
 
 ### Quality Checks
-- ✅ All links working
+- ✅ All links working (both internal and to archived content)
 - ✅ Consistent formatting
 - ✅ Current metrics (94% coverage, 845 tests)
 - ✅ Cross-references correct
 - ✅ Examples accurate
 - ✅ Role-specific docs complete
+- ✅ Archive properly organized and documented
+
+### Recent Updates
+- **Oct 25, 2025:** Documentation Consolidation v2.0
+  - Reduced root files from 85 to 16 (81% reduction)
+  - Created archive/ directory with 69 historical files
+  - Updated all cross-references
+  - Added archive navigation
 
 ### Next Review
 **Scheduled:** November 1, 2025
@@ -515,8 +517,11 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 
 **Need help?** Check the appropriate document above or consult [PROJECT_SETUP.md](PROJECT_SETUP.md) for development questions.
 
-**Status:** ✅ Documentation Complete and Current  
+**Looking for historical documents?** See [archive/README.md](archive/README.md) for complete archive navigation.
+
+**Status:** ✅ Documentation Consolidated and Current (v2.0)  
 **Last Review:** October 25, 2025  
 **Next Review:** November 1, 2025  
-**Current Phase:** Week 6 - Priority 3 (75% Complete) - Community infrastructure added ✨  
+**Current Phase:** Week 6 - 75% Complete  
+**Major Change:** 81% documentation reduction (85→16 files), organized archive created  
 **See:** [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md)
