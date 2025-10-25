@@ -102,11 +102,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
   - Coverage gaps
   - Recommendations
 
-- **🎭 [E2E_TEST_ANALYSIS.md](E2E_TEST_ANALYSIS.md)** - E2E testing analysis
-  - E2E test status
-  - Infrastructure issues
-  - Recommendations
-  - Troubleshooting
+> **Note:** Historical E2E test analysis available in [archive/testing/](archive/testing/)
 
 ### 🚀 For DevOps Engineers
 - **📖 [docs/devops/](docs/devops/)** - DevOps documentation
@@ -296,7 +292,7 @@ See [archive/README.md](archive/README.md) for complete archive documentation:
 1. **Day 1:** Read [README.md](README.md) - Get project overview
 2. **Day 2:** Read [TEST_COVERAGE_REPORT.md](TEST_COVERAGE_REPORT.md) - Coverage status (94%, 845 tests)
 3. **Day 3:** Read [docs/qa/testing-strategy.md](docs/qa/testing-strategy.md) - Testing approach
-4. **Day 4:** Read [E2E_TEST_ANALYSIS.md](E2E_TEST_ANALYSIS.md) - E2E testing status
+4. **Day 4:** Review [archive/testing/](archive/testing/) - Historical E2E test documentation
 5. **Day 5:** Start testing!
 
 ### Path 3: DevOps Engineer Onboarding
@@ -317,7 +313,7 @@ See [archive/README.md](archive/README.md) for complete archive documentation:
 1. **Read:** [ARCHITECTURE.md](ARCHITECTURE.md) - Comprehensive architecture overview
 2. **Read:** [DESIGN_PATTERNS_GUIDE.md](DESIGN_PATTERNS_GUIDE.md) - Design patterns in use
 3. **Read:** [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Analysis and plans
-4. **Read:** [UNIFIED_ARCHITECTURE_PLAN.md](UNIFIED_ARCHITECTURE_PLAN.md) - Future architecture
+4. **Read:** [archive/planning/UNIFIED_ARCHITECTURE_PLAN.md](archive/planning/UNIFIED_ARCHITECTURE_PLAN.md) - Historical architecture plan
 
 ---
 

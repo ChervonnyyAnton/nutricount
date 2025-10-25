@@ -14,7 +14,7 @@ All tracks work in parallel without blocking each other.
 **Educational Platform:** From developers only → QA, PO, PM, DevOps, UX/UI Designers  
 **FOSS Health Tracker:** Complete, privacy-focused nutrition tracker for keto followers
 
-See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for detailed plan.
+> **Note:** Detailed expansion plan available in [archive/planning/EDUCATIONAL_EXPANSION_PLAN.md](archive/planning/EDUCATIONAL_EXPANSION_PLAN.md)
 
 ---
 
@@ -769,7 +769,7 @@ Unified Architecture Track Dependencies:
 - [ ] Barcode scanning (optional)
 - [ ] Progress tracking (weight, measurements)
 
-See [EDUCATIONAL_EXPANSION_PLAN.md](EDUCATIONAL_EXPANSION_PLAN.md) for complete details.
+> **Note:** Complete educational expansion details in [archive/planning/EDUCATIONAL_EXPANSION_PLAN.md](archive/planning/EDUCATIONAL_EXPANSION_PLAN.md)
 
 ---
 
