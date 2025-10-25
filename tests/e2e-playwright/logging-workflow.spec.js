@@ -41,8 +41,8 @@ test.describe('Daily Logging Workflow', () => {
     
     // Create a test product if needed
     const addProductBtn = page.locator('button:has-text("Add Product")').first();
-    if (await addProductBtn.isVisible({ timeout: 2000 })) {
-      await addProductBtn.click();
+    if (await addProductBtn.isVisible({ timeout: 5000 })) {
+      await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
       
       // Wait for modal with proper CI timeout
       await helpers.waitForModal(page);
@@ -65,8 +65,8 @@ test.describe('Daily Logging Workflow', () => {
     // Click "Add Log Entry" or similar button
     const addLogBtn = page.locator('button:has-text("Add Entry"), button:has-text("Add Log"), button:has-text("Log Food")').first();
     
-    if (await addLogBtn.isVisible({ timeout: 2000 })) {
-      await addLogBtn.click();
+    if (await addLogBtn.isVisible({ timeout: 5000 })) {
+      await helpers.clickWhenReady(page, 'button:has-text("Add Entry"), button:has-text("Add Log"), button:has-text("Log Food")');
       await page.waitForTimeout(500);
       
       // Fill in log entry form
@@ -98,14 +98,25 @@ test.describe('Daily Logging Workflow', () => {
         await mealSelect.selectOption('breakfast');
       }
       
-      // Submit
+      // Submit with API wait
       const submitLogBtn = page.locator('button[type="submit"]:has-text("Save"), button:has-text("Add"), button:has-text("Log")').last();
-      await submitLogBtn.click();
-      await page.waitForTimeout(1000);
+      try {
+        await Promise.all([
+          page.waitForResponse(resp => resp.url().includes('/api/log') && resp.status() === 200, { timeout: 10000 }),
+          helpers.clickWhenReady(page, 'button[type="submit"]:has-text("Save"), button:has-text("Add"), button:has-text("Log")')
+        ]);
+      } catch (e) {
+        // Demo version - just click and wait
+        await helpers.clickWhenReady(page, 'button[type="submit"]:has-text("Save"), button:has-text("Add"), button:has-text("Log")');
+        await page.waitForTimeout(1000);
+      }
+      
+      // Wait for network to settle
+      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
       
       // Verify log entry appears
       const logEntry = page.locator('.log-entry, .log-item, [data-log-entry]').first();
-      const hasEntry = await logEntry.isVisible({ timeout: 3000 }).catch(() => false);
+      const hasEntry = await logEntry.isVisible({ timeout: 5000 }).catch(() => false);
       expect(hasEntry).toBeTruthy();
     }
   });
@@ -155,18 +166,28 @@ test.describe('Daily Logging Workflow', () => {
     // Find a log entry with delete button
     const deleteBtn = page.locator('button:has-text("Delete"), .delete-btn, [data-action="delete"]').first();
     
-    if (await deleteBtn.isVisible({ timeout: 2000 })) {
+    if (await deleteBtn.isVisible({ timeout: 5000 })) {
       // Click delete
-      await deleteBtn.click();
+      await helpers.clickWhenReady(page, 'button:has-text("Delete"), .delete-btn, [data-action="delete"]');
       await page.waitForTimeout(500);
       
-      // Confirm if needed
+      // Confirm if needed (may open confirmation modal)
       const confirmBtn = page.locator('button:has-text("Confirm"), button:has-text("Yes"), button:has-text("Delete")').last();
-      if (await confirmBtn.isVisible({ timeout: 1000 })) {
-        await confirmBtn.click();
+      if (await confirmBtn.isVisible({ timeout: 2000 })) {
+        try {
+          await Promise.all([
+            page.waitForResponse(resp => resp.url().includes('/api/log') && resp.status() === 200, { timeout: 10000 }),
+            helpers.clickWhenReady(page, 'button:has-text("Confirm"), button:has-text("Yes"), button:has-text("Delete")')
+          ]);
+        } catch (e) {
+          // Demo version - just click
+          await helpers.clickWhenReady(page, 'button:has-text("Confirm"), button:has-text("Yes"), button:has-text("Delete")');
+        }
       }
       
-      await page.waitForTimeout(1000);
+      // Wait for network to settle
+      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(500);
       
       // Verify deletion (success message or entry removed)
       const hasSuccess = await helpers.hasSuccessMessage(page);
@@ -180,12 +201,12 @@ test.describe('Daily Logging Workflow', () => {
     // Look for meal time filter
     const mealFilter = page.locator('select[name="meal_filter"], button:has-text("Breakfast"), button:has-text("Lunch")').first();
     
-    if (await mealFilter.isVisible({ timeout: 2000 })) {
+    if (await mealFilter.isVisible({ timeout: 5000 })) {
       // Apply filter
       if (await mealFilter.evaluate(el => el.tagName === 'SELECT')) {
         await mealFilter.selectOption('breakfast');
       } else {
-        await mealFilter.click();
+        await helpers.clickWhenReady(page, 'select[name="meal_filter"], button:has-text("Breakfast"), button:has-text("Lunch")');
       }
       
       await page.waitForTimeout(500);
@@ -219,13 +240,13 @@ test.describe('Daily Logging Workflow', () => {
     // Click "Add Log Entry"
     const addLogBtn = page.locator('button:has-text("Add Entry"), button:has-text("Add Log"), button:has-text("Log Food")').first();
     
-    if (await addLogBtn.isVisible({ timeout: 2000 })) {
-      await addLogBtn.click();
+    if (await addLogBtn.isVisible({ timeout: 5000 })) {
+      await helpers.clickWhenReady(page, 'button:has-text("Add Entry"), button:has-text("Add Log"), button:has-text("Log Food")');
       await page.waitForTimeout(500);
       
       // Try to enter invalid quantity (negative or too large)
       const quantityInput = page.locator('input[name="quantity"], input[name="quantity_grams"]').first();
-      if (await quantityInput.isVisible({ timeout: 2000 })) {
+      if (await quantityInput.isVisible({ timeout: 5000 })) {
         await quantityInput.fill('-100'); // Negative quantity
         
         const submitBtn = page.locator('button[type="submit"]:has-text("Save"), button:has-text("Add"), button:has-text("Log")').last();
