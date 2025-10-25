@@ -296,11 +296,30 @@ test.describe('Fasting Tracking Workflow', () => {
     const streak = page.locator('[data-streak]').or(page.locator('text=/streak|consecutive/i')).first();
     
     if (await streak.isVisible({ timeout: 2000 })) {
-      const text = await streak.textContent();
+      // Wait for data to load - streak display should update with actual value
+      // Retry a few times in case data is still loading
+      let text = '';
+      let hasNumber = false;
       
-      // Should show a number
-      const hasNumber = /\d+/.test(text || '');
+      for (let i = 0; i < 3; i++) {
+        text = await streak.textContent();
+        hasNumber = /\d+/.test(text || '');
+        
+        if (hasNumber) {
+          break;
+        }
+        
+        // Wait a bit and try again
+        await page.waitForTimeout(1000);
+      }
+      
+      // Should show a number after retries
       expect(hasNumber).toBeTruthy();
+      
+      // If still failing, log what we got for debugging
+      if (!hasNumber) {
+        console.log('Fasting streak text found but no number:', text);
+      }
     }
   });
 
