@@ -15,14 +15,6 @@ from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_cors import CORS
 from werkzeug.exceptions import BadRequest
 
-# Import our modular components
-from src.advanced_logging import structured_logger
-from src.config import Config
-from src.constants import ERROR_MESSAGES
-from src.security import SecurityHeaders
-from src.ssl_config import setup_security_middleware
-from src.utils import json_response
-
 # Import route blueprints
 from routes.auth import auth_bp
 from routes.dishes import dishes_bp
@@ -34,6 +26,13 @@ from routes.profile import profile_bp
 from routes.stats import stats_bp
 from routes.system import system_bp
 
+# Import our modular components
+from src.advanced_logging import structured_logger
+from src.config import Config
+from src.constants import ERROR_MESSAGES
+from src.security import SecurityHeaders
+from src.ssl_config import setup_security_middleware
+from src.utils import json_response
 
 # Cache for compatibility with tests (actual caching now in stats blueprint)
 _cache = {}

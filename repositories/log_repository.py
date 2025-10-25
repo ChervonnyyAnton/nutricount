@@ -27,10 +27,7 @@ class LogRepository(BaseRepository):
         self.db_path = db_path
 
     def find_all(
-        self,
-        date_filter: Optional[str] = None,
-        limit: int = 100,
-        offset: int = 0
+        self, date_filter: Optional[str] = None, limit: int = 100, offset: int = 0
     ) -> List[Dict[str, Any]]:
         """
         Find all log entries with optional date filter and pagination.

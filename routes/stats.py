@@ -10,11 +10,7 @@ from functools import wraps
 from flask import Blueprint, current_app, jsonify
 
 from routes.helpers import get_db
-from src.constants import (
-    ERROR_MESSAGES,
-    HTTP_BAD_REQUEST,
-    MEAL_TYPES,
-)
+from src.constants import ERROR_MESSAGES, HTTP_BAD_REQUEST, MEAL_TYPES
 from src.monitoring import monitor_http_request
 from src.nutrition_calculator import (
     calculate_bmr_katch_mcardle,
@@ -27,7 +23,6 @@ from src.nutrition_calculator import (
 )
 from src.security import rate_limit
 from src.utils import json_response, safe_float, safe_int
-
 
 # Simple in-memory cache for stats responses
 _cache = {}

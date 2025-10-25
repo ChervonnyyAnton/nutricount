@@ -10,16 +10,10 @@ from flask import Blueprint, jsonify, request
 from repositories.product_repository import ProductRepository
 from routes.helpers import get_db, safe_get_json
 from services.product_service import ProductService
-from src.constants import (
-    HTTP_BAD_REQUEST,
-    HTTP_CREATED,
-    HTTP_NOT_FOUND,
-    SUCCESS_MESSAGES,
-)
+from src.constants import HTTP_BAD_REQUEST, HTTP_CREATED, HTTP_NOT_FOUND, SUCCESS_MESSAGES
 from src.monitoring import monitor_http_request
 from src.security import rate_limit
 from src.utils import json_response
-
 
 # Create products blueprint
 products_bp = Blueprint("products", __name__, url_prefix="/api/products")
@@ -64,18 +58,25 @@ def products_api():
 
             if success:
                 return (
-                    jsonify(json_response(product, SUCCESS_MESSAGES["product_created"], HTTP_CREATED)),
+                    jsonify(
+                        json_response(product, SUCCESS_MESSAGES["product_created"], HTTP_CREATED)
+                    ),
                     HTTP_CREATED,
                 )
             else:
                 return (
-                    jsonify(json_response(None, "Validation failed", status=HTTP_BAD_REQUEST, errors=errors)),
+                    jsonify(
+                        json_response(
+                            None, "Validation failed", status=HTTP_BAD_REQUEST, errors=errors
+                        )
+                    ),
                     HTTP_BAD_REQUEST,
                 )
 
     except Exception as e:
         # Handle unexpected errors
         from flask import current_app
+
         current_app.logger.error(f"Unexpected error in products API: {e}")
         return jsonify(json_response(None, "Internal server error", status=500)), 500
     finally:
@@ -147,6 +148,7 @@ def product_detail_api(product_id):
     except Exception as e:
         # Handle unexpected errors
         from flask import current_app
+
         current_app.logger.error(f"Unexpected error in products API: {e}")
         return jsonify(json_response(None, "Internal server error", status=500)), 500
     finally:

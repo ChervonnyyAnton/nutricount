@@ -16,7 +16,6 @@ from src.constants import ERROR_MESSAGES, HTTP_BAD_REQUEST
 from src.security import rate_limit, require_admin
 from src.utils import get_database_stats, json_response
 
-
 # Create system blueprint
 system_bp = Blueprint("system", __name__, url_prefix="/api")
 

@@ -33,10 +33,7 @@ class LogService:
         self.repository = repository
 
     def get_log_entries(
-        self,
-        date_filter: Optional[str] = None,
-        limit: int = 100,
-        use_cache: bool = True
+        self, date_filter: Optional[str] = None, limit: int = 100, use_cache: bool = True
     ) -> List[Dict[str, Any]]:
         """
         Get log entries with optional date filter and caching.
@@ -113,14 +110,15 @@ class LogService:
 
         # Business rule: Verify item exists
         item_exists = self.repository.verify_item_exists(
-            cleaned_data["item_type"],
-            cleaned_data["item_id"]
+            cleaned_data["item_type"], cleaned_data["item_id"]
         )
         if not item_exists:
             return (
                 False,
                 None,
-                [f"{cleaned_data['item_type'].capitalize()} with ID {cleaned_data['item_id']} does not exist"]
+                [
+                    f"{cleaned_data['item_type'].capitalize()} with ID {cleaned_data['item_id']} does not exist"
+                ],
             )
 
         # Create log entry
@@ -139,9 +137,7 @@ class LogService:
             return (False, None, [f"Failed to create log entry: {str(e)}"])
 
     def update_log_entry(
-        self,
-        entry_id: int,
-        data: Dict[str, Any]
+        self, entry_id: int, data: Dict[str, Any]
     ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         Update existing log entry with validation and business rules.
@@ -173,11 +169,7 @@ class LogService:
 
             item_exists = self.repository.verify_item_exists(item_type, item_id)
             if not item_exists:
-                return (
-                    False,
-                    None,
-                    [f"{item_type.capitalize()} with ID {item_id} does not exist"]
-                )
+                return (False, None, [f"{item_type.capitalize()} with ID {item_id} does not exist"])
 
         # Update entry
         try:
@@ -267,10 +259,22 @@ class LogService:
             },
             "metrics": {
                 "keto_index": round(keto_index, 2),
-                "protein_percentage": round((totals["protein"] * 4 / totals["calories"] * 100) if totals["calories"] > 0 else 0, 1),
-                "fat_percentage": round((totals["fat"] * 9 / totals["calories"] * 100) if totals["calories"] > 0 else 0, 1),
-                "carb_percentage": round((total_carbs * 4 / totals["calories"] * 100) if totals["calories"] > 0 else 0, 1),
-            }
+                "protein_percentage": round(
+                    (
+                        (totals["protein"] * 4 / totals["calories"] * 100)
+                        if totals["calories"] > 0
+                        else 0
+                    ),
+                    1,
+                ),
+                "fat_percentage": round(
+                    (totals["fat"] * 9 / totals["calories"] * 100) if totals["calories"] > 0 else 0,
+                    1,
+                ),
+                "carb_percentage": round(
+                    (total_carbs * 4 / totals["calories"] * 100) if totals["calories"] > 0 else 0, 1
+                ),
+            },
         }
 
     def _process_log_entries(self, entries: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -303,9 +307,7 @@ class LogService:
                     else None
                 )
                 processed_entry["fat"] = (
-                    entry["fat_per_100g"] * quantity_factor
-                    if entry.get("fat_per_100g")
-                    else None
+                    entry["fat_per_100g"] * quantity_factor if entry.get("fat_per_100g") else None
                 )
                 processed_entry["carbs"] = (
                     entry["carbs_per_100g"] * quantity_factor

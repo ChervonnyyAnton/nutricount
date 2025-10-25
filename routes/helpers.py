@@ -4,6 +4,7 @@ Provides common utilities for database access and request handling.
 """
 
 import sqlite3
+
 from flask import current_app, request
 from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 
