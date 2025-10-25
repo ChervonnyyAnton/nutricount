@@ -1,0 +1,246 @@
+# GitHub Copilot Setup Steps for Nutricount Project
+
+name: Nutricount Development Environment Setup
+description: Step-by-step setup instructions for GitHub Copilot coding agent
+
+setup_steps:
+  - step: 1
+    name: Clone Repository
+    description: Clone the repository to local environment
+    commands:
+      - git clone https://github.com/ChervonnyyAnton/nutricount.git
+      - cd nutricount
+    verification:
+      - ls -la  # Should see app.py, requirements.txt, etc.
+    
+  - step: 2
+    name: Set Python Path
+    description: Set PYTHONPATH environment variable for imports
+    commands:
+      - export PYTHONPATH=$(pwd)
+    verification:
+      - echo $PYTHONPATH  # Should show current directory
+    notes: Required for tests to import from src/
+    
+  - step: 3
+    name: Create Virtual Environment
+    description: Create isolated Python environment
+    commands:
+      - python3 -m venv venv
+      - source venv/bin/activate  # On Windows: venv\Scripts\activate
+    verification:
+      - which python  # Should point to venv/bin/python
+    optional: true
+    
+  - step: 4
+    name: Install Dependencies
+    description: Install Python packages for development
+    commands:
+      - pip install --upgrade pip
+      - pip install -r requirements-minimal.txt
+    verification:
+      - pip list | grep Flask  # Should show Flask==2.3.3
+      - pip list | grep pytest  # Should show pytest==7.4.3
+    notes: Use requirements-minimal.txt for CI/CD, requirements.txt for full deployment
+    
+  - step: 5
+    name: Create Log Directory
+    description: Create logs directory for application logs
+    commands:
+      - mkdir -p logs
+    verification:
+      - ls -ld logs  # Should show logs directory
+    
+  - step: 6
+    name: Setup Environment Variables
+    description: Configure environment variables
+    commands:
+      - cp .env.example .env
+      - nano .env  # Or use your preferred editor
+    configuration:
+      - DATABASE: ":memory:"  # For tests, or path for production
+      - SECRET_KEY: "your-secret-key-change-in-production"
+      - FLASK_ENV: "development"
+      - FLASK_DEBUG: "1"
+      - REDIS_URL: "redis://localhost:6379/0"  # Optional
+      - CELERY_BROKER: "redis://localhost:6379/1"  # Optional
+    verification:
+      - cat .env  # Should show configured variables
+    notes: Never commit .env file to repository
+    
+  - step: 7
+    name: Initialize Database
+    description: Create database schema
+    commands:
+      - python init_db.py
+    verification:
+      - ls nutrition.db  # Should exist (if not using :memory:)
+    notes: Uses schema_v2.sql for database structure
+    
+  - step: 8
+    name: Seed Test Data (Optional)
+    description: Add sample data for testing
+    commands:
+      - python -c "from tests.conftest import seed_test_data; seed_test_data()"
+    verification:
+      - python -c "import sqlite3; db=sqlite3.connect('nutrition.db'); print(db.execute('SELECT COUNT(*) FROM products').fetchone())"
+    optional: true
+    
+  - step: 9
+    name: Run Linter
+    description: Verify code quality with linter
+    commands:
+      - flake8 src/ app.py routes/ --max-line-length=100 --ignore=E501,W503,E226 --statistics
+    verification:
+      - echo $?  # Should be 0 (no errors)
+    notes: Fix any linting errors before committing
+    
+  - step: 10
+    name: Run Tests
+    description: Verify all tests pass
+    commands:
+      - pytest tests/ -v
+    verification:
+      - echo $?  # Should be 0 (all tests pass)
+    notes: Expected ~567 tests to pass
+    
+  - step: 11
+    name: Run Security Scan
+    description: Check for security vulnerabilities
+    commands:
+      - bandit -r src/ app.py routes/ -ll
+    verification:
+      - echo $?  # Should be 0 (no high/medium issues)
+    notes: Some low-severity findings may be acceptable (see SECURITY_FIXES_OCT23.md)
+    
+  - step: 12
+    name: Setup Pre-commit Hooks (Optional)
+    description: Install Git hooks for automatic checks
+    commands:
+      - cp scripts/pre-commit.sh .git/hooks/pre-commit
+      - chmod +x .git/hooks/pre-commit
+    verification:
+      - ls -l .git/hooks/pre-commit
+    optional: true
+    notes: Runs linter and tests before each commit
+    
+  - step: 13
+    name: Start Development Server
+    description: Run application locally
+    commands:
+      - export FLASK_ENV=development
+      - export FLASK_DEBUG=1
+      - python app.py
+    verification:
+      - curl http://localhost:5000/health  # Should return {"status": "healthy"}
+    notes: Server runs on port 5000 by default
+    
+  - step: 14
+    name: Verify Docker Setup (Optional)
+    description: Test Docker containerization
+    commands:
+      - docker-compose build
+      - docker-compose up -d
+    verification:
+      - docker-compose ps  # Should show running containers
+      - curl http://localhost:5000/health  # Should return {"status": "healthy"}
+    optional: true
+    notes: Required for Raspberry Pi deployment
+
+pre_commit_workflow:
+  name: Pre-commit Checklist
+  steps:
+    - Format code with black
+    - Sort imports with isort
+    - Run flake8 linter
+    - Run tests
+    - Check security with bandit
+  commands:
+    - make format  # Black + isort
+    - make lint    # Flake8
+    - make test    # Pytest
+    - bandit -r src/ app.py routes/ -ll
+
+development_workflow:
+  name: Daily Development Workflow
+  steps:
+    - Pull latest changes
+    - Activate virtual environment
+    - Install/update dependencies
+    - Run tests to verify baseline
+    - Make code changes
+    - Write tests for changes
+    - Run tests again
+    - Run linter
+    - Commit changes
+    - Push to remote
+  commands:
+    - git pull origin main
+    - source venv/bin/activate
+    - pip install -r requirements-minimal.txt
+    - pytest tests/ -v
+    - "# Make changes..."
+    - "# Write tests..."
+    - pytest tests/ -v
+    - flake8 src/ app.py routes/ --max-line-length=100 --ignore=E501,W503,E226
+    - git add .
+    - git commit -m "type(scope): description"
+    - git push origin branch-name
+
+troubleshooting:
+  - issue: ModuleNotFoundError
+    solution:
+      - Ensure PYTHONPATH is set correctly
+      - Check that dependencies are installed
+      - Verify virtual environment is activated
+    commands:
+      - export PYTHONPATH=$(pwd)
+      - pip list | grep <module-name>
+      
+  - issue: Database locked error
+    solution:
+      - Close other database connections
+      - Use :memory: for tests
+      - Enable WAL mode
+    commands:
+      - rm nutrition.db  # Remove and reinitialize
+      - python init_db.py
+      
+  - issue: Tests failing
+    solution:
+      - Check PYTHONPATH
+      - Ensure logs directory exists
+      - Verify database is initialized
+    commands:
+      - export PYTHONPATH=$(pwd)
+      - mkdir -p logs
+      - python init_db.py
+      - pytest tests/ -v --tb=short
+      
+  - issue: Import errors in tests
+    solution:
+      - Set PYTHONPATH before running tests
+      - Check that all dependencies are installed
+    commands:
+      - export PYTHONPATH=$(pwd)
+      - pip install -r requirements-minimal.txt
+
+notes:
+  - PYTHONPATH must be set for tests to work
+  - Use requirements-minimal.txt for CI/CD (faster, lighter)
+  - Use requirements.txt for full deployment (all features)
+  - Always run tests before committing
+  - Never commit .env file or database files
+  - Docker is optional for development, required for production
+  - Raspberry Pi deployment requires ARM64 Docker images
+
+quick_start:
+  description: Fastest way to get started (< 5 minutes)
+  commands:
+    - git clone https://github.com/ChervonnyyAnton/nutricount.git
+    - cd nutricount
+    - export PYTHONPATH=$(pwd)
+    - pip install -r requirements-minimal.txt
+    - mkdir -p logs
+    - pytest tests/ -v
+  verification: All tests should pass
