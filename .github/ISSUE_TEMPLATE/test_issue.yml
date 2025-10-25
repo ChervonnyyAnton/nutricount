@@ -1,0 +1,139 @@
+name: 🧪 Test Issue
+description: Report issues with tests or test infrastructure
+title: "[Test]: "
+labels: ["testing", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a test issue! This helps maintain code quality and reliability.
+
+  - type: dropdown
+    id: test-type
+    attributes:
+      label: Test Type
+      description: What type of test is affected?
+      options:
+        - Unit Tests - Individual component tests
+        - Integration Tests - API endpoint tests
+        - E2E Tests - End-to-end workflow tests
+        - Performance Tests - Load and stress tests
+        - Security Tests - Security scanning tests
+        - Test Infrastructure - Test setup or tooling
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What's the problem?
+      options:
+        - Failing Test - Test fails but should pass
+        - Flaky Test - Test intermittently fails
+        - Missing Test - Test coverage needed
+        - Slow Test - Test takes too long
+        - Test Error - Test has errors or bugs
+        - Infrastructure Issue - CI/CD or test setup problem
+    validations:
+      required: true
+
+  - type: input
+    id: test-file
+    attributes:
+      label: Test File
+      description: Which test file is affected?
+      placeholder: e.g., tests/unit/test_products.py, tests/e2e-playwright/smoke.spec.js
+    validations:
+      required: false
+
+  - type: input
+    id: test-name
+    attributes:
+      label: Test Name
+      description: What's the specific test name?
+      placeholder: e.g., test_create_product_success, "should display products page"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Describe the test issue in detail
+      placeholder: The test fails when... / We need a test for...
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error Output
+      description: Paste the test error message or failure output
+      placeholder: Paste error message here...
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How to reproduce the test failure?
+      placeholder: |
+        1. Run: npm test or pytest
+        2. Specific command or setup
+        3. Observed behavior
+    validations:
+      required: false
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Where does the test fail?
+      options:
+        - Local Development
+        - GitHub Actions CI
+        - Both Local and CI
+        - Other CI Environment
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Failure Frequency (if applicable)
+      description: How often does the test fail?
+      options:
+        - Always - 100% failure rate
+        - Frequently - >50% failure rate
+        - Occasionally - 10-50% failure rate
+        - Rarely - <10% failure rate
+        - Intermittent - Random failures
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other information about the test issue
+      placeholder: This started happening after... / Related to issue #...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have tried running the test locally
+          required: false
+        - label: I have checked if this is related to recent code changes
+          required: false

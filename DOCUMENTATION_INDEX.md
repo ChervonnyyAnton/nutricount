@@ -1,5 +1,5 @@
 # 📚 Nutricount Documentation Index
-**Last Updated:** October 23, 2025
+**Last Updated:** October 25, 2025
 
 Welcome to the Nutricount documentation! This index helps you find the right document for your needs.
 
@@ -23,6 +23,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
   - Installation guide
   - Usage instructions
   - Troubleshooting
+  - Contributing & Community section
 
 - **📱 [demo/README.md](demo/README.md)** - Demo version guide
   - Browser-only SPA demo
@@ -32,8 +33,9 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 
 - **📖 [docs/users/](docs/users/)** - User guides
   - [Quick Start Guide](docs/users/quick-start.md)
-  - Usage tutorials
-  - Feature documentation
+  - [Keto Guide](docs/users/keto-guide.md)
+  - [Fasting Guide](docs/users/fasting-guide.md)
+  - [FAQ](docs/users/faq.md)
 
 ### 👨‍💻 For Developers
 - **🔧 [PROJECT_SETUP.md](PROJECT_SETUP.md)** - Development guide
@@ -195,7 +197,36 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 - [PROJECT_SETUP.md](PROJECT_SETUP.md) - Setup instructions
 - [README.md](README.md) - Quick start
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - Community standards
+- [COMMUNITY_GUIDELINES.md](COMMUNITY_GUIDELINES.md) - Participation guide
+- [LICENSE](LICENSE) - MIT License
 - [.env.example](.env.example) - Environment configuration
+
+### 🤝 Community & Contributing
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute
+  - Bug reports
+  - Feature requests
+  - Code contributions
+  - Documentation improvements
+  
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Community standards (NEW)
+  - Contributor Covenant v2.1
+  - Expected behavior
+  - Enforcement guidelines
+  
+- **[COMMUNITY_GUIDELINES.md](COMMUNITY_GUIDELINES.md)** - Participation guide (NEW)
+  - Multi-role support (Users, Devs, QA, PO, PM, DevOps, UX/UI)
+  - Communication channels
+  - Best practices
+  - Recognition system
+
+- **GitHub Templates** (NEW)
+  - [Bug Report](.github/ISSUE_TEMPLATE/bug_report.yml)
+  - [Feature Request](.github/ISSUE_TEMPLATE/feature_request.yml)
+  - [Documentation Issue](.github/ISSUE_TEMPLATE/documentation.yml)
+  - [Test Issue](.github/ISSUE_TEMPLATE/test_issue.yml)
+  - [Question](.github/ISSUE_TEMPLATE/question.yml)
+  - [Pull Request Template](.github/pull_request_template.md)
 
 ### 📱 Demo & Deployment
 - [demo/README.md](demo/README.md) - Demo version guide
@@ -485,6 +516,7 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 **Need help?** Check the appropriate document above or consult [PROJECT_SETUP.md](PROJECT_SETUP.md) for development questions.
 
 **Status:** ✅ Documentation Complete and Current  
-**Last Review:** October 23, 2025  
+**Last Review:** October 25, 2025  
 **Next Review:** November 1, 2025  
-**Current Phase:** Week 5 - Advanced CI/CD (see [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md))
+**Current Phase:** Week 6 - Priority 3 (75% Complete) - Community infrastructure added ✨  
+**See:** [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md)

@@ -1,0 +1,110 @@
+name: 📚 Documentation Issue
+description: Report missing, unclear, or incorrect documentation
+title: "[Docs]: "
+labels: ["documentation", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation! Please describe what's missing or needs improvement.
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation needs improvement?
+      options:
+        - User Guide - End-user documentation
+        - Developer Guide - Code and architecture
+        - API Documentation - API endpoints and usage
+        - Setup/Installation - Getting started guides
+        - DevOps Guide - Deployment and operations
+        - QA Guide - Testing strategies
+        - Design Guide - UI/UX patterns
+        - README - Project overview
+        - Contributing Guide - How to contribute
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What's the problem with the documentation?
+      options:
+        - Missing - Documentation doesn't exist
+        - Incomplete - Documentation is too brief
+        - Unclear - Documentation is confusing
+        - Incorrect - Documentation has errors
+        - Outdated - Documentation needs updating
+        - Broken Links - Links don't work
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is (or should be) the documentation?
+      placeholder: e.g., README.md, docs/users/quick-start.md, API endpoint /api/products
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's Missing or Incorrect?
+      description: Describe what documentation is needed or what's wrong
+      placeholder: The documentation should explain... / The current docs say... but actually...
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Improvement
+      description: How should the documentation be improved?
+      placeholder: It should include... / A better explanation would be...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: target-audience
+    attributes:
+      label: Target Audience
+      description: Who needs this documentation?
+      options:
+        - End Users (nutrition tracking)
+        - Developers
+        - DevOps Engineers
+        - QA Engineers
+        - Product Owners/Managers
+        - Designers
+        - All
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other information about the documentation issue
+      placeholder: I was trying to... and couldn't find...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have checked the latest documentation
+          required: true
+        - label: I am willing to help improve this documentation (if possible)
+          required: false
