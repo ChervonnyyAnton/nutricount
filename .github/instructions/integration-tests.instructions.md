@@ -19,7 +19,7 @@ def app():
 
 ### Setup and Teardown
 
-Use `beforeEach`/`afterEach` patterns:
+Use setup/teardown patterns with pytest fixtures:
 
 ```python
 @pytest.fixture(autouse=True)
