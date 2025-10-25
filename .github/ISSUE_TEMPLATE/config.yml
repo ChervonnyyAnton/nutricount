@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/ChervonnyyAnton/nutricount/discussions
+    about: Ask questions, share ideas, and discuss with the community
+  - name: 📖 Documentation
+    url: https://github.com/ChervonnyyAnton/nutricount/tree/main/docs
+    about: Check our comprehensive documentation for guides and references
+  - name: 🚀 Live Demo
+    url: https://chervonnyyanton.github.io/nutricount/
+    about: Try the demo version in your browser (no installation needed)
