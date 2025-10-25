@@ -329,10 +329,6 @@
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="productCalories" class="form-label">Calories (per 100g) *</label>
-                                    <input type="number" class="form-control" id="productCalories" step="0.1" required>
-                                </div>
-                                <div class="col-md-3">
                                     <label for="productProtein" class="form-label">Protein (g) *</label>
                                     <input type="number" class="form-control" id="productProtein" step="0.1" required>
                                 </div>
@@ -343,6 +339,13 @@
                                 <div class="col-md-3">
                                     <label for="productCarbs" class="form-label">Carbs (g) *</label>
                                     <input type="number" class="form-control" id="productCarbs" step="0.1" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="productCalories" class="form-label">
+                                        Calories (per 100g) 
+                                        <small class="text-muted">(auto-calculated)</small>
+                                    </label>
+                                    <input type="number" class="form-control" id="productCalories" step="0.1" readonly style="background-color: var(--bg-secondary);">
                                 </div>
                                 <div class="col-12">
                                     <button type="submit" class="btn btn-primary">Add Product</button>
@@ -595,6 +598,17 @@
         // Nutrition Calculator
         // ============================================
         class NutritionCalculator {
+            /**
+             * Calculate calories from macronutrients using Atwater system
+             * Protein: 4 kcal/g, Carbs: 4 kcal/g, Fat: 9 kcal/g
+             */
+            static calculateCaloriesFromMacros(protein, fat, carbs) {
+                const proteinCal = (protein || 0) * 4.0;
+                const fatCal = (fat || 0) * 9.0;
+                const carbsCal = (carbs || 0) * 4.0;
+                return Math.round((proteinCal + fatCal + carbsCal) * 10) / 10;
+            }
+
             static calculateKetoIndex(fat, protein, carbs) {
                 // Keto index calculation: (Fat / (Protein + Carbs))
                 const denominator = protein + carbs;
@@ -717,6 +731,19 @@
                     e.preventDefault();
                     this.addProduct();
                 });
+
+                // Auto-calculate calories when macros change
+                const autoCalculateCalories = () => {
+                    const protein = parseFloat(document.getElementById('productProtein').value) || 0;
+                    const fat = parseFloat(document.getElementById('productFat').value) || 0;
+                    const carbs = parseFloat(document.getElementById('productCarbs').value) || 0;
+                    const calories = NutritionCalculator.calculateCaloriesFromMacros(protein, fat, carbs);
+                    document.getElementById('productCalories').value = calories;
+                };
+
+                document.getElementById('productProtein').addEventListener('input', autoCalculateCalories);
+                document.getElementById('productFat').addEventListener('input', autoCalculateCalories);
+                document.getElementById('productCarbs').addEventListener('input', autoCalculateCalories);
 
                 // Log form
                 document.getElementById('logForm').addEventListener('submit', (e) => {

@@ -221,6 +221,8 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 ### 🔄 Project Status & Planning
 - [INTEGRATED_ROADMAP.md](INTEGRATED_ROADMAP.md) - Current roadmap (Week 6, 75% complete)
 - [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md) - Comprehensive analysis
+- [TECHNOLOGY_EVALUATION.md](TECHNOLOGY_EVALUATION.md) - Technology stack evaluation (English)
+- [TECHNOLOGY_EVALUATION_RU.md](TECHNOLOGY_EVALUATION_RU.md) - Оценка технологического стека (Russian)
 
 ### 📚 Historical Documentation
 - [archive/](archive/) - Archived historical documents
@@ -255,6 +257,8 @@ Welcome to the Nutricount documentation! This index helps you find the right doc
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards | All | - |
 | [COMMUNITY_GUIDELINES.md](COMMUNITY_GUIDELINES.md) | Participation guide | All | - |
 | [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) | This file | All | ~520 |
+| [TECHNOLOGY_EVALUATION.md](TECHNOLOGY_EVALUATION.md) | Technology stack evaluation | All | ~650 |
+| [TECHNOLOGY_EVALUATION_RU.md](TECHNOLOGY_EVALUATION_RU.md) | Оценка технологического стека | All | ~680 |
 
 ### Role-Specific Documentation (docs/ - 34 Files)
 
@@ -320,19 +324,19 @@ See [archive/README.md](archive/README.md) for complete archive documentation:
 ## 📊 Documentation Statistics
 
 ### Current Documentation (Oct 25, 2025)
-- **Root Directory:** 16 core markdown files (down from 85 - 81% reduction)
+- **Root Directory:** 18 core markdown files (includes 2 new: TECHNOLOGY_EVALUATION.md, TECHNOLOGY_EVALUATION_RU.md)
 - **Role-specific (docs/):** 34 files organized by role
 - **Archive:** 69 historical documents preserved
-- **Total Active Documentation:** 50 files (16 core + 34 role-specific)
-- **Total with Archive:** 119 files
-- **Last Major Update:** October 25, 2025 (Documentation Consolidation v2.0)
+- **Total Active Documentation:** 52 files (18 core + 34 role-specific)
+- **Total with Archive:** 121 files
+- **Last Major Update:** October 25, 2025 (Technology Stack Evaluation added)
 
 ### Documentation by Category
 - **Essential Docs:** README, PROJECT_SETUP, ARCHITECTURE, DOCUMENTATION_INDEX (4 files)
 - **Development Docs:** Design patterns, analysis, quality metrics (3 files)
 - **Testing Docs:** Coverage, mutation testing, workflow dependencies (4 files)
 - **Community Docs:** Contributing, code of conduct, guidelines (3 files)
-- **Planning Docs:** Roadmap, security documentation (2 files)
+- **Planning Docs:** Roadmap, security documentation, technology evaluation (4 files - NEW)
 - **Role-specific Docs:** Users, QA, DevOps, PO, PM, Design, Patterns (34 files in docs/)
 - **Historical Archive:** Sessions, testing, phases, status, planning (69 files in archive/)
 

@@ -23,7 +23,7 @@ frontend/
 
 ## 🔧 Adapter Pattern
 
-The frontend uses the Adapter Pattern to work with different backends:
+The frontend uses the **Adapter Pattern** to work with different backends. This implements the **BFF (Backend For Frontend)** pattern where a single frontend can work with multiple backend implementations.
 
 ### BackendAdapter (Base Interface)
 Defines the contract that all adapters must implement:
@@ -33,32 +33,57 @@ Defines the contract that all adapters must implement:
 - Settings management
 - Dishes management
 
-### StorageAdapter (Public Version)
+### StorageAdapter (Public Version - GitHub Pages)
 - Uses browser's LocalStorage
 - All data stored client-side
 - No server required
 - Perfect for GitHub Pages deployment
+- **File:** `src/adapters/storage-adapter.js`
 
-### ApiAdapter (Local Version) - Coming Soon
+### ApiAdapter (Local Version - Raspberry Pi)
 - Communicates with Flask backend via REST API
-- Server-side data storage
+- Server-side data storage in SQLite database
 - Full database support
 - Production deployment with Docker
+- **File:** `src/adapters/api-adapter.js`
+
+### AdapterFactory (Auto-Detection) ✨ NEW
+- **Automatically detects deployment environment**
+- GitHub Pages → StorageAdapter
+- Raspberry Pi / localhost:5000 → ApiAdapter
+- **File:** `src/adapters/adapter-factory.js`
 
 ## 🎯 Usage
 
-### For Public Version (LocalStorage)
+### Option 1: Auto-Detection (Recommended) ✨
 ```javascript
-// Use StorageAdapter
-const adapter = new StorageAdapter();
+// Automatically chooses the right adapter based on environment
+const adapter = AdapterFactory.create();
 const app = new NutritionTracker(adapter);
 ```
 
-### For Local Version (API)
+### Option 2: Async Detection (More Reliable)
 ```javascript
-// Use ApiAdapter
-const adapter = new ApiAdapter('http://localhost:5000/api');
+// Tries to ping the API first, then decides
+const adapter = await AdapterFactory.createAsync();
 const app = new NutritionTracker(adapter);
+```
+
+### Option 3: Manual Selection
+```javascript
+// Force specific adapter
+const adapter = AdapterFactory.create({ forceMode: 'static' }); // Always use localStorage
+// or
+const adapter = AdapterFactory.create({ forceMode: 'server' }); // Always use API
+```
+
+### Option 4: Direct Instantiation (Old Way)
+```javascript
+// For Public Version (LocalStorage)
+const adapter = new StorageAdapter();
+
+// For Local Version (API)
+const adapter = new ApiAdapter('http://localhost:5000/api');
 ```
 
 ## 🧪 Testing
