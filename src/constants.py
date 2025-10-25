@@ -15,7 +15,7 @@ KETO_MODERATE = None
 # Nutrition Limits (per 100g)
 MIN_CALORIES = 0
 MAX_CALORIES = 9999
-MIN_MACRO = ""
+MIN_MACRO = None
 MAX_MACRO = 100
 
 # Meal Types
