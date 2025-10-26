@@ -50,6 +50,10 @@ def safe_get_json():
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config.from_object(Config)
 
+# Set TESTING flag when FLASK_ENV is 'test' to disable rate limiting
+if os.environ.get("FLASK_ENV") == "test":
+    app.config["TESTING"] = True
+
 # Enable CORS for API endpoints
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
