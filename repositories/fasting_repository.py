@@ -540,16 +540,20 @@ class FastingRepository(BaseRepository):
                     WHERE user_id = ? AND status = 'completed'
                     GROUP BY DATE(start_time)
                     ORDER BY DATE(start_time)
-                )
-                SELECT MAX(streak_length) as longest_streak
-                FROM (
+                ),
+                streak_groups AS (
                     SELECT
                         session_date,
                         (julianday(session_date) -
                          ROW_NUMBER() OVER (ORDER BY session_date)) as streak_group
                     FROM daily_sessions
                 )
-                GROUP BY streak_group
+                SELECT MAX(streak_count) as longest_streak
+                FROM (
+                    SELECT COUNT(*) as streak_count
+                    FROM streak_groups
+                    GROUP BY streak_group
+                )
             """
             cursor = conn.execute(longest_streak_query, (user_id,))
             result = cursor.fetchone()
