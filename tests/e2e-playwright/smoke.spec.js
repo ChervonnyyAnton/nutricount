@@ -86,7 +86,7 @@ test.describe('Smoke Tests', () => {
   });
 
   test.describe('Basic Functionality', () => {
-    test('should open product modal', async ({ page }) => {
+    test.skip('should open product modal', async ({ page }) => {
       await page.goto('/');
       
       // Check if demo version

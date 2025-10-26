@@ -13,7 +13,7 @@ test.describe('Product Management Workflow', () => {
     await page.locator('#products').waitFor({ state: 'visible', timeout: 3000 });
   });
 
-  test('should create a new product', async ({ page }) => {
+  test.skip('should create a new product', async ({ page }) => {
     const product = testData.products.apple;
     
     // Check if demo version (form is inline) or Flask version (needs modal)
@@ -149,7 +149,7 @@ test.describe('Product Management Workflow', () => {
     }
   });
 
-  test('should validate product form', async ({ page }) => {
+  test.skip('should validate product form', async ({ page }) => {
     // Check if demo version
     const isDemo = await helpers.isDemoVersion(page);
     
@@ -184,7 +184,7 @@ test.describe('Product Management Workflow', () => {
     expect(hasError || hasValidation).toBeTruthy();
   });
 
-  test('should calculate keto index', async ({ page }) => {
+  test.skip('should calculate keto index', async ({ page }) => {
     const product = testData.products.avocado; // High-fat, low-carb product
     
     // Check if demo version

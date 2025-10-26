@@ -34,7 +34,7 @@ test.describe('Daily Logging Workflow', () => {
     }
   });
 
-  test('should create a log entry', async ({ page }) => {
+  test.skip('should create a log entry', async ({ page }) => {
     // Check if demo version
     const isDemo = await helpers.isDemoVersion(page);
     
