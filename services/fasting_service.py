@@ -373,6 +373,7 @@ class FastingService:
             "progress": progress,
             "stats": stats,
             "goals": goals,
+            "is_fasting": active_session is not None,
         }
 
     def get_fasting_stats_with_streak(self, user_id: int = 1, days: int = 30) -> Dict[str, Any]:
