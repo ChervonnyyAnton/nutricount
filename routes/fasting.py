@@ -16,7 +16,6 @@ from src.monitoring import monitor_http_request
 from src.security import rate_limit
 from src.utils import json_response
 
-
 # Create fasting blueprint
 fasting_bp = Blueprint("fasting", __name__, url_prefix="/api/fasting")
 
@@ -80,7 +79,9 @@ def start_fasting():
                             "fasting_type": session["fasting_type"],
                             "status": session["status"],
                         },
-                        SUCCESS_MESSAGES.get("fasting_started", "Fasting session started successfully"),
+                        SUCCESS_MESSAGES.get(
+                            "fasting_started", "Fasting session started successfully"
+                        ),
                         HTTP_CREATED,
                     )
                 ),
@@ -138,7 +139,9 @@ def end_fasting():
                             "duration_hours": ended_session["duration_hours"],
                             "end_time": ended_session["end_time"],
                         },
-                        SUCCESS_MESSAGES.get("fasting_ended", "Fasting session completed successfully"),
+                        SUCCESS_MESSAGES.get(
+                            "fasting_ended", "Fasting session completed successfully"
+                        ),
                         HTTP_OK,
                     )
                 ),
@@ -183,7 +186,9 @@ def pause_fasting():
                 jsonify(
                     json_response(
                         {"session_id": active_session["id"]},
-                        SUCCESS_MESSAGES.get("fasting_paused", "Fasting session paused successfully"),
+                        SUCCESS_MESSAGES.get(
+                            "fasting_paused", "Fasting session paused successfully"
+                        ),
                         HTTP_OK,
                     )
                 ),
@@ -234,7 +239,9 @@ def resume_fasting():
                 jsonify(
                     json_response(
                         {"session_id": session_id},
-                        SUCCESS_MESSAGES.get("fasting_resumed", "Fasting session resumed successfully"),
+                        SUCCESS_MESSAGES.get(
+                            "fasting_resumed", "Fasting session resumed successfully"
+                        ),
                         HTTP_OK,
                     )
                 ),
@@ -279,7 +286,9 @@ def cancel_fasting():
                 jsonify(
                     json_response(
                         {"session_id": active_session["id"]},
-                        SUCCESS_MESSAGES.get("fasting_cancelled", "Fasting session cancelled successfully"),
+                        SUCCESS_MESSAGES.get(
+                            "fasting_cancelled", "Fasting session cancelled successfully"
+                        ),
                         HTTP_OK,
                     )
                 ),

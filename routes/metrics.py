@@ -13,7 +13,6 @@ from src.security import rate_limit
 from src.task_manager import task_manager
 from src.utils import json_response
 
-
 # Create metrics blueprint
 metrics_bp = Blueprint("metrics", __name__)
 

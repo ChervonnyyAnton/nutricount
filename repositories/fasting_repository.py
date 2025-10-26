@@ -34,11 +34,7 @@ class FastingRepository(BaseRepository):
         return conn
 
     def find_all(
-        self,
-        user_id: int = 1,
-        status: Optional[str] = None,
-        limit: int = 100,
-        offset: int = 0
+        self, user_id: int = 1, status: Optional[str] = None, limit: int = 100, offset: int = 0
     ) -> List[Dict[str, Any]]:
         """
         Find all fasting sessions with optional filters.
