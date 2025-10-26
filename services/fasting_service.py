@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from repositories.fasting_repository import FastingRepository
 from src.cache_manager import cache_manager
-from src.fasting_manager import FastingManager
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +33,6 @@ class FastingService:
             repository: FastingRepository instance
         """
         self.repository = repository
-        # Use FastingManager for goal/settings/advanced stats (temporary delegation)
-        # TODO: Migrate these to service layer when repository is extended
-        self._manager = (
-            FastingManager(repository.db_path) if hasattr(repository, "db_path") else None
-        )
 
     def get_fasting_sessions(
         self,
@@ -334,16 +328,13 @@ class FastingService:
         cache_manager.delete(f"fasting:sessions:{user_id}:*")
         cache_manager.delete(f"fasting:stats:{user_id}")
 
-    # === Advanced Features (Delegate to FastingManager) ===
-    # TODO: Migrate these to service layer when repository is extended
-    # with goal, settings, and streak calculation support
+    # === Advanced Features (Previously delegated to FastingManager) ===
 
     def get_fasting_progress(self, user_id: int = 1) -> Dict[str, Any]:
         """
         Get current fasting progress with active session, stats, and goals.
 
         This includes complex calculations like progress percentage and streak.
-        Delegates to FastingManager until fully migrated to service layer.
 
         Args:
             user_id: User ID
@@ -351,16 +342,63 @@ class FastingService:
         Returns:
             Dictionary with progress information
         """
-        if self._manager is None:
-            raise RuntimeError("FastingManager not available for progress calculation")
-        return self._manager.get_fasting_progress(user_id)
+        # Get active session
+        active_session = self.repository.get_active_session(user_id)
+
+        # Get basic stats
+        stats = self.repository.get_statistics(user_id)
+
+        # Get goals
+        goals = self.repository.find_goals(user_id, status="active")
+
+        # Calculate progress if there's an active session
+        progress = {}
+        if active_session:
+            start_time = datetime.fromisoformat(active_session["start_time"])
+            elapsed_hours = (datetime.now() - start_time).total_seconds() / 3600
+
+            # Determine target hours based on fasting type
+            fasting_type = active_session.get("fasting_type", "16:8")
+            target_hours = float(fasting_type.split(":")[0]) if ":" in fasting_type else 16
+
+            # Round elapsed hours, but ensure minimum 0.01 for active sessions
+            rounded_elapsed = round(elapsed_hours, 2)
+            if rounded_elapsed == 0.0 and elapsed_hours > 0:
+                rounded_elapsed = 0.01
+
+            progress = {
+                "elapsed_hours": rounded_elapsed,
+                "target_hours": target_hours,
+                "progress_percentage": min(100, round((elapsed_hours / target_hours) * 100, 1)),
+                "is_complete": elapsed_hours >= target_hours,
+            }
+
+        result = {
+            "active_session": active_session,
+            "progress": progress,
+            "stats": stats,
+            "goals": goals,
+            "is_fasting": active_session is not None,
+        }
+        
+        # Add top-level fields for backwards compatibility with tests
+        if active_session:
+            result["fasting_type"] = active_session.get("fasting_type")
+            result["session_id"] = active_session.get("id")
+            result["start_time"] = active_session.get("start_time")
+            # Add progress fields for backwards compatibility
+            if progress:
+                result["current_duration_hours"] = progress.get("elapsed_hours", 0)
+                result["target_hours"] = progress.get("target_hours")
+                result["progress_percentage"] = progress.get("progress_percentage", 0)
+        
+        return result
 
     def get_fasting_stats_with_streak(self, user_id: int = 1, days: int = 30) -> Dict[str, Any]:
         """
         Get fasting statistics including current streak calculation.
 
         Streak calculation requires complex SQL queries.
-        Delegates to FastingManager until fully migrated to service layer.
 
         Args:
             user_id: User ID
@@ -369,25 +407,20 @@ class FastingService:
         Returns:
             Dictionary with statistics including current streak
         """
-        if self._manager is None:
-            raise RuntimeError("FastingManager not available for streak calculation")
-        return self._manager.get_fasting_stats(user_id, days)
+        # Delegate to repository for streak calculation
+        return self.repository.get_stats_with_streak(user_id, days)
 
-    def get_fasting_goals(self, user_id: int = 1) -> List[Any]:
+    def get_fasting_goals(self, user_id: int = 1) -> List[Dict[str, Any]]:
         """
         Get user's fasting goals.
-
-        Delegates to FastingManager until goal repository is implemented.
 
         Args:
             user_id: User ID
 
         Returns:
-            List of FastingGoal objects
+            List of goal dictionaries
         """
-        if self._manager is None:
-            raise RuntimeError("FastingManager not available for goals")
-        return self._manager.get_fasting_goals(user_id)
+        return self.repository.find_goals(user_id)
 
     def create_fasting_goal(
         self,
@@ -396,11 +429,9 @@ class FastingService:
         period_start: Any,
         period_end: Any,
         user_id: int = 1,
-    ) -> Tuple[bool, Optional[Any], List[str]]:
+    ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
         """
         Create a new fasting goal.
-
-        Delegates to FastingManager until goal repository is implemented.
 
         Args:
             goal_type: Type of goal (e.g., 'daily_hours', 'weekly_sessions')
@@ -412,13 +443,41 @@ class FastingService:
         Returns:
             Tuple of (success, goal, errors)
         """
-        if self._manager is None:
-            return (False, None, ["FastingManager not available for goal creation"])
+        errors = []
+
+        # Validate goal type
+        valid_types = ["daily_hours", "weekly_sessions", "monthly_hours"]
+        if goal_type not in valid_types:
+            errors.append(f"Invalid goal type. Must be one of: {', '.join(valid_types)}")
+
+        # Validate target value
+        if target_value <= 0:
+            errors.append("Target value must be greater than 0")
+
+        # Validate dates
+        try:
+            if isinstance(period_start, str):
+                period_start = datetime.fromisoformat(period_start).date()
+            if isinstance(period_end, str):
+                period_end = datetime.fromisoformat(period_end).date()
+
+            if period_end <= period_start:
+                errors.append("Period end must be after period start")
+        except (ValueError, AttributeError) as e:
+            errors.append(f"Invalid date format: {e}")
+
+        if errors:
+            return (False, None, errors)
 
         try:
-            goal = self._manager.create_fasting_goal(
-                goal_type, target_value, period_start, period_end
-            )
+            goal_data = {
+                "user_id": user_id,
+                "goal_type": goal_type,
+                "target_value": target_value,
+                "period_start": str(period_start),
+                "period_end": str(period_end),
+            }
+            goal = self.repository.create_goal(goal_data)
             return (True, goal, [])
         except Exception as e:
             logger.exception("Error creating fasting goal")
@@ -428,17 +487,13 @@ class FastingService:
         """
         Get user's fasting settings.
 
-        Delegates to FastingManager until settings repository is implemented.
-
         Args:
             user_id: User ID
 
         Returns:
             Settings dictionary or None
         """
-        if self._manager is None:
-            return None
-        return self._manager.get_fasting_settings(user_id)
+        return self.repository.find_settings(user_id)
 
     def create_fasting_settings(
         self, settings_data: Dict[str, Any]
@@ -446,19 +501,25 @@ class FastingService:
         """
         Create user's fasting settings.
 
-        Delegates to FastingManager until settings repository is implemented.
-
         Args:
             settings_data: Settings data dictionary
 
         Returns:
             Tuple of (success, settings, errors)
         """
-        if self._manager is None:
-            return (False, None, ["FastingManager not available for settings creation"])
+        errors = []
+
+        # Validate fasting_goal
+        if "fasting_goal" in settings_data:
+            valid_goals = ["16:8", "18:6", "20:4", "OMAD"]
+            if settings_data["fasting_goal"] not in valid_goals:
+                errors.append(f"Invalid fasting goal. Must be one of: {', '.join(valid_goals)}")
+
+        if errors:
+            return (False, None, errors)
 
         try:
-            settings = self._manager.create_fasting_settings(settings_data)
+            settings = self.repository.create_settings(settings_data)
             return (True, settings, [])
         except Exception as e:
             logger.exception("Error creating fasting settings")
@@ -470,8 +531,6 @@ class FastingService:
         """
         Update user's fasting settings.
 
-        Delegates to FastingManager until settings repository is implemented.
-
         Args:
             user_id: User ID
             settings_data: Settings data dictionary
@@ -479,11 +538,21 @@ class FastingService:
         Returns:
             Tuple of (success, settings, errors)
         """
-        if self._manager is None:
-            return (False, None, ["FastingManager not available for settings update"])
+        errors = []
+
+        # Validate fasting_goal if provided
+        if "fasting_goal" in settings_data:
+            valid_goals = ["16:8", "18:6", "20:4", "OMAD"]
+            if settings_data["fasting_goal"] not in valid_goals:
+                errors.append(f"Invalid fasting goal. Must be one of: {', '.join(valid_goals)}")
+
+        if errors:
+            return (False, None, errors)
 
         try:
-            settings = self._manager.update_fasting_settings(user_id, settings_data)
+            settings = self.repository.update_settings(user_id, settings_data)
+            if settings is None:
+                return (False, None, ["Settings not found for user"])
             return (True, settings, [])
         except Exception as e:
             logger.exception("Error updating fasting settings")

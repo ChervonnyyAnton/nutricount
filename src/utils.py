@@ -420,3 +420,56 @@ def get_database_stats() -> Dict:
 
     except Exception as e:
         return {"error": str(e)}
+
+
+def initialize_database(db_path: str, load_sample_data: bool = True) -> None:
+    """
+    Initialize database with schema and optionally load sample data.
+
+    Args:
+        db_path: Path to the database file
+        load_sample_data: Whether to load sample products (default: True)
+
+    Raises:
+        Exception: If database initialization fails
+    """
+    try:
+        # Read schema
+        with open("schema_v2.sql", "r") as f:
+            schema = f.read()
+
+        # Create connection and execute schema
+        conn = sqlite3.connect(db_path)
+        conn.executescript(schema)
+        conn.commit()
+
+        print("✅ Database initialized successfully")
+
+        # Load sample data if requested and not a memory database
+        if load_sample_data and db_path != ":memory:":
+            sample_products = [
+                ("Chicken Breast", 165, 31.0, 3.6, 0.0, 0.0, "meat", 0, "raw"),
+                ("Salmon", 208, 25.4, 12.4, 0.0, 0.0, "fish", 0, "raw"),
+                ("Eggs", 155, 13.0, 11.0, 1.1, 0.0, "dairy", 0, "raw"),
+                ("Avocado", 160, 2.0, 14.7, 8.5, 6.7, "fruits", 15, "raw"),
+                ("Broccoli", 34, 2.8, 0.4, 6.6, 2.6, "vegetables", 15, "raw"),
+                ("Almonds", 579, 21.2, 49.9, 21.6, 12.5, "nuts_seeds", 15, "minimal"),
+                ("Spinach", 23, 2.9, 0.4, 3.6, 2.2, "leafy_vegetables", 15, "raw"),
+                ("Blueberries", 57, 0.7, 0.3, 14.5, 2.4, "berries", 25, "raw"),
+                ("Sweet Potato", 86, 1.6, 0.1, 20.1, 3.0, "root_vegetables", 70, "minimal"),
+            ]
+
+            for product in sample_products:
+                conn.execute(
+                    "INSERT OR IGNORE INTO products (name, calories_per_100g, protein_per_100g, fat_per_100g, carbs_per_100g, fiber_per_100g, category, glycemic_index, processing_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    product,
+                )
+
+            conn.commit()
+            print(f"📊 Sample products loaded: {len(sample_products)}")
+
+        conn.close()
+
+    except Exception as e:
+        print(f"❌ Database initialization failed: {e}")
+        raise

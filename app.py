@@ -32,7 +32,7 @@ from src.config import Config
 from src.constants import ERROR_MESSAGES
 from src.security import SecurityHeaders
 from src.ssl_config import setup_security_middleware
-from src.utils import json_response
+from src.utils import initialize_database, json_response
 
 # Cache for compatibility with tests (actual caching now in stats blueprint)
 _cache = {}
@@ -118,46 +118,9 @@ def get_db():
 
 def init_db():
     """Initialize database with schema v2"""
-    try:
-        with open("schema_v2.sql", "r") as f:
-            schema = f.read()
-
-        db = get_db()
-        db.executescript(schema)
-        db.commit()
-        db.close()
-
-        print("✅ Database initialized successfully")
-
-        # Load sample data only for non-testing environments
-        if not app.config.get("TESTING", False) and app.config["DATABASE"] != ":memory:":
-            db = get_db()
-            sample_products = [
-                ("Chicken Breast", 165, 31.0, 3.6, 0.0, 0.0, "meat", 0, "raw"),
-                ("Salmon", 208, 25.4, 12.4, 0.0, 0.0, "fish", 0, "raw"),
-                ("Eggs", 155, 13.0, 11.0, 1.1, 0.0, "dairy", 0, "raw"),
-                ("Avocado", 160, 2.0, 14.7, 8.5, 6.7, "fruits", 15, "raw"),
-                ("Broccoli", 34, 2.8, 0.4, 6.6, 2.6, "vegetables", 15, "raw"),
-                ("Almonds", 579, 21.2, 49.9, 21.6, 12.5, "nuts_seeds", 15, "minimal"),
-                ("Spinach", 23, 2.9, 0.4, 3.6, 2.2, "leafy_vegetables", 15, "raw"),
-                ("Blueberries", 57, 0.7, 0.3, 14.5, 2.4, "berries", 25, "raw"),
-                ("Sweet Potato", 86, 1.6, 0.1, 20.1, 3.0, "root_vegetables", 70, "minimal"),
-            ]
-
-            for product in sample_products:
-                db.execute(
-                    "INSERT OR IGNORE INTO products (name, calories_per_100g, protein_per_100g, fat_per_100g, carbs_per_100g, fiber_per_100g, category, glycemic_index, processing_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    product,
-                )
-
-            db.commit()
-            db.close()
-
-            print(f"📊 Sample products loaded: {len(sample_products)}")
-
-    except Exception as e:
-        print(f"❌ Database initialization failed: {e}")
-        raise
+    # Delegate to utility function
+    load_sample = not app.config.get("TESTING", False) and app.config["DATABASE"] != ":memory:"
+    initialize_database(app.config["DATABASE"], load_sample_data=load_sample)
 
 
 # ============================================

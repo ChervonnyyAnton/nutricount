@@ -24,13 +24,6 @@ from src.utils import json_response
 dishes_bp = Blueprint("dishes", __name__, url_prefix="/api/dishes")
 
 
-def _get_dish_service() -> DishService:
-    """Get DishService instance."""
-    db = get_db()
-    repository = DishRepository(db)
-    return DishService(repository)
-
-
 @dishes_bp.route("", methods=["GET", "POST"])
 @monitor_http_request
 @rate_limit("api")
@@ -42,10 +35,12 @@ def dishes_api():
     """
     db = None
     try:
-        if request.method == "GET":
-            # Get service instance
-            service = _get_dish_service()
+        # Get service instance (manages its own db connection)
+        db = get_db()
+        repository = DishRepository(db)
+        service = DishService(repository)
 
+        if request.method == "GET":
             # Get dishes from service
             dishes = service.get_dishes()
 
@@ -58,9 +53,6 @@ def dishes_api():
                     jsonify(json_response(None, "Invalid JSON", status=HTTP_BAD_REQUEST)),
                     HTTP_BAD_REQUEST,
                 )
-
-            # Get service instance
-            service = _get_dish_service()
 
             # Create dish via service
             success, dish, errors = service.create_dish(data)
@@ -97,9 +89,12 @@ def dish_detail_api(dish_id):
 
     Delegates business logic to DishService.
     """
+    db = None
     try:
-        # Get service instance
-        service = _get_dish_service()
+        # Get service instance (manages its own db connection)
+        db = get_db()
+        repository = DishRepository(db)
+        service = DishService(repository)
 
         if request.method == "GET":
             # Get dish by ID
@@ -169,3 +164,6 @@ def dish_detail_api(dish_id):
     except Exception as e:
         current_app.logger.error(f"Dish detail API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        if db:
+            db.close()

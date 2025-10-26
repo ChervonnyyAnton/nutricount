@@ -395,19 +395,21 @@ def get_fasting_goals():
         service = _get_fasting_service()
         goals = service.get_fasting_goals()
 
-        # Convert goals to dict format
+        # goals are already dictionaries, just add progress percentage
         goals_data = []
         for goal in goals:
             goal_dict = {
-                "id": goal.id,
-                "goal_type": goal.goal_type,
-                "target_value": goal.target_value,
-                "current_value": goal.current_value,
-                "period_start": goal.period_start.isoformat() if goal.period_start else None,
-                "period_end": goal.period_end.isoformat() if goal.period_end else None,
-                "status": goal.status,
+                "id": goal.get("id"),
+                "goal_type": goal.get("goal_type"),
+                "target_value": goal.get("target_value"),
+                "current_value": goal.get("current_value"),
+                "period_start": goal.get("period_start"),
+                "period_end": goal.get("period_end"),
+                "status": goal.get("status"),
                 "progress_percentage": (
-                    (goal.current_value / goal.target_value * 100) if goal.target_value > 0 else 0
+                    (goal.get("current_value", 0) / goal.get("target_value", 1) * 100)
+                    if goal.get("target_value", 0) > 0
+                    else 0
                 ),
             }
             goals_data.append(goal_dict)
@@ -508,11 +510,11 @@ def create_fasting_goal():
                 jsonify(
                     json_response(
                         {
-                            "goal_id": goal.id,
-                            "goal_type": goal.goal_type,
-                            "target_value": goal.target_value,
-                            "period_start": goal.period_start.isoformat(),
-                            "period_end": goal.period_end.isoformat(),
+                            "goal_id": goal.get("id"),
+                            "goal_type": goal.get("goal_type"),
+                            "target_value": goal.get("target_value"),
+                            "period_start": goal.get("period_start"),
+                            "period_end": goal.get("period_end"),
                         },
                         "Fasting goal created successfully",
                         HTTP_CREATED,

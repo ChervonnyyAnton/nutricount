@@ -78,6 +78,7 @@ def gki_api():
 @profile_bp.route("/profile", methods=["GET", "POST", "PUT"])
 def profile_api():
     """Get or update user profile"""
+    db = None
     try:
         db = get_db()
 
@@ -86,7 +87,6 @@ def profile_api():
             profile = db.execute(
                 "SELECT * FROM user_profile ORDER BY updated_at DESC LIMIT 1"
             ).fetchone()
-            db.close()
 
             if profile:
                 profile_dict = dict(profile)
@@ -220,7 +220,6 @@ def profile_api():
             updated_profile = db.execute(
                 "SELECT * FROM user_profile WHERE id = ?", (profile_id,)
             ).fetchone()
-            db.close()
 
             profile_dict = dict(updated_profile)
             # Calculate age
@@ -249,11 +248,15 @@ def profile_api():
     except Exception as e:
         current_app.logger.error(f"Profile API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        if db:
+            db.close()
 
 
 @profile_bp.route("/profile/macros", methods=["GET"])
 def profile_macros_api():
     """Calculate daily macros based on user profile"""
+    db = None
     try:
         db = get_db()
 
@@ -261,7 +264,6 @@ def profile_macros_api():
         profile = db.execute(
             "SELECT * FROM user_profile ORDER BY updated_at DESC LIMIT 1"
         ).fetchone()
-        db.close()
 
         if not profile:
             return (
@@ -339,3 +341,6 @@ def profile_macros_api():
     except Exception as e:
         current_app.logger.error(f"Profile macros API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        if db:
+            db.close()
