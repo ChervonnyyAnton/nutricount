@@ -93,9 +93,7 @@ class SecurityManager:
             new_access_token = self.generate_token(
                 payload["user_id"], payload["username"], is_refresh=False
             )
-            new_refresh_token = self.generate_token(
-                payload["user_id"], payload["username"], is_refresh=True
-            )
+            new_refresh_token = None
 
             return {"access_token": new_access_token, "refresh_token": new_refresh_token}
         except Exception as e:
