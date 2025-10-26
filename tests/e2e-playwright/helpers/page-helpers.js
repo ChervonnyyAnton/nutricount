@@ -168,7 +168,36 @@ async function hasSuccessMessage(page) {
 }
 
 /**
- * Wait for modal to be visible and ready for interaction
+ * Detect if we're testing the demo version (no backend)
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<boolean>}
+ */
+async function isDemoVersion(page) {
+  try {
+    // Demo version has a specific banner or structure
+    const demoBanner = await page.locator('.demo-banner').count();
+    if (demoBanner > 0) {
+      console.log('[isDemoVersion] Demo version detected (demo-banner found)');
+      return true;
+    }
+    
+    // Check URL for demo server port
+    const url = page.url();
+    if (url.includes(':8080') || url.includes('/demo/')) {
+      console.log('[isDemoVersion] Demo version detected (URL contains :8080 or /demo/)');
+      return true;
+    }
+    
+    console.log('[isDemoVersion] Flask backend version detected');
+    return false;
+  } catch (e) {
+    console.log('[isDemoVersion] Error detecting version, assuming Flask backend');
+    return false;
+  }
+}
+
+/**
+ * Wait for modal to be visible and ready for interaction, or skip if demo version
  * Handles CI environment slowness with longer timeouts and proper waits
  * @param {import('@playwright/test').Page} page
  * @param {Object} options
@@ -176,6 +205,14 @@ async function hasSuccessMessage(page) {
  */
 async function waitForModal(page, options = {}) {
   const timeout = options.timeout || 20000; // Increased to 20s for CI reliability
+  
+  // Check if this is the demo version
+  const isDemo = await isDemoVersion(page);
+  if (isDemo) {
+    console.log('[waitForModal] Demo version detected - skipping modal wait (forms are inline)');
+    await page.waitForTimeout(500); // Small wait for any animations
+    return;
+  }
   
   // Try multiple modal selectors to handle different Bootstrap versions and custom modals
   const modalSelectors = [
@@ -244,13 +281,20 @@ async function waitForModal(page, options = {}) {
 }
 
 /**
- * Close modal and wait for it to disappear
+ * Close modal and wait for it to disappear, or skip if demo version
  * @param {import('@playwright/test').Page} page
  * @param {Object} options
  * @returns {Promise<void>}
  */
 async function closeModal(page, options = {}) {
   const timeout = options.timeout || 20000; // Increased for CI
+  
+  // Check if this is the demo version
+  const isDemo = await isDemoVersion(page);
+  if (isDemo) {
+    console.log('[closeModal] Demo version detected - skipping modal close (no modals)');
+    return;
+  }
   
   console.log('[closeModal] Attempting to close modal');
   
@@ -402,7 +446,7 @@ async function clickWhenReady(page, selector, options = {}) {
 }
 
 /**
- * Submit form in modal and wait for completion
+ * Submit form in modal and wait for completion, or submit inline form for demo version
  * @param {import('@playwright/test').Page} page
  * @param {Object} options
  * @returns {Promise<void>}
@@ -410,6 +454,47 @@ async function clickWhenReady(page, selector, options = {}) {
 async function submitModalForm(page, options = {}) {
   const timeout = options.timeout || 20000; // Increased for CI reliability
   const waitForApi = options.waitForApi !== false; // Default true
+  
+  // Check if this is the demo version
+  const isDemo = await isDemoVersion(page);
+  
+  if (isDemo) {
+    console.log('[submitModalForm] Demo version detected - submitting inline form');
+    // Demo uses inline forms, look for submit button in active tab pane
+    const demoSubmitSelectors = [
+      '.tab-pane.active button[type="submit"]',
+      '.tab-pane.active form button:has-text("Add")',
+      '#productForm button[type="submit"]',
+      '#logForm button[type="submit"]'
+    ];
+    
+    let submitButton = null;
+    for (const selector of demoSubmitSelectors) {
+      try {
+        const button = page.locator(selector).first();
+        if (await button.isVisible({ timeout: 1000 })) {
+          submitButton = selector;
+          console.log(`[submitModalForm] Found demo submit button: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        // Try next selector
+      }
+    }
+    
+    if (!submitButton) {
+      console.log('[submitModalForm] No submit button found in demo, trying generic form submit');
+      // Try generic form submit
+      await page.locator('form button[type="submit"]').first().click();
+    } else {
+      await page.locator(submitButton).click();
+    }
+    
+    // Wait for LocalStorage operations to complete
+    await page.waitForTimeout(1000);
+    console.log('[submitModalForm] Demo form submission complete');
+    return;
+  }
   
   console.log('[submitModalForm] Looking for submit button in modal');
   
@@ -572,6 +657,7 @@ module.exports = {
   hasErrorMessage,
   hasSuccessMessage,
   // New modal helpers
+  isDemoVersion,
   waitForModal,
   closeModal,
   clickWhenReady,
