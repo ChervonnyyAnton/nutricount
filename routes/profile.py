@@ -344,4 +344,3 @@ def profile_macros_api():
     finally:
         if db:
             db.close()
-        return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
