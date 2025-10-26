@@ -361,8 +361,13 @@ class FastingService:
             fasting_type = active_session.get("fasting_type", "16:8")
             target_hours = float(fasting_type.split(":")[0]) if ":" in fasting_type else 16
 
+            # Round elapsed hours, but ensure minimum 0.01 for active sessions
+            rounded_elapsed = round(elapsed_hours, 2)
+            if rounded_elapsed == 0.0 and elapsed_hours > 0:
+                rounded_elapsed = 0.01
+
             progress = {
-                "elapsed_hours": round(elapsed_hours, 2),
+                "elapsed_hours": rounded_elapsed,
                 "target_hours": target_hours,
                 "progress_percentage": min(100, round((elapsed_hours / target_hours) * 100, 1)),
                 "is_complete": elapsed_hours >= target_hours,
