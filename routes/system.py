@@ -177,10 +177,11 @@ def system_restore_api():
 @system_bp.route("/maintenance/vacuum", methods=["POST"])
 def maintenance_vacuum_api():
     """Optimize database by running VACUUM and ANALYZE"""
-    try:
-        # Import get_db from app module
-        from app import get_db
+    # Import get_db from helpers module
+    from routes.helpers import get_db
 
+    db = None
+    try:
         db = get_db()
 
         # Get database size before optimization
@@ -205,8 +206,6 @@ def maintenance_vacuum_api():
         stats = db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         table_count = len(stats)
 
-        db.close()
-
         message = f"Database optimized! Size: {round(size_after / (1024 * 1024), 2)} MB"
         if space_saved_mb > 0:
             message += f" (saved {space_saved_mb} MB)"
@@ -229,6 +228,9 @@ def maintenance_vacuum_api():
     except Exception as e:
         current_app.logger.error(f"Vacuum API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        if db:
+            db.close()
 
 
 @system_bp.route("/maintenance/cleanup", methods=["POST"])
@@ -326,10 +328,11 @@ def maintenance_cleanup_api():
 @system_bp.route("/maintenance/cleanup-test-data", methods=["POST"])
 def maintenance_cleanup_test_data_api():
     """Clean up test data (items with TEST prefix)"""
-    try:
-        # Import get_db from app module
-        from app import get_db
+    # Import get_db from helpers module
+    from routes.helpers import get_db
 
+    db = None
+    try:
         db = get_db()
 
         # Count test data before deletion (for logging)
@@ -367,7 +370,6 @@ def maintenance_cleanup_test_data_api():
         deleted_products = db.execute("DELETE FROM products WHERE name LIKE 'TEST%'").rowcount
 
         db.commit()
-        db.close()
 
         total_deleted = deleted_products + deleted_dishes + deleted_logs
 
@@ -396,15 +398,20 @@ def maintenance_cleanup_test_data_api():
     except Exception as e:
         current_app.logger.error(f"Test data cleanup API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        if db:
+            db.close()
 
 
 @system_bp.route("/maintenance/wipe-database", methods=["POST"])
 def maintenance_wipe_database_api():
     """Wipe entire database and reset to initial state"""
-    try:
-        # Import get_db and init_db from app module
-        from app import get_db, init_db
+    # Import functions from helpers and utils modules
+    from routes.helpers import get_db
+    from src.utils import initialize_database
 
+    db = None
+    try:
         db = get_db()
 
         # Get counts before deletion
@@ -423,14 +430,19 @@ def maintenance_wipe_database_api():
 
         db.commit()
         db.close()
+        db = None
 
         # Reinitialize database with initial data
-        init_db()
+        # Only load sample data if not in testing mode and not memory database
+        load_sample = (
+            not current_app.config.get("TESTING", False)
+            and current_app.config["DATABASE"] != ":memory:"
+        )
+        initialize_database(Config.DATABASE, load_sample_data=load_sample)
 
         # Get count of initial products after reinitialization
         db = get_db()
         initial_products_count = db.execute("SELECT COUNT(*) FROM products").fetchone()[0]
-        db.close()
 
         total_deleted = products_count + dishes_count + logs_count
 
@@ -455,15 +467,19 @@ def maintenance_wipe_database_api():
     except Exception as e:
         current_app.logger.error(f"Database wipe API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        if db:
+            db.close()
 
 
 @system_bp.route("/export/all")
 def export_all_api():
     """Export all data from the application"""
-    try:
-        # Import get_db from app module
-        from app import get_db
+    # Import get_db from helpers module
+    from routes.helpers import get_db
 
+    db = None
+    try:
         db = get_db()
 
         # Get all data
@@ -503,10 +519,11 @@ def export_all_api():
             "log_entries": [dict(entry) for entry in log_entries],
         }
 
-        db.close()
-
         return jsonify(export_data)
 
     except Exception as e:
         current_app.logger.error(f"Export API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        if db:
+            db.close()
