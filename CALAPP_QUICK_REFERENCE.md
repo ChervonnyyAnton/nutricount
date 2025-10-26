@@ -1,8 +1,11 @@
 # 🎯 CalApp Integration - Quick Reference Card
 
 **Last Updated:** October 26, 2025  
+**Updated:** October 26, 2025 - Removed AI/voice/barcode/health features per user request  
 **Status:** 📋 Analysis Complete, Ready to Implement  
 **Branch:** `copilot/reference-calapp-features`
+
+**Note:** Features NOT needed: AI functions, food recognition, voice input, barcode scanner, health app integration.
 
 ---
 
@@ -259,8 +262,7 @@ CREATE TABLE meal_template_items (
 - 📊 Visual goal progress (rings/bars)
 - 🎯 Goal indicators in daily log
 - 📈 Interactive charts with tooltips
-- 🚀 Quick search with voice button (Phase 2)
-- 📸 Scan button in search (Phase 2)
+- 🚀 Quick search functionality
 
 ---
 
@@ -271,7 +273,7 @@ CREATE TABLE meal_template_items (
 **1. CALAPP_REFERENCE_ANALYSIS.md**
 - Full CalApp feature analysis
 - Detailed comparison with Nutricount
-- 3-phase implementation roadmap
+- 2-phase implementation roadmap (updated)
 - Technical specifications
 
 **2. docs/CALAPP_FEATURE_COMPARISON.md**
@@ -295,34 +297,17 @@ CREATE TABLE meal_template_items (
 
 ---
 
-## 🔄 Phase 2 Preview (Weeks 5-8)
+## 🔄 Phase 2 Preview (Optional, Weeks 5-6)
 
-### Medium Complexity Features
+### Additional Features
 
 | Feature | Days | Library | Notes |
 |---------|------|---------|-------|
-| **Voice Input** | 4-6 | Web Speech API | Hands-free logging |
-| **Barcode Scanner** | 5-7 | Html5-QRCode | Camera-based scanning |
-| **Achievements** | 5-7 | None | Gamification system |
+| **Achievements** | 5-7 | None | Gamification system (optional) |
 | **Enhanced Export** | 2-3 | None | CSV, JSON, charts |
 
-**Total:** 16-23 days  
-**Value:** High convenience, modern features
-
----
-
-## 🤖 Phase 3 Preview (Weeks 9+)
-
-### Advanced Features
-
-| Feature | Days | Approach | Notes |
-|---------|------|----------|-------|
-| **Photo Recognition** | 10-15 | Cloud API or TF.js | AI meal recognition |
-| **AI Suggestions** | 15-20 | Rule-based → ML | Smart meal recommendations |
-| **Health Sync** | 10-15 | Platform APIs | Optional integration |
-
-**Total:** 35-50 days  
-**Value:** Revolutionary UX (but high effort)
+**Total:** 7-10 days  
+**Value:** Optional enhancements
 
 ---
 
@@ -335,10 +320,9 @@ CREATE TABLE meal_template_items (
 4. Finish Phase 1 with **Templates**
 
 ### Don't Do This ❌
-1. Don't start with Phase 3 (high complexity)
-2. Don't skip tests (maintain quality)
-3. Don't break existing features
-4. Don't remove unique Nutricount features
+1. Don't skip tests (maintain quality)
+2. Don't break existing features
+3. Don't remove unique Nutricount features
 
 ### Best Practices 🎯
 1. Test-Driven Development (TDD)

@@ -1,6 +1,9 @@
 # CalApp vs Nutricount: Feature Comparison Matrix
 
-**Last Updated:** October 26, 2025
+**Last Updated:** October 26, 2025  
+**Updated:** October 26, 2025 - Removed AI/voice/barcode/health features per user request
+
+**Note:** User has specified they do NOT need: AI functions, food recognition, voice input, barcode scanner, and health app integration.
 
 ---
 
@@ -41,18 +44,18 @@
 | Feature | CalApp | Nutricount | Priority | Effort | Timeline |
 |---------|---------|-----------|----------|--------|----------|
 | **Text Input** | ✅ | ✅ | - | - | ✅ Done |
-| **Voice Input** | ✅ | ❌ | **HIGH** | **MEDIUM** | Sprint 2 (Week 3-4) |
-| **Photo Recognition** | ✅ AI | ❌ | **HIGH** | **HIGH** | Sprint 4+ (Week 7+) |
-| **Barcode Scanner** | ✅ | ❌ | **MEDIUM** | **MEDIUM** | Sprint 3 (Week 5-6) |
+| ~~Voice Input~~ | ✅ | ❌ | ❌ **NOT NEEDED** | - | - |
+| ~~Photo Recognition~~ | ✅ AI | ❌ | ❌ **NOT NEEDED** | - | - |
+| ~~Barcode Scanner~~ | ✅ | ❌ | ❌ **NOT NEEDED** | - | - |
 | **Quick Add** | ✅ | ⚠️ Partial | **HIGH** | **LOW** | Sprint 1 (Week 1-2) |
 | **Favorites** | ✅ | ❌ | **HIGH** | **LOW** | Sprint 1 (Week 1-2) |
 | **Recent Items** | ✅ | ⚠️ Partial | **HIGH** | **LOW** | Sprint 1 (Week 1-2) |
 | **Meal Templates** | ✅ | ❌ | **MEDIUM** | **LOW** | Sprint 1-2 (Week 2-3) |
 
-**Verdict:** 🏆 **CalApp Wins** - More convenient input methods
+**Verdict:** ⚠️ **CalApp has more input methods** - But we're implementing only what user needs
 
 **Gap Analysis:**
-- ❌ Missing: Voice, Photo, Barcode scanner
+- ❌ Not implementing: Voice, Photo Recognition, Barcode scanner (per user request)
 - ⚠️ Partial: Quick add could be better
 - ✅ Opportunity: Easy to implement favorites and templates
 
