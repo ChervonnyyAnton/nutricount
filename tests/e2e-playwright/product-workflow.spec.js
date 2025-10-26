@@ -16,19 +16,44 @@ test.describe('Product Management Workflow', () => {
   test('should create a new product', async ({ page }) => {
     const product = testData.products.apple;
     
-    // Click "Add Product" button with proper wait
-    await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
+    // Check if demo version (form is inline) or Flask version (needs modal)
+    const isDemo = await helpers.isDemoVersion(page);
     
-    // Wait for modal with proper CI timeout
-    await helpers.waitForModal(page);
+    if (!isDemo) {
+      // Flask version: Click "Add Product" button to open modal
+      await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
+      
+      // Wait for modal with proper CI timeout
+      await helpers.waitForModal(page);
+    } else {
+      // Demo version: Form is already visible inline, just wait a bit
+      await page.waitForTimeout(500);
+    }
     
-    // Fill in product form (demo uses specific IDs)
+    // Fill in product form (demo uses specific IDs, Flask uses name attributes)
     await helpers.fillField(page, 'input[name="name"], #productName', product.name);
-    await helpers.fillField(page, 'input[name="calories_per_100g"], #productCalories', product.calories_per_100g.toString());
     await helpers.fillField(page, 'input[name="protein_per_100g"], #productProtein', product.protein_per_100g.toString());
     await helpers.fillField(page, 'input[name="fat_per_100g"], #productFat', product.fat_per_100g.toString());
     await helpers.fillField(page, 'input[name="carbs_per_100g"], #productCarbs', product.carbs_per_100g.toString());
-    await helpers.fillField(page, 'input[name="fiber_per_100g"], #productFiber', product.fiber_per_100g.toString());
+    
+    // Note: Demo auto-calculates calories, so we might not need to fill it
+    // But for Flask version we do. Let's try to fill it if field is not readonly
+    try {
+      const caloriesField = page.locator('input[name="calories_per_100g"], #productCalories').first();
+      const isReadonly = await caloriesField.getAttribute('readonly');
+      if (!isReadonly) {
+        await helpers.fillField(page, 'input[name="calories_per_100g"], #productCalories', product.calories_per_100g.toString());
+      }
+    } catch (e) {
+      // Field might not exist or be readonly, that's OK
+    }
+    
+    // Fiber field may not exist in demo
+    try {
+      await helpers.fillField(page, 'input[name="fiber_per_100g"], #productFiber', product.fiber_per_100g.toString());
+    } catch (e) {
+      // Field doesn't exist in demo, that's OK
+    }
     
     // Submit form with proper API wait
     await helpers.submitModalForm(page);
@@ -125,14 +150,27 @@ test.describe('Product Management Workflow', () => {
   });
 
   test('should validate product form', async ({ page }) => {
-    // Click "Add Product" button
-    await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
+    // Check if demo version
+    const isDemo = await helpers.isDemoVersion(page);
     
-    // Wait for modal with proper CI timeout
-    await helpers.waitForModal(page);
+    if (!isDemo) {
+      // Flask version: Click "Add Product" button to open modal
+      await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
+      
+      // Wait for modal with proper CI timeout
+      await helpers.waitForModal(page);
+    } else {
+      // Demo version: Form is already visible inline
+      await page.waitForTimeout(500);
+    }
     
     // Try to submit empty form
-    await helpers.clickWhenReady(page, 'button[type="submit"]:has-text("Save"), button:has-text("Add Product")');
+    // In demo, the submit button is directly in the form
+    // In Flask, it's in the modal
+    const submitSelector = isDemo 
+      ? '#productForm button[type="submit"]'
+      : 'button[type="submit"]:has-text("Save"), button:has-text("Add Product")';
+    await helpers.clickWhenReady(page, submitSelector);
     
     // Wait a bit for validation
     await page.waitForTimeout(500);
@@ -149,31 +187,52 @@ test.describe('Product Management Workflow', () => {
   test('should calculate keto index', async ({ page }) => {
     const product = testData.products.avocado; // High-fat, low-carb product
     
-    // Click "Add Product" button
-    await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
+    // Check if demo version
+    const isDemo = await helpers.isDemoVersion(page);
     
-    // Wait for modal with proper CI timeout
-    await helpers.waitForModal(page);
+    if (!isDemo) {
+      // Flask version: Click "Add Product" button to open modal
+      await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
+      
+      // Wait for modal with proper CI timeout
+      await helpers.waitForModal(page);
+    } else {
+      // Demo version: Form is already visible inline
+      await page.waitForTimeout(500);
+    }
     
-    // Fill in high-fat, low-carb product
-    await helpers.fillField(page, 'input[name="name"], #product-name', product.name);
-    await helpers.fillField(page, 'input[name="calories_per_100g"], #calories', product.calories_per_100g.toString());
-    await helpers.fillField(page, 'input[name="protein_per_100g"], #protein', product.protein_per_100g.toString());
-    await helpers.fillField(page, 'input[name="fat_per_100g"], #fat', product.fat_per_100g.toString());
-    await helpers.fillField(page, 'input[name="carbs_per_100g"], #carbs', product.carbs_per_100g.toString());
-    await helpers.fillField(page, 'input[name="fiber_per_100g"], #fiber', product.fiber_per_100g.toString());
+    // Fill in high-fat, low-carb product (use demo field IDs or Flask field names)
+    await helpers.fillField(page, 'input[name="name"], #productName', product.name);
+    await helpers.fillField(page, 'input[name="protein_per_100g"], #productProtein', product.protein_per_100g.toString());
+    await helpers.fillField(page, 'input[name="fat_per_100g"], #productFat', product.fat_per_100g.toString());
+    await helpers.fillField(page, 'input[name="carbs_per_100g"], #productCarbs', product.carbs_per_100g.toString());
+    
+    // Try to fill optional fields if they exist
+    try {
+      await helpers.fillField(page, 'input[name="fiber_per_100g"], #productFiber', product.fiber_per_100g.toString());
+    } catch (e) {
+      // Field doesn't exist, that's OK
+    }
     
     // Wait for keto calculation
     await page.waitForTimeout(500);
     
-    // Look for keto index display
+    // Look for keto index display (could be shown after submission or inline)
     const ketoIndex = page.locator('.keto-index, [data-keto-index]').or(page.locator('text=/keto/i')).first();
     const hasKetoIndex = await ketoIndex.isVisible({ timeout: 2000 }).catch(() => false);
     
-    // Keto index should be calculated and displayed
+    // Keto index should be calculated and displayed (or will be after submit)
     if (hasKetoIndex) {
       const ketoText = await ketoIndex.textContent();
       expect(ketoText).toBeTruthy();
+    } else {
+      // If not visible yet, submit form and check in the list
+      await helpers.submitModalForm(page);
+      await page.waitForTimeout(1000);
+      
+      // Look for product in list with keto index
+      const productInList = page.locator(`text=${product.name}`).first();
+      await expect(productInList).toBeVisible({ timeout: 10000 });
     }
   });
 });

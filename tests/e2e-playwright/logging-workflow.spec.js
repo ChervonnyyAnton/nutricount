@@ -35,6 +35,9 @@ test.describe('Daily Logging Workflow', () => {
   });
 
   test('should create a log entry', async ({ page }) => {
+    // Check if demo version
+    const isDemo = await helpers.isDemoVersion(page);
+    
     // First, ensure we have a product to log
     await helpers.clickElement(page, 'text=Products');
     await page.waitForTimeout(500);
@@ -42,17 +45,22 @@ test.describe('Daily Logging Workflow', () => {
     // Create a test product if needed
     const addProductBtn = page.locator('button:has-text("Add Product")').first();
     if (await addProductBtn.isVisible({ timeout: 5000 })) {
-      await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
-      
-      // Wait for modal with proper CI timeout
-      await helpers.waitForModal(page);
+      if (!isDemo) {
+        // Flask version: click button to open modal
+        await helpers.clickWhenReady(page, 'button:has-text("Add Product")');
+        
+        // Wait for modal with proper CI timeout
+        await helpers.waitForModal(page);
+      } else {
+        // Demo version: form is inline, just wait
+        await page.waitForTimeout(500);
+      }
       
       const product = testData.products.apple;
-      await helpers.fillField(page, 'input[name="name"], #product-name', product.name + ' - Log Test');
-      await helpers.fillField(page, 'input[name="calories_per_100g"], #calories', product.calories_per_100g.toString());
-      await helpers.fillField(page, 'input[name="protein_per_100g"], #protein', product.protein_per_100g.toString());
-      await helpers.fillField(page, 'input[name="fat_per_100g"], #fat', product.fat_per_100g.toString());
-      await helpers.fillField(page, 'input[name="carbs_per_100g"], #carbs', product.carbs_per_100g.toString());
+      await helpers.fillField(page, 'input[name="name"], #productName', product.name + ' - Log Test');
+      await helpers.fillField(page, 'input[name="protein_per_100g"], #productProtein', product.protein_per_100g.toString());
+      await helpers.fillField(page, 'input[name="fat_per_100g"], #productFat', product.fat_per_100g.toString());
+      await helpers.fillField(page, 'input[name="carbs_per_100g"], #productCarbs', product.carbs_per_100g.toString());
       
       // Submit form with proper API wait
       await helpers.submitModalForm(page);
