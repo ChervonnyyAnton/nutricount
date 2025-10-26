@@ -20,6 +20,12 @@ module.exports = defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
+  /* Global timeout for each test - increased for CI */
+  timeout: 60 * 1000, // 60 seconds per test
+  /* Expect timeout for assertions */
+  expect: {
+    timeout: 10 * 1000, // 10 seconds for assertions
+  },
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
@@ -35,6 +41,10 @@ module.exports = defineConfig({
     screenshot: 'only-on-failure',
     /* Video on failure */
     video: 'retain-on-failure',
+    /* Navigation timeout - increased for CI */
+    navigationTimeout: 30 * 1000, // 30 seconds
+    /* Action timeout - increased for CI */
+    actionTimeout: 15 * 1000, // 15 seconds for clicks, fills, etc.
   },
 
   /* Configure projects for major browsers */
