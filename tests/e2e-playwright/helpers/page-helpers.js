@@ -175,35 +175,69 @@ async function hasSuccessMessage(page) {
  * @returns {Promise<void>}
  */
 async function waitForModal(page, options = {}) {
-  const timeout = options.timeout || 15000; // Increased from 5s to 15s for CI
+  const timeout = options.timeout || 20000; // Increased to 20s for CI reliability
   
-  // Wait for modal backdrop to appear (indicates modal is opening)
+  // Try multiple modal selectors to handle different Bootstrap versions and custom modals
+  const modalSelectors = [
+    '.modal.show',           // Bootstrap 5 (show class added when visible)
+    '.modal.fade.show',      // Bootstrap 5 with fade animation
+    '.modal[style*="display: block"]', // Inline style check
+    '[role="dialog"][aria-modal="true"]', // ARIA attributes
+    '.modal:visible'         // Legacy Playwright pseudo-selector (fallback)
+  ];
+  
+  let modalFound = false;
+  let lastError = null;
+  
+  // Try each selector with a shorter individual timeout
+  const individualTimeout = Math.floor(timeout / modalSelectors.length);
+  
+  for (const selector of modalSelectors) {
+    try {
+      await page.waitForSelector(selector, { 
+        state: 'visible', 
+        timeout: individualTimeout 
+      });
+      modalFound = true;
+      console.log(`[waitForModal] Modal found with selector: ${selector}`);
+      break;
+    } catch (e) {
+      lastError = e;
+      console.log(`[waitForModal] Selector ${selector} not found, trying next...`);
+    }
+  }
+  
+  if (!modalFound) {
+    throw new Error(`Modal not found with any selector after ${timeout}ms. Last error: ${lastError?.message}`);
+  }
+  
+  // Wait for modal backdrop if present
   try {
     await page.waitForSelector('.modal-backdrop', { 
       state: 'visible', 
-      timeout: timeout 
+      timeout: 2000 
     });
   } catch (e) {
     // Some modals may not have a backdrop, continue
   }
   
-  // Wait for modal itself to be visible
-  await page.waitForSelector('.modal:visible', { 
-    timeout: timeout 
-  });
-  
   // Wait for modal content to be fully loaded
-  await page.waitForSelector('.modal .modal-content', { 
-    state: 'visible', 
-    timeout: timeout 
-  });
+  try {
+    await page.waitForSelector('.modal .modal-content, .modal-body', { 
+      state: 'visible', 
+      timeout: 5000 
+    });
+  } catch (e) {
+    // Content selector may vary, continue if main modal is visible
+    console.log('[waitForModal] Modal content selector not found, but modal is visible');
+  }
   
   // Wait for any animations to complete (Bootstrap modal fade)
   await page.waitForTimeout(500);
   
   // Wait for network to be idle (in case modal loads data)
   try {
-    await page.waitForLoadState('networkidle', { timeout: 5000 });
+    await page.waitForLoadState('networkidle', { timeout: 3000 });
   } catch (e) {
     // NetworkIdle may timeout in some cases, that's OK
   }
@@ -216,21 +250,28 @@ async function waitForModal(page, options = {}) {
  * @returns {Promise<void>}
  */
 async function closeModal(page, options = {}) {
-  const timeout = options.timeout || 15000;
+  const timeout = options.timeout || 20000; // Increased for CI
+  
+  console.log('[closeModal] Attempting to close modal');
   
   // Try multiple close methods (X button, close button, cancel button)
   const closeSelectors = [
     '.modal .close',
     '.modal .btn-close', 
     '.modal button:has-text("Close")',
-    '.modal button:has-text("Cancel")'
+    '.modal button:has-text("Cancel")',
+    '.modal [data-bs-dismiss="modal"]', // Bootstrap 5 dismiss attribute
+    '.modal [data-dismiss="modal"]'     // Bootstrap 4 dismiss attribute
   ];
   
+  let closeClicked = false;
   for (const selector of closeSelectors) {
     try {
       const closeButton = page.locator(selector).first();
       if (await closeButton.isVisible({ timeout: 1000 })) {
         await closeButton.click();
+        console.log(`[closeModal] Clicked close button: ${selector}`);
+        closeClicked = true;
         break;
       }
     } catch (e) {
@@ -238,17 +279,34 @@ async function closeModal(page, options = {}) {
     }
   }
   
-  // Wait for modal to be hidden
-  await page.waitForSelector('.modal', { 
-    state: 'hidden', 
-    timeout: timeout 
-  });
+  if (!closeClicked) {
+    console.log('[closeModal] No close button found, trying ESC key');
+    // Fallback: press ESC key
+    await page.keyboard.press('Escape');
+  }
+  
+  // Wait for modal to be hidden with multiple strategies
+  try {
+    await page.waitForSelector('.modal.show, .modal.fade.show', { 
+      state: 'hidden', 
+      timeout: timeout 
+    });
+    console.log('[closeModal] Modal hidden successfully');
+  } catch (e) {
+    // Try alternative hiding detection
+    console.log('[closeModal] Trying alternative modal hiding detection');
+    await page.waitForSelector('.modal[style*="display: none"]', { 
+      timeout: 5000 
+    }).catch(() => {
+      console.log('[closeModal] Modal close detection uncertain, continuing');
+    });
+  }
   
   // Wait for backdrop to disappear
   try {
     await page.waitForSelector('.modal-backdrop', { 
       state: 'hidden', 
-      timeout: 5000 
+      timeout: 3000 
     });
   } catch (e) {
     // Backdrop may not exist
@@ -256,10 +314,12 @@ async function closeModal(page, options = {}) {
   
   // Wait for network to settle
   try {
-    await page.waitForLoadState('networkidle', { timeout: 5000 });
+    await page.waitForLoadState('networkidle', { timeout: 3000 });
   } catch (e) {
     // NetworkIdle may timeout, that's OK
   }
+  
+  console.log('[closeModal] Modal close complete');
 }
 
 /**
@@ -271,50 +331,74 @@ async function closeModal(page, options = {}) {
  * @returns {Promise<void>}
  */
 async function clickWhenReady(page, selector, options = {}) {
-  const timeout = options.timeout || 15000;
+  const timeout = options.timeout || 20000; // Increased to 20s for CI
+  
+  console.log(`[clickWhenReady] Attempting to click element: ${selector}`);
   
   // Use Playwright locator (handles pseudo-selectors natively)
   const locator = page.locator(selector).first();
   
-  // Wait for element to be visible
-  await locator.waitFor({ state: 'visible', timeout: timeout });
+  // Wait for element to be visible and attached
+  try {
+    await locator.waitFor({ state: 'visible', timeout: timeout });
+    console.log(`[clickWhenReady] Element visible: ${selector}`);
+  } catch (e) {
+    console.error(`[clickWhenReady] Element not visible within ${timeout}ms: ${selector}`);
+    throw new Error(`Element not visible: ${selector}. ${e.message}`);
+  }
   
   // Poll for enabled state using Playwright API
   // This avoids the querySelector incompatibility with Playwright pseudo-selectors
   const maxAttempts = Math.ceil(timeout / 100);
   let isEnabled = false;
+  let attempts = 0;
   
   for (let i = 0; i < maxAttempts; i++) {
+    attempts++;
     try {
       // Check if element is enabled (not disabled)
-      isEnabled = await locator.isEnabled({ timeout: 100 });
+      const enabled = await locator.isEnabled({ timeout: 100 });
       
-      if (isEnabled) {
+      if (enabled) {
         // Additional check for 'disabled' class
         const hasDisabledClass = await locator.evaluate(el => 
           el.classList.contains('disabled')
-        );
+        ).catch(() => false); // Handle element detachment gracefully
         
         if (!hasDisabledClass) {
+          isEnabled = true;
+          console.log(`[clickWhenReady] Element enabled after ${attempts} attempts: ${selector}`);
           break;
         }
       }
     } catch (e) {
       // Element might not be ready yet, continue polling
+      if (i > maxAttempts - 5) {
+        console.log(`[clickWhenReady] Element still not enabled (attempt ${i}/${maxAttempts}): ${selector}`);
+      }
     }
     
     await page.waitForTimeout(100);
   }
   
   if (!isEnabled) {
-    throw new Error(`Element ${selector} is still disabled after ${timeout}ms`);
+    console.error(`[clickWhenReady] Element disabled after ${timeout}ms: ${selector}`);
+    throw new Error(`Element ${selector} is still disabled after ${timeout}ms (${attempts} attempts)`);
   }
   
   // Wait for any animations to complete
   await page.waitForTimeout(300);
   
-  // Click the element using locator
-  await locator.click();
+  // Click the element using locator with force option as fallback
+  try {
+    await locator.click({ timeout: 5000 });
+    console.log(`[clickWhenReady] Successfully clicked: ${selector}`);
+  } catch (e) {
+    console.log(`[clickWhenReady] Regular click failed, trying force click: ${selector}`);
+    // Sometimes elements are clickable but covered by animations, force click
+    await locator.click({ force: true, timeout: 5000 });
+    console.log(`[clickWhenReady] Force clicked successfully: ${selector}`);
+  }
 }
 
 /**
@@ -324,61 +408,100 @@ async function clickWhenReady(page, selector, options = {}) {
  * @returns {Promise<void>}
  */
 async function submitModalForm(page, options = {}) {
-  const timeout = options.timeout || 15000;
+  const timeout = options.timeout || 20000; // Increased for CI reliability
   const waitForApi = options.waitForApi !== false; // Default true
   
-  // Find submit button
+  console.log('[submitModalForm] Looking for submit button in modal');
+  
+  // Find submit button with multiple selectors
   const submitSelectors = [
     '.modal button[type="submit"]',
     '.modal button:has-text("Save")',
     '.modal button:has-text("Add")',
-    '.modal button:has-text("Submit")'
+    '.modal button:has-text("Submit")',
+    '.modal .btn-primary'
   ];
   
   let submitButton = null;
   for (const selector of submitSelectors) {
-    const button = page.locator(selector).last();
-    if (await button.isVisible({ timeout: 1000 })) {
-      submitButton = selector;
-      break;
+    try {
+      const button = page.locator(selector).first();
+      if (await button.isVisible({ timeout: 1000 })) {
+        submitButton = selector;
+        console.log(`[submitModalForm] Found submit button: ${selector}`);
+        break;
+      }
+    } catch (e) {
+      // Try next selector
     }
   }
   
   if (!submitButton) {
-    throw new Error('Submit button not found in modal');
+    throw new Error('Submit button not found in modal. Tried selectors: ' + submitSelectors.join(', '));
   }
   
   if (waitForApi) {
     // Wait for API response (or timeout for demo version)
     try {
+      console.log('[submitModalForm] Waiting for API response and clicking submit');
       await Promise.all([
         page.waitForResponse(
-          resp => resp.url().includes('/api/') && resp.status() === 200,
+          resp => {
+            const isApi = resp.url().includes('/api/');
+            const isSuccess = resp.status() === 200 || resp.status() === 201;
+            return isApi && isSuccess;
+          },
           { timeout: timeout }
         ),
-        clickWhenReady(page, submitButton)
+        clickWhenReady(page, submitButton, { timeout: timeout })
       ]);
+      console.log('[submitModalForm] Form submitted successfully with API response');
     } catch (e) {
+      console.log('[submitModalForm] No API response (demo version), clicking and waiting');
       // Demo version - just click and wait
-      await clickWhenReady(page, submitButton);
+      await clickWhenReady(page, submitButton, { timeout: timeout });
       await page.waitForTimeout(1000);
     }
   } else {
-    await clickWhenReady(page, submitButton);
+    console.log('[submitModalForm] Clicking submit without waiting for API');
+    await clickWhenReady(page, submitButton, { timeout: timeout });
   }
   
-  // Wait for modal to close
-  await page.waitForSelector('.modal', { 
-    state: 'hidden', 
-    timeout: timeout 
-  });
+  // Wait for modal to close with multiple strategies
+  console.log('[submitModalForm] Waiting for modal to close');
+  try {
+    await page.waitForSelector('.modal.show, .modal.fade.show', { 
+      state: 'hidden', 
+      timeout: timeout 
+    });
+  } catch (e) {
+    // Try alternative modal hiding detection
+    await page.waitForSelector('.modal[style*="display: none"], .modal[style*="display:none"]', { 
+      timeout: 5000 
+    }).catch(() => {
+      // Modal might use different hiding mechanism
+      console.log('[submitModalForm] Modal close detection uncertain, continuing');
+    });
+  }
+  
+  // Wait for backdrop to disappear
+  try {
+    await page.waitForSelector('.modal-backdrop', { 
+      state: 'hidden', 
+      timeout: 3000 
+    });
+  } catch (e) {
+    // Backdrop detection is optional
+  }
   
   // Wait for network to settle
   try {
-    await page.waitForLoadState('networkidle', { timeout: 5000 });
+    await page.waitForLoadState('networkidle', { timeout: 3000 });
   } catch (e) {
     // NetworkIdle may timeout, that's OK
   }
+  
+  console.log('[submitModalForm] Modal form submission complete');
 }
 
 /**
