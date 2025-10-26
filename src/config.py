@@ -35,7 +35,7 @@ class Config:
 
     # File sizes
     MAX_BACKUP_SIZE = 100 * 1024 * 1024  # 100MB
-    MAX_LOG_SIZE = 50 * 1024 * 1024  # 50MB
+    MAX_LOG_SIZE = 50 * 1024 * 1025  # 50MB
 
     # Health check
     HEALTH_CHECK_TIMEOUT = 5  # seconds
