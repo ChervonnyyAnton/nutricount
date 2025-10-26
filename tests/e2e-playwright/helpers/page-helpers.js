@@ -266,39 +266,55 @@ async function closeModal(page, options = {}) {
  * Click button and wait for it to be ready
  * Handles disabled states and loading indicators
  * @param {import('@playwright/test').Page} page
- * @param {string} selector
+ * @param {string} selector - Playwright selector (supports pseudo-selectors like :has-text())
  * @param {Object} options
  * @returns {Promise<void>}
  */
 async function clickWhenReady(page, selector, options = {}) {
   const timeout = options.timeout || 15000;
   
-  // Wait for element to be visible
-  await page.waitForSelector(selector, { 
-    state: 'visible', 
-    timeout: timeout 
-  });
+  // Use Playwright locator (handles pseudo-selectors natively)
+  const locator = page.locator(selector).first();
   
-  // Wait for element to be enabled (not disabled)
-  // Note: 'enabled' is not a valid Playwright state, so we check it separately
-  const locator = page.locator(selector);
+  // Wait for element to be visible
   await locator.waitFor({ state: 'visible', timeout: timeout });
   
-  // Poll until element is enabled (check :not([disabled]) attribute)
-  await page.waitForFunction(
-    (selector) => {
-      const element = document.querySelector(selector);
-      return element && !element.disabled && !element.classList.contains('disabled');
-    },
-    selector,
-    { timeout: timeout }
-  );
+  // Poll for enabled state using Playwright API
+  // This avoids the querySelector incompatibility with Playwright pseudo-selectors
+  const maxAttempts = Math.ceil(timeout / 100);
+  let isEnabled = false;
+  
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      // Check if element is enabled (not disabled)
+      isEnabled = await locator.isEnabled({ timeout: 100 });
+      
+      if (isEnabled) {
+        // Additional check for 'disabled' class
+        const hasDisabledClass = await locator.evaluate(el => 
+          el.classList.contains('disabled')
+        );
+        
+        if (!hasDisabledClass) {
+          break;
+        }
+      }
+    } catch (e) {
+      // Element might not be ready yet, continue polling
+    }
+    
+    await page.waitForTimeout(100);
+  }
+  
+  if (!isEnabled) {
+    throw new Error(`Element ${selector} is still disabled after ${timeout}ms`);
+  }
   
   // Wait for any animations to complete
   await page.waitForTimeout(300);
   
-  // Click the element
-  await page.click(selector);
+  // Click the element using locator
+  await locator.click();
 }
 
 /**
