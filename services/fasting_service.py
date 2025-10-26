@@ -368,13 +368,21 @@ class FastingService:
                 "is_complete": elapsed_hours >= target_hours,
             }
 
-        return {
+        result = {
             "active_session": active_session,
             "progress": progress,
             "stats": stats,
             "goals": goals,
             "is_fasting": active_session is not None,
         }
+        
+        # Add top-level fields for backwards compatibility with tests
+        if active_session:
+            result["fasting_type"] = active_session.get("fasting_type")
+            result["session_id"] = active_session.get("id")
+            result["start_time"] = active_session.get("start_time")
+        
+        return result
 
     def get_fasting_stats_with_streak(self, user_id: int = 1, days: int = 30) -> Dict[str, Any]:
         """
