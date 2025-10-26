@@ -381,6 +381,11 @@ class FastingService:
             result["fasting_type"] = active_session.get("fasting_type")
             result["session_id"] = active_session.get("id")
             result["start_time"] = active_session.get("start_time")
+            # Add progress fields for backwards compatibility
+            if progress:
+                result["current_duration_hours"] = progress.get("elapsed_hours", 0)
+                result["target_hours"] = progress.get("target_hours")
+                result["progress_percentage"] = progress.get("progress_percentage", 0)
         
         return result
 
