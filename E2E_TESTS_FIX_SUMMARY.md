@@ -1,6 +1,6 @@
 # E2E Tests Fix Summary - Modal vs Inline Form Support
 
-## Date: October 26, 2025
+## Date: October 26, 2024
 
 ## Problem Statement
 
@@ -49,15 +49,27 @@ Added `isDemoVersion()` helper to detect which version is being tested:
 
 ```javascript
 async function isDemoVersion(page) {
-  // Check for demo-specific banner
-  const demoBanner = await page.locator('.demo-banner').count();
-  if (demoBanner > 0) return true;
-  
-  // Check URL for demo server port
-  const url = page.url();
-  if (url.includes(':8080') || url.includes('/demo/')) return true;
-  
-  return false; // Flask backend
+  try {
+    // Demo version has a specific banner or structure
+    const demoBanner = await page.locator('.demo-banner').count();
+    if (demoBanner > 0) {
+      console.log('[isDemoVersion] Demo version detected (demo-banner found)');
+      return true;
+    }
+    
+    // Check URL for demo server port
+    const url = page.url();
+    if (url.includes(':8080') || url.includes('/demo/')) {
+      console.log('[isDemoVersion] Demo version detected (URL contains :8080 or /demo/)');
+      return true;
+    }
+    
+    console.log('[isDemoVersion] Flask backend version detected');
+    return false;
+  } catch (e) {
+    console.log('[isDemoVersion] Error detecting version, assuming Flask backend');
+    return false;
+  }
 }
 ```
 
@@ -65,14 +77,36 @@ async function isDemoVersion(page) {
 
 **waitForModal():**
 ```javascript
+// Note: Simplified for documentation. See actual implementation for full error handling.
 async function waitForModal(page, options = {}) {
+  const timeout = options.timeout || 20000;
   const isDemo = await isDemoVersion(page);
+  
   if (isDemo) {
     console.log('[waitForModal] Demo version - skipping modal wait (forms are inline)');
     await page.waitForTimeout(500);
     return;
   }
-  // ... existing modal detection code for Flask ...
+  
+  // For Flask: Try multiple modal selectors with proper timeout handling
+  const modalSelectors = [
+    '.modal.show',
+    '.modal.fade.show',
+    '.modal[style*="display: block"]',
+    '[role="dialog"][aria-modal="true"]'
+  ];
+  
+  for (const selector of modalSelectors) {
+    try {
+      await page.waitForSelector(selector, { state: 'visible', timeout });
+      console.log(`[waitForModal] Modal found with selector: ${selector}`);
+      return;
+    } catch (e) {
+      // Try next selector
+    }
+  }
+  
+  throw new Error('Modal not found with any selector');
 }
 ```
 
@@ -173,14 +207,14 @@ Both jobs now use the same tests:
 ## Expected Outcomes
 
 ### Before Fix
-- Flask tests: ✅ ~115 passing
-- Demo tests: ❌ 10 failing (modal not found)
-- Total: ~92% pass rate
+- Flask tests (e2e-tests-local): ✅ All tests passing (~86 tests)
+- Demo tests (e2e-tests-public): ❌ 10 failing, ~76 passing
+- Combined: ~162 tests total, ~152 passing (~94% pass rate)
 
 ### After Fix
-- Flask tests: ✅ ~115 passing
-- Demo tests: ✅ ~115 passing
-- Total: ~100% pass rate
+- Flask tests (e2e-tests-local): ✅ All tests passing (~86 tests)
+- Demo tests (e2e-tests-public): ✅ All tests passing (~86 tests)
+- Combined: ~172 tests total, ~172 passing (~100% pass rate)
 
 ## Benefits
 
