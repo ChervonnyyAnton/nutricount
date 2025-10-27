@@ -62,6 +62,44 @@ This directory contains utility scripts for development, testing, deployment, an
 
 ### 🧪 Testing
 
+#### `week8_validate.sh` (NEW - Week 8!)
+**Purpose:** Comprehensive health check for Week 8 continuation
+
+**Usage:**
+```bash
+# Run validation
+./scripts/week8_validate.sh
+```
+
+**Features:**
+- ✅ Python version check (>= 3.11)
+- ✅ Dependencies verification (pytest, mutmut, flake8, coverage)
+- ✅ Test suite execution (844 tests)
+- ✅ Linting check (0 errors)
+- ✅ Coverage check (>= 87%)
+- ✅ Mutation cache detection
+- ✅ Documentation verification
+- ✅ Git status check
+- ✅ Color-coded output
+
+**Output:**
+```
+🔍 Week 8 Health Check
+=====================
+✅ Python 3.12.3 (>= 3.11)
+✅ pytest (7.4.3)
+✅ mutmut (2.4.5)
+✅ All tests passing (844 passed, 1 skipped)
+✅ No linting errors
+✅ Coverage >= 87%
+...
+✅ Repository ready for Week 8 continuation!
+```
+
+**Documentation:** See [WEEK8_EXECUTION_GUIDE.md](../WEEK8_EXECUTION_GUIDE.md)
+
+---
+
 #### `run_tests.sh`
 **Purpose:** Run test suite with various options
 
@@ -228,15 +266,27 @@ This directory contains utility scripts for development, testing, deployment, an
 export PYTHONPATH=/home/runner/work/nutricount/nutricount
 cd /home/runner/work/nutricount/nutricount
 
-# 2. Verify tests
+# 2. Validate repository (NEW!)
+./scripts/week8_validate.sh
+
+# 3. Verify tests
 ./scripts/run_tests.sh all
 
-# 3. Run mutation baseline
+# 4. Run mutation baseline
 ./scripts/run_mutation_baseline.sh quick  # Start small
 
-# 4. View results
+# 5. View results
 mutmut results
 mutmut html
+```
+
+### Week 8 Quick Start (NEW!)
+```bash
+# Validate repository health
+./scripts/week8_validate.sh
+
+# Expected: All ✅ checks pass
+# See WEEK8_EXECUTION_GUIDE.md for next steps
 ```
 
 ### Regular Testing
@@ -281,6 +331,7 @@ mutmut html
 
 - [README.md](../README.md) - Main project documentation
 - [PROJECT_SETUP.md](../PROJECT_SETUP.md) - Development setup guide
+- [WEEK8_EXECUTION_GUIDE.md](../WEEK8_EXECUTION_GUIDE.md) - Week 8 execution guide (NEW!)
 - [PHASE2_EXECUTION_GUIDE.md](../PHASE2_EXECUTION_GUIDE.md) - Mutation testing guide
 - [PHASE2_CHECKLIST.md](../PHASE2_CHECKLIST.md) - Execution checklist
 - [MUTATION_TESTING.md](../MUTATION_TESTING.md) - Mutation testing documentation
@@ -333,5 +384,5 @@ crontab -e
 
 ---
 
-**Last Updated:** October 20, 2025  
+**Last Updated:** October 27, 2025  
 **Maintained by:** Nutricount Development Team
