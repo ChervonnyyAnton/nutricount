@@ -45,8 +45,6 @@ module.exports = defineConfig({
     navigationTimeout: 30 * 1000, // 30 seconds
     /* Action timeout - increased for CI */
     actionTimeout: 15 * 1000, // 15 seconds for clicks, fills, etc.
-    // If you need to ignore HTTPS errors for specific resources, set ignoreHTTPSErrors: true in those test contexts only.
-    // ignoreHTTPSErrors: true,
   },
 
   /* Configure projects for major browsers */
