@@ -73,13 +73,13 @@ test.describe('Statistics Workflow', () => {
 
   test('should show calorie information', async ({ page }) => {
     await page.waitForTimeout(1000);
-    
+
     // Look for calorie display
-    const calories = page.locator('.calories, [data-calories]').or(page.locator('text=/calor/i')).first();
-    
+    const calories = page.locator('.calories, [data-calories], text=/calor/i').first();
+
     if (await calories.isVisible({ timeout: 5000 })) {
       const text = await calories.textContent();
-      
+
       // Should contain a number
       const hasNumber = /\d+/.test(text || '');
       expect(hasNumber).toBeTruthy();
@@ -90,15 +90,15 @@ test.describe('Statistics Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for keto-related information
-    const ketoSection = page.locator('.keto, [data-keto]').or(page.locator('text=/keto index/i')).first();
-    
+    const ketoSection = page.locator('.keto, [data-keto], text=/keto index/i').first();
+
     if (await ketoSection.isVisible({ timeout: 5000 })) {
       const content = await ketoSection.textContent();
-      
+
       // Should mention keto-related terms
       const hasKetoInfo = content?.toLowerCase().includes('keto') ||
                          content?.toLowerCase().includes('net carb');
-      
+
       expect(hasKetoInfo).toBeTruthy();
     }
   });
@@ -107,11 +107,11 @@ test.describe('Statistics Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for net carbs display
-    const netCarbs = page.locator('[data-net-carbs]').or(page.locator('text=/net carb/i')).first();
-    
+    const netCarbs = page.locator('[data-net-carbs], text=/net carb/i').first();
+
     if (await netCarbs.isVisible({ timeout: 5000 })) {
       const text = await netCarbs.textContent();
-      
+
       // Should show a number
       const hasNumber = /\d+/.test(text || '');
       expect(hasNumber).toBeTruthy();
@@ -160,11 +160,11 @@ test.describe('Statistics Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for goal progress indicators
-    const progress = page.locator('.progress, [data-progress]').or(page.locator('text=/goal/i')).first();
-    
+    const progress = page.locator('.progress, [data-progress], text=/goal/i').first();
+
     if (await progress.isVisible({ timeout: 5000 })) {
       const content = await progress.textContent();
-      
+
       // Should mention goals or progress
       const hasGoalInfo = content?.toLowerCase().includes('goal') ||
                          content?.toLowerCase().includes('target') ||
@@ -203,11 +203,11 @@ test.describe('Statistics Workflow', () => {
       await page.waitForTimeout(500);
       
       // Look for average statistics
-      const averages = page.locator('[data-average]').or(page.locator('text=/average/i')).first();
-      
+      const averages = page.locator('[data-average], text=/average/i').first();
+
       if (await averages.isVisible({ timeout: 5000 })) {
         const text = await averages.textContent();
-        
+
         // Should contain numbers
         const hasNumbers = /\d+/.test(text || '');
         expect(hasNumbers).toBeTruthy();

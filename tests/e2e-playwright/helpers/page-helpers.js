@@ -401,14 +401,17 @@ async function clickWhenReady(page, selector, options = {}) {
     attempts++;
     try {
       // Check if element is enabled (not disabled)
-      const enabled = await locator.isEnabled({ timeout: 100 });
-      
+      // Note: isEnabled() doesn't accept a timeout parameter in Playwright API,
+      // so we use this polling loop to repeatedly check the enabled state and
+      // provide our own timeout functionality.
+      const enabled = await locator.isEnabled();
+
       if (enabled) {
         // Additional check for 'disabled' class
-        const hasDisabledClass = await locator.evaluate(el => 
+        const hasDisabledClass = await locator.evaluate(el =>
           el.classList.contains('disabled')
         ).catch(() => false); // Handle element detachment gracefully
-        
+
         if (!hasDisabledClass) {
           isEnabled = true;
           console.log(`[clickWhenReady] Element enabled after ${attempts} attempts: ${selector}`);
@@ -421,7 +424,7 @@ async function clickWhenReady(page, selector, options = {}) {
         console.log(`[clickWhenReady] Element still not enabled (attempt ${i}/${maxAttempts}): ${selector}`);
       }
     }
-    
+
     await page.waitForTimeout(100);
   }
   
