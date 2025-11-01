@@ -47,8 +47,6 @@ module.exports = defineConfig({
     actionTimeout: 15 * 1000, // 15 seconds for clicks, fills, etc.
     // If you need to ignore HTTPS errors for specific resources, set ignoreHTTPSErrors: true in those test contexts only.
     // ignoreHTTPSErrors: true,
-    /* Use regular browser User-Agent to avoid CDN blocking headless browsers */
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   },
 
   /* Configure projects for major browsers */
