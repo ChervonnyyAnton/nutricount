@@ -880,15 +880,6 @@ def cleanup_test_data(app):
         db.commit()
 ```
 
-**Screenshots on Failure**: Capture screenshots when tests fail (Playwright)
-```python
-# In playwright.config.js
-screenshot: 'only-on-failure',
-video: 'retain-on-failure',
-```
-
-**Cross-Browser**: Test on major browsers (Chrome, Firefox, Safari via Playwright)
-
 ### Test Organization
 
 ```
@@ -909,12 +900,10 @@ tests/
 ├── integration/             # Integration tests (by feature)
 │   ├── test_api.py
 │   └── test_api_extended.py
-├── e2e/                    # E2E tests (by user journey)
-│   ├── test_workflows.py
-│   ├── test_enhanced_workflows.py
-│   └── test_ui_api_workflows.py
-└── e2e-playwright/         # Playwright E2E tests
-    └── test_*.spec.js
+└── e2e/                    # E2E tests (Python API workflows)
+    ├── test_workflows.py
+    ├── test_enhanced_workflows.py
+    └── test_ui_api_workflows.py
 ```
 
 ### Test-Driven Development (TDD) Workflow
