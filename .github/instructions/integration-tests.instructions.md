@@ -146,29 +146,6 @@ async def cleanup(app):
         db.commit()
 ```
 
-### Screenshots on Failure
-
-Configure in `playwright.config.js`:
-
-```javascript
-use: {
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-    trace: 'on-first-retry',
-}
-```
-
-### Cross-Browser Testing
-
-Test on major browsers:
-
-```python
-@pytest.mark.parametrize('browser_name', ['chromium', 'firefox', 'webkit'])
-async def test_cross_browser(browser_name, app):
-    # Test will run on all browsers
-    pass
-```
-
 ## Quick Checklist
 
 - [ ] Use real test database (in-memory SQLite)

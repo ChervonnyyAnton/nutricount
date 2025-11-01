@@ -62,10 +62,11 @@ The Nutricount application is a mature, production-ready nutrition tracking appl
 - **Recommendation**: Consider using module bundler (webpack/esbuild) for better organization
 
 #### Issue 3: Frontend Testing Gap
-- `/frontend/tests/` exists but no actual test files visible
-- Playwright E2E tests (~1,396 LOC) exist but may have coverage gaps
+- `/frontend/tests/` exists but contains 56 JavaScript tests
+- Python E2E tests provide comprehensive API coverage (45 tests)
 - No unit tests for frontend adapters and business logic
 - **Recommendation**: Add comprehensive unit tests for adapters and calculator
+- **Note**: Playwright E2E tests were removed due to GUI inconsistency issues
 
 ---
 
@@ -317,13 +318,14 @@ Multiple routes validate similar structures. Could use decorators or marshmallow
 ## 5. TESTING ANALYSIS
 
 ### Test Coverage Overview
-**Test Files**: 41 total test files
+**Test Files**: 36 total test files
 - **Unit Tests**: 31 test files in `/tests/unit/` (8,361 LOC)
 - **Integration Tests**: 6 test files in `/tests/integration/` (4,687 LOC)
-- **E2E Tests**: 3 Python files in `/tests/e2e/` (1,904 LOC)
-- **E2E Playwright**: 5 JS files in `/tests/e2e-playwright/` (1,396 LOC)
+- **E2E Tests**: 3 Python files in `/tests/e2e/` (1,904 LOC, 45 tests)
 
-**Total Test Code**: ~16,348 LOC
+**Total Test Code**: ~14,952 LOC
+
+**Note**: Playwright E2E tests (5 JS files, 1,396 LOC) were removed due to GUI inconsistency issues.
 
 ### Test Framework Configuration
 **pytest.ini** specifies:
@@ -371,10 +373,6 @@ Multiple routes validate similar structures. Could use decorators or marshmallow
 - `test_ui_api_workflows.py`: Combined UI/API testing
 - `test_enhanced_workflows.py`: Advanced scenarios
 
-#### E2E Tests (Playwright/JavaScript) ✓
-- Modern browser automation
-- Cross-browser capable
-- Spec file organization
 
 **Test files**:
 - `smoke.spec.js`: Basic smoke tests
@@ -449,21 +447,6 @@ frontend/tests/unit/
 - Rate limiting thresholds
 - CORS policy enforcement
 - SQL injection prevention (input validation)
-
-### Playwright E2E Test Quality ⚠️
-
-**Recent Commit**: `4fd5377 fix: resolve E2E test failures with Playwright API compatibility`
-
-**Issues**:
-- Tests had to be fixed for API compatibility
-- Some tests may be version-detection dependent
-- Commit `66942ce` mentions "Skip failing E2E tests that use version detection logic"
-
-**Recommendation**: Add explicit version/environment detection in tests:
-```javascript
-const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
-const isDemo = process.env.TEST_MODE === 'demo';
-```
 
 ---
 

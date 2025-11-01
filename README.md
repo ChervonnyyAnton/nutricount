@@ -367,12 +367,12 @@ The application includes extensive testing capabilities:
 - **Performance Tests**: Load and stress testing
 
 ### Test Coverage
-- **Code Coverage**: 93% overall (567 tests, 28s execution time)
+- **Code Coverage**: 93% overall (612 tests: 567 unit/integration + 45 E2E, 28s execution time)
 - **API Coverage**: All 47 endpoints tested
 - **Business Logic**: Core functionality tested
 - **Error Handling**: Exception scenarios tested
 - **Edge Cases**: Boundary conditions tested
-- **Test Types**: Unit (330+), Integration (125+), E2E (100+)
+- **Test Types**: Unit (330+), Integration (125+), E2E (45 Python API tests)
 
 ### Test Tools
 - **pytest**: Main testing framework

@@ -8,22 +8,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:smoke": "playwright test smoke.spec.js",
-    "test:e2e:products": "playwright test product-workflow.spec.js",
-    "test:e2e:logging": "playwright test logging-workflow.spec.js",
-    "test:e2e:statistics": "playwright test statistics.spec.js",
-    "test:e2e:fasting": "playwright test fasting.spec.js",
-    "test:e2e:report": "playwright show-report playwright-report"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@playwright/test": "^1.56.1"
-  }
+  "license": "ISC"
 }
