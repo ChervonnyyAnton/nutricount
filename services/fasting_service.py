@@ -380,7 +380,7 @@ class FastingService:
             "goals": goals,
             "is_fasting": active_session is not None,
         }
-        
+
         # Add top-level fields for backwards compatibility with tests
         if active_session:
             result["fasting_type"] = active_session.get("fasting_type")
@@ -391,7 +391,7 @@ class FastingService:
                 result["current_duration_hours"] = progress.get("elapsed_hours", 0)
                 result["target_hours"] = progress.get("target_hours")
                 result["progress_percentage"] = progress.get("progress_percentage", 0)
-        
+
         return result
 
     def get_fasting_stats_with_streak(self, user_id: int = 1, days: int = 30) -> Dict[str, Any]:
@@ -556,4 +556,44 @@ class FastingService:
             return (True, settings, [])
         except Exception as e:
             logger.exception("Error updating fasting settings")
+            return (False, None, [str(e)])
+
+    def upsert_fasting_settings(
+        self, settings_data: Dict[str, Any]
+    ) -> Tuple[bool, Optional[Dict[str, Any]], List[str]]:
+        """
+        Create or update user's fasting settings (upsert).
+
+        This method handles both creation and updating in a single operation,
+        eliminating the need for separate existence checks.
+
+        Args:
+            settings_data: Settings data dictionary (must include user_id)
+
+        Returns:
+            Tuple of (success, settings, errors)
+        """
+        errors = []
+        user_id = settings_data.get("user_id", 1)
+
+        # Validate fasting_goal
+        if "fasting_goal" in settings_data:
+            valid_goals = ["16:8", "18:6", "20:4", "OMAD"]
+            if settings_data["fasting_goal"] not in valid_goals:
+                errors.append(f"Invalid fasting goal. Must be one of: {', '.join(valid_goals)}")
+
+        if errors:
+            return (False, None, errors)
+
+        try:
+            # Try to update first
+            settings = self.repository.update_settings(user_id, settings_data)
+
+            # If settings don't exist (update returns None), create them
+            if settings is None:
+                settings = self.repository.create_settings(settings_data)
+
+            return (True, settings, [])
+        except Exception as e:
+            logger.exception("Error upserting fasting settings")
             return (False, None, [str(e)])
