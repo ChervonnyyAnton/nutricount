@@ -638,14 +638,18 @@ def fasting_settings_api():
                 success, settings, errors = service.create_fasting_settings(settings_data)
                 message = "Fasting settings created successfully"
             else:
-                # PUT: Update existing settings or create if not found (upsert)
-                success, settings, errors = service.update_fasting_settings(user_id, settings_data)
-                if not success and errors and "Settings not found for user" in errors:
-                    # Settings don't exist, create them (upsert behavior)
+                # PUT: Upsert behavior (update if exists, create if not)
+                # First, check if settings exist
+                existing_settings = service.get_fasting_settings(user_id)
+                
+                if existing_settings:
+                    # Update existing settings
+                    success, settings, errors = service.update_fasting_settings(user_id, settings_data)
+                    message = "Fasting settings updated successfully"
+                else:
+                    # Create new settings (upsert)
                     success, settings, errors = service.create_fasting_settings(settings_data)
                     message = "Fasting settings created successfully"
-                else:
-                    message = "Fasting settings updated successfully"
 
             if success and settings:
                 return jsonify(json_response(settings, message, HTTP_OK)), HTTP_OK
