@@ -8,9 +8,8 @@ Refactored to use Service Layer pattern for thin controllers.
 from flask import Blueprint, current_app, jsonify, request
 
 from repositories.fasting_repository import FastingRepository
-from routes.helpers import safe_get_json
+from routes.helpers import get_db, safe_get_json
 from services.fasting_service import FastingService
-from src.config import Config
 from src.constants import ERROR_MESSAGES, HTTP_BAD_REQUEST, HTTP_CREATED, HTTP_OK, SUCCESS_MESSAGES
 from src.monitoring import monitor_http_request
 from src.security import rate_limit
@@ -20,14 +19,17 @@ from src.utils import json_response
 fasting_bp = Blueprint("fasting", __name__, url_prefix="/api/fasting")
 
 
-def _get_fasting_service() -> FastingService:
+def _get_fasting_service(db) -> FastingService:
     """
     Get FastingService instance with repository.
+
+    Args:
+        db: Database connection
 
     Returns:
         FastingService instance
     """
-    repository = FastingRepository(Config.DATABASE)
+    repository = FastingRepository(db)
     return FastingService(repository)
 
 
@@ -40,6 +42,7 @@ def start_fasting():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
         data = safe_get_json()
         if data is None:
@@ -66,7 +69,7 @@ def start_fasting():
             )
 
         # Delegate to service
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
         success, session, errors = service.start_fasting_session(fasting_type, notes)
 
         if success:
@@ -105,6 +108,8 @@ def start_fasting():
     except Exception as e:
         current_app.logger.error(f"Start fasting error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/end", methods=["POST"])
@@ -116,8 +121,9 @@ def end_fasting():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
 
         # Get active session
         active_session = service.get_active_session()
@@ -158,6 +164,8 @@ def end_fasting():
     except Exception as e:
         current_app.logger.error(f"End fasting error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/pause", methods=["POST"])
@@ -169,8 +177,9 @@ def pause_fasting():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
 
         active_session = service.get_active_session()
         if not active_session:
@@ -205,6 +214,8 @@ def pause_fasting():
     except Exception as e:
         current_app.logger.error(f"Pause fasting error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/resume", methods=["POST"])
@@ -216,6 +227,7 @@ def resume_fasting():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
         data = safe_get_json()
         if data is None:
@@ -231,7 +243,7 @@ def resume_fasting():
                 HTTP_BAD_REQUEST,
             )
 
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
         success, resumed_session, errors = service.resume_fasting_session(session_id)
 
         if success:
@@ -258,6 +270,8 @@ def resume_fasting():
     except Exception as e:
         current_app.logger.error(f"Resume fasting error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/cancel", methods=["POST"])
@@ -269,8 +283,9 @@ def cancel_fasting():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
 
         active_session = service.get_active_session()
         if not active_session:
@@ -305,6 +320,8 @@ def cancel_fasting():
     except Exception as e:
         current_app.logger.error(f"Cancel fasting error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/status", methods=["GET"])
@@ -316,8 +333,9 @@ def get_fasting_status():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
         progress = service.get_fasting_progress()
 
         return (
@@ -328,6 +346,8 @@ def get_fasting_status():
     except Exception as e:
         current_app.logger.error(f"Get fasting status error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/sessions", methods=["GET"])
@@ -339,9 +359,10 @@ def get_fasting_sessions():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
         limit = request.args.get("limit", 30, type=int)
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
         sessions = service.get_fasting_sessions(limit=limit)
 
         return (
@@ -356,6 +377,8 @@ def get_fasting_sessions():
     except Exception as e:
         current_app.logger.error(f"Get fasting sessions error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/stats", methods=["GET"])
@@ -367,9 +390,10 @@ def get_fasting_stats():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
         days = request.args.get("days", 30, type=int)
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
         stats = service.get_fasting_stats_with_streak(days=days)
 
         return (
@@ -380,6 +404,8 @@ def get_fasting_stats():
     except Exception as e:
         current_app.logger.error(f"Get fasting stats error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/goals", methods=["GET"])
@@ -391,8 +417,9 @@ def get_fasting_goals():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
         goals = service.get_fasting_goals()
 
         # goals are already dictionaries, just add progress percentage
@@ -426,6 +453,8 @@ def get_fasting_goals():
     except Exception as e:
         current_app.logger.error(f"Get fasting goals error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/goals", methods=["POST"])
@@ -437,6 +466,7 @@ def create_fasting_goal():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
         data = safe_get_json()
         if data is None:
@@ -500,7 +530,7 @@ def create_fasting_goal():
                 HTTP_BAD_REQUEST,
             )
 
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
         success, goal, errors = service.create_fasting_goal(
             goal_type, target_value, period_start, period_end
         )
@@ -532,6 +562,8 @@ def create_fasting_goal():
     except Exception as e:
         current_app.logger.error(f"Create fasting goal error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @fasting_bp.route("/settings", methods=["GET", "POST", "PUT"])
@@ -543,9 +575,10 @@ def fasting_settings_api():
 
     Delegates business logic to FastingService.
     """
+    db = get_db()
     try:
         user_id = 1  # Default user for now
-        service = _get_fasting_service()
+        service = _get_fasting_service(db)
 
         if request.method == "GET":
             # Get fasting settings
@@ -621,3 +654,5 @@ def fasting_settings_api():
     except Exception as e:
         current_app.logger.error(f"Fasting settings error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()

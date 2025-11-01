@@ -6,7 +6,7 @@ Handles CRUD operations for food log entries.
 from flask import Blueprint, current_app, jsonify, request
 
 from repositories.log_repository import LogRepository
-from routes.helpers import safe_get_json
+from routes.helpers import get_db, safe_get_json
 from services.log_service import LogService
 from src.constants import (
     ERROR_MESSAGES,
@@ -23,12 +23,17 @@ from src.utils import json_response
 log_bp = Blueprint("log", __name__, url_prefix="/api/log")
 
 
-# Initialize service (repository will be created with Config.DATABASE)
-def _get_log_service() -> LogService:
-    """Get LogService instance."""
-    from flask import current_app
+def _get_log_service(db) -> LogService:
+    """
+    Get LogService instance.
 
-    repository = LogRepository(current_app.config["DATABASE"])
+    Args:
+        db: Database connection
+
+    Returns:
+        LogService instance
+    """
+    repository = LogRepository(db)
     return LogService(repository)
 
 
@@ -37,9 +42,10 @@ def _get_log_service() -> LogService:
 @rate_limit("api")
 def log_api():
     """Food log CRUD endpoint"""
-    service = _get_log_service()
-
+    db = get_db()
     try:
+        service = _get_log_service(db)
+
         if request.method == "GET":
             date_filter = request.args.get("date")
             limit = int(request.args.get("limit", 100))
@@ -78,6 +84,8 @@ def log_api():
     except Exception as e:
         current_app.logger.error(f"Log API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()
 
 
 @log_bp.route("/<int:log_id>", methods=["GET", "PUT", "DELETE"])
@@ -85,9 +93,10 @@ def log_api():
 @rate_limit("api")
 def log_detail_api(log_id):
     """Log entry detail operations (GET, PUT, DELETE)"""
-    service = _get_log_service()
-
+    db = get_db()
     try:
+        service = _get_log_service(db)
+
         if request.method == "GET":
             # Get log entry using service
             entry = service.get_log_entry_by_id(log_id)
@@ -160,3 +169,5 @@ def log_detail_api(log_id):
     except Exception as e:
         current_app.logger.error(f"Log detail API error: {e}")
         return jsonify(json_response(None, ERROR_MESSAGES["server_error"], 500)), 500
+    finally:
+        db.close()

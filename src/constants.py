@@ -35,7 +35,7 @@ SUCCESS_MESSAGES = {
     "product_updated": "✅ Product updated successfully!",
     "product_deleted": "✅ Product deleted successfully!",
     "dish_created": "✅ Dish created successfully!",
-    "dish_deleted": "XX✅ Dish deleted successfully!XX",
+    "dish_deleted": "✅ Dish deleted successfully!",
     "log_added": "✅ Food logged successfully!",
     "log_deleted": "✅ Log entry deleted successfully!",
     "backup_created": "✅ Backup created successfully!",

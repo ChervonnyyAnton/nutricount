@@ -4,7 +4,6 @@ Log Repository - Data access layer for log entries.
 Implements Repository Pattern for daily food log operations.
 """
 
-import sqlite3
 from typing import Any, Dict, List, Optional
 
 from repositories.base_repository import BaseRepository
@@ -16,15 +15,6 @@ class LogRepository(BaseRepository):
 
     Handles database operations for daily food log entries.
     """
-
-    def __init__(self, db_path: str):
-        """
-        Initialize repository with database path.
-
-        Args:
-            db_path: Path to SQLite database file
-        """
-        self.db_path = db_path
 
     def find_all(
         self, date_filter: Optional[str] = None, limit: int = 100, offset: int = 0
@@ -40,27 +30,24 @@ class LogRepository(BaseRepository):
         Returns:
             List of log entry dictionaries with nutrition details
         """
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
+        if date_filter:
+            query = """
+                SELECT * FROM log_entries_with_details
+                WHERE date = ?
+                ORDER BY created_at DESC
+                LIMIT ? OFFSET ?
+            """
+            params = (date_filter, limit, offset)
+        else:
+            query = """
+                SELECT * FROM log_entries_with_details
+                ORDER BY date DESC, created_at DESC
+                LIMIT ? OFFSET ?
+            """
+            params = (limit, offset)
 
-            if date_filter:
-                query = """
-                    SELECT * FROM log_entries_with_details
-                    WHERE date = ?
-                    ORDER BY created_at DESC
-                    LIMIT ? OFFSET ?
-                """
-                params = (date_filter, limit, offset)
-            else:
-                query = """
-                    SELECT * FROM log_entries_with_details
-                    ORDER BY date DESC, created_at DESC
-                    LIMIT ? OFFSET ?
-                """
-                params = (limit, offset)
-
-            cursor = conn.execute(query, params)
-            return [dict(row) for row in cursor.fetchall()]
+        cursor = self.db.execute(query, params)
+        return [dict(row) for row in cursor.fetchall()]
 
     def find_by_id(self, entry_id: int) -> Optional[Dict[str, Any]]:
         """
@@ -72,17 +59,14 @@ class LogRepository(BaseRepository):
         Returns:
             Log entry dictionary or None if not found
         """
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
+        query = """
+            SELECT * FROM log_entries_with_details
+            WHERE id = ?
+        """
+        cursor = self.db.execute(query, (entry_id,))
+        row = cursor.fetchone()
 
-            query = """
-                SELECT * FROM log_entries_with_details
-                WHERE id = ?
-            """
-            cursor = conn.execute(query, (entry_id,))
-            row = cursor.fetchone()
-
-            return dict(row) if row else None
+        return dict(row) if row else None
 
     def find_by_date(self, date: str) -> List[Dict[str, Any]]:
         """
@@ -106,26 +90,23 @@ class LogRepository(BaseRepository):
         Returns:
             Created log entry dictionary with ID
         """
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
+        query = """
+            INSERT INTO log_entries (date, item_type, item_id, quantity_grams, meal_time)
+            VALUES (?, ?, ?, ?, ?)
+        """
+        params = (
+            data["date"],
+            data["item_type"],
+            data["item_id"],
+            data["quantity_grams"],
+            data.get("meal_time", "other"),
+        )
 
-            query = """
-                INSERT INTO log_entries (date, item_type, item_id, quantity_grams, meal_time)
-                VALUES (?, ?, ?, ?, ?)
-            """
-            params = (
-                data["date"],
-                data["item_type"],
-                data["item_id"],
-                data["quantity_grams"],
-                data.get("meal_time", "other"),
-            )
+        cursor = self.db.execute(query, params)
+        self.db.commit()
 
-            cursor = conn.execute(query, params)
-            conn.commit()
-
-            # Fetch the created entry with all details
-            return self.find_by_id(cursor.lastrowid)
+        # Fetch the created entry with all details
+        return self.find_by_id(cursor.lastrowid)
 
     def update(self, entry_id: int, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
@@ -141,38 +122,37 @@ class LogRepository(BaseRepository):
         if not self.exists(entry_id):
             return None
 
-        with sqlite3.connect(self.db_path) as conn:
-            # Build update query dynamically based on provided fields
-            fields = []
-            params = []
+        # Build update query dynamically based on provided fields
+        fields = []
+        params = []
 
-            if "date" in data:
-                fields.append("date = ?")
-                params.append(data["date"])
-            if "item_type" in data:
-                fields.append("item_type = ?")
-                params.append(data["item_type"])
-            if "item_id" in data:
-                fields.append("item_id = ?")
-                params.append(data["item_id"])
-            if "quantity_grams" in data:
-                fields.append("quantity_grams = ?")
-                params.append(data["quantity_grams"])
-            if "meal_time" in data:
-                fields.append("meal_time = ?")
-                params.append(data["meal_time"])
+        if "date" in data:
+            fields.append("date = ?")
+            params.append(data["date"])
+        if "item_type" in data:
+            fields.append("item_type = ?")
+            params.append(data["item_type"])
+        if "item_id" in data:
+            fields.append("item_id = ?")
+            params.append(data["item_id"])
+        if "quantity_grams" in data:
+            fields.append("quantity_grams = ?")
+            params.append(data["quantity_grams"])
+        if "meal_time" in data:
+            fields.append("meal_time = ?")
+            params.append(data["meal_time"])
 
-            if not fields:
-                # No fields to update
-                return self.find_by_id(entry_id)
-
-            params.append(entry_id)
-            query = f"UPDATE log_entries SET {', '.join(fields)} WHERE id = ?"
-
-            conn.execute(query, params)
-            conn.commit()
-
+        if not fields:
+            # No fields to update
             return self.find_by_id(entry_id)
+
+        params.append(entry_id)
+        query = f"UPDATE log_entries SET {', '.join(fields)} WHERE id = ?"
+
+        self.db.execute(query, params)
+        self.db.commit()
+
+        return self.find_by_id(entry_id)
 
     def delete(self, entry_id: int) -> bool:
         """
@@ -187,10 +167,9 @@ class LogRepository(BaseRepository):
         if not self.exists(entry_id):
             return False
 
-        with sqlite3.connect(self.db_path) as conn:
-            query = "DELETE FROM log_entries WHERE id = ?"
-            conn.execute(query, (entry_id,))
-            conn.commit()
+        query = "DELETE FROM log_entries WHERE id = ?"
+        self.db.execute(query, (entry_id,))
+        self.db.commit()
 
         return True
 
@@ -242,16 +221,15 @@ class LogRepository(BaseRepository):
         Returns:
             Number of log entries
         """
-        with sqlite3.connect(self.db_path) as conn:
-            if date_filter:
-                query = "SELECT COUNT(*) FROM log_entries WHERE date = ?"
-                params = (date_filter,)
-            else:
-                query = "SELECT COUNT(*) FROM log_entries"
-                params = ()
+        if date_filter:
+            query = "SELECT COUNT(*) FROM log_entries WHERE date = ?"
+            params = (date_filter,)
+        else:
+            query = "SELECT COUNT(*) FROM log_entries"
+            params = ()
 
-            cursor = conn.execute(query, params)
-            return cursor.fetchone()[0]
+        cursor = self.db.execute(query, params)
+        return cursor.fetchone()[0]
 
     def verify_item_exists(self, item_type: str, item_id: int) -> bool:
         """
@@ -264,16 +242,15 @@ class LogRepository(BaseRepository):
         Returns:
             True if item exists, False otherwise
         """
-        with sqlite3.connect(self.db_path) as conn:
-            if item_type == "product":
-                table = "products"
-            elif item_type == "dish":
-                table = "dishes"
-            else:
-                return False
+        if item_type == "product":
+            table = "products"
+        elif item_type == "dish":
+            table = "dishes"
+        else:
+            return False
 
-            query = f"SELECT COUNT(*) FROM {table} WHERE id = ?"
-            cursor = conn.execute(query, (item_id,))
-            count = cursor.fetchone()[0]
+        query = f"SELECT COUNT(*) FROM {table} WHERE id = ?"
+        cursor = self.db.execute(query, (item_id,))
+        count = cursor.fetchone()[0]
 
-            return count > 0
+        return count > 0
