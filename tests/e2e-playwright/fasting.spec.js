@@ -75,22 +75,22 @@ test.describe('Fasting Tracking Workflow', () => {
       const hasActiveSession = await status.isVisible({ timeout: 5000 }).catch(() => false);
       
       // Or check for timer
-      const timer = page.locator('.timer, [data-timer]').or(page.locator('text=/\\d+:\\d+/')).first();
+      const timer = page.locator('.timer, [data-timer], text=/\\d+:\\d+/').first();
       const hasTimer = await timer.isVisible({ timeout: 5000 }).catch(() => false);
-      
+
       expect(hasActiveSession || hasTimer).toBeTruthy();
     }
   });
 
   test('should show fasting timer', async ({ page }) => {
     await page.waitForTimeout(1000);
-    
+
     // Look for timer display
-    const timer = page.locator('.timer, [data-timer]').or(page.locator('text=/\\d+:\\d+/')).first();
-    
+    const timer = page.locator('.timer, [data-timer], text=/\\d+:\\d+/').first();
+
     if (await timer.isVisible({ timeout: 2000 })) {
       const text = await timer.textContent();
-      
+
       // Should show time in format HH:MM or similar
       const hasTimeFormat = /\d+:\d+/.test(text || '');
       expect(hasTimeFormat).toBeTruthy();
@@ -99,10 +99,10 @@ test.describe('Fasting Tracking Workflow', () => {
 
   test('should display fasting progress', async ({ page }) => {
     await page.waitForTimeout(1000);
-    
+
     // Look for progress indicator
-    const progress = page.locator('.progress, [data-progress]').or(page.locator('text=/progress|%/i')).first();
-    
+    const progress = page.locator('.progress, [data-progress], text=/progress|%/i').first();
+
     if (await progress.isVisible({ timeout: 2000 })) {
       // Verify progress is shown
       await expect(progress).toBeVisible();
@@ -225,11 +225,11 @@ test.describe('Fasting Tracking Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for statistics section
-    const stats = page.locator('.fasting-stats, [data-fasting-stats]').or(page.locator('text=/stats|statistics/i')).first();
-    
+    const stats = page.locator('.fasting-stats, [data-fasting-stats], text=/stats|statistics/i').first();
+
     if (await stats.isVisible({ timeout: 2000 })) {
       const content = await stats.textContent();
-      
+
       // Should show fasting metrics
       const hasMetrics = content?.toLowerCase().includes('session') ||
                         content?.toLowerCase().includes('average') ||
@@ -259,15 +259,15 @@ test.describe('Fasting Tracking Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for goals section
-    const goals = page.locator('.goals, [data-goals]').or(page.locator('text=/goal/i')).first();
-    
+    const goals = page.locator('.goals, [data-goals], text=/goal/i').first();
+
     if (await goals.isVisible({ timeout: 2000 })) {
       const content = await goals.textContent();
-      
+
       // Should mention goals
       const hasGoalInfo = content?.toLowerCase().includes('goal') ||
                          content?.toLowerCase().includes('target');
-      
+
       expect(hasGoalInfo).toBeTruthy();
     }
   });
@@ -293,14 +293,14 @@ test.describe('Fasting Tracking Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for streak display
-    const streak = page.locator('[data-streak]').or(page.locator('text=/streak|consecutive/i')).first();
-    
+    const streak = page.locator('[data-streak], text=/streak|consecutive/i').first();
+
     if (await streak.isVisible({ timeout: 2000 })) {
       // Wait for data to load - streak display should update with actual value
       // Retry a few times in case data is still loading
       let text = '';
       let hasNumber = false;
-      
+
       for (let i = 0; i < 3; i++) {
         text = await streak.textContent();
         hasNumber = /\d+/.test(text || '');
@@ -369,11 +369,11 @@ test.describe('Fasting Tracking Workflow', () => {
     await page.waitForTimeout(1000);
     
     // Look for countdown or time remaining
-    const timeRemaining = page.locator('[data-remaining]').or(page.locator('text=/remaining|time left|until goal/i')).first();
-    
+    const timeRemaining = page.locator('[data-remaining], text=/remaining|time left|until goal/i').first();
+
     if (await timeRemaining.isVisible({ timeout: 2000 })) {
       const text = await timeRemaining.textContent();
-      
+
       // Should show time
       const hasTime = /\d+:\d+/.test(text || '') || /\d+\s*(hour|min)/i.test(text || '');
       expect(hasTime).toBeTruthy();
