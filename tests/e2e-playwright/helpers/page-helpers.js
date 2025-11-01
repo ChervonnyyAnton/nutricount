@@ -401,7 +401,9 @@ async function clickWhenReady(page, selector, options = {}) {
     attempts++;
     try {
       // Check if element is enabled (not disabled)
-      // Note: isEnabled() doesn't accept timeout parameter in Playwright API
+      // Note: isEnabled() doesn't accept a timeout parameter in Playwright API,
+      // so we use this polling loop to repeatedly check the enabled state and
+      // provide our own timeout functionality.
       const enabled = await locator.isEnabled();
 
       if (enabled) {
